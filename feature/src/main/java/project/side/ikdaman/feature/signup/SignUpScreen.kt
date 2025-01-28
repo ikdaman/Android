@@ -107,10 +107,8 @@ fun SignUpScreenUI(
             }) {
                 Text("Sign Up")
             }
-
         }
     }
-
 }
 
 @Composable

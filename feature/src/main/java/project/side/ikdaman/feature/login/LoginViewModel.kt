@@ -17,6 +17,5 @@ class LoginViewModel @Inject constructor() : ViewModel() {
 
     fun kakaoLogin(callback: () -> Unit) {
         callback()
-
     }
 }

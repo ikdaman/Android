@@ -43,7 +43,6 @@ fun LoginScreen(
     )
 }
 
-
 private fun navigateToSignUpScreen(navController: NavController) {
     navController.navigate(SIGNUP_ROUTE)
 }

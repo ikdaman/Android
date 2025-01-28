@@ -61,7 +61,6 @@ fun SearchScreenUI(onBack: () -> Unit = {}, onNavigateToEditScreen: () -> Unit =
     }
 }
 
-
 @Composable
 @Preview(showBackground = true)
 fun SearchScreenUIPreview() {

@@ -26,12 +26,13 @@ import project.side.ikdaman.feature.mypage.MyPageTab
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun MainScreen(appNavController: NavHostController) {
-
     val mainNavController = rememberNavController()
 
     Scaffold(bottomBar = {
         Row(
-            Modifier.fillMaxWidth().padding(8.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -79,5 +80,4 @@ fun MainScreen(appNavController: NavHostController) {
             }
         }
     }
-
 }

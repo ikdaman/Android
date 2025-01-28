@@ -3,7 +3,6 @@ package project.side.ikdaman.core.navigation
 const val LOGIN_ROUTE = "Login"
 const val SIGNUP_ROUTE = "Signup"
 
-
 const val MAIN_ROUTE = "Main"
 const val HOME_ROUTE = "Home"
 const val BOOKSHELF_ROUTE = "BookShelf"

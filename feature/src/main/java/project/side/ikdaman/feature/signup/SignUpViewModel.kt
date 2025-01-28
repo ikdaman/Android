@@ -7,6 +7,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SignUpViewModel @Inject constructor() : ViewModel() {
 
+    @Suppress("UNUSED_PARAMETER")
     fun signUp(
         nickname: String,
         birthDate: String,

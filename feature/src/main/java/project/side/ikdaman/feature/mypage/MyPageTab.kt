@@ -10,6 +10,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import project.side.ikdaman.core.ui.AppTheme
 
+@Suppress("UNUSED_PARAMETER")
 @Composable
 fun MyPageTab(navController: NavController) {
     MyPageTabUI()
