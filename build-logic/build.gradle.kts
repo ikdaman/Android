@@ -13,12 +13,12 @@ dependencies {
 gradlePlugin {
     plugins {
         register("androidHilt") {
-            id = "droidknights.android.hilt"
-            implementationClass = "com.droidknights.app.HiltAndroidPlugin"
+            id = "ikdaman.android.hilt"
+            implementationClass = "project.side.ikdaman.app.HiltAndroidPlugin"
         }
         register("kotlinHilt") {
-            id = "droidknights.kotlin.hilt"
-            implementationClass = "com.droidknights.app.HiltKotlinPlugin"
+            id = "ikdaman.kotlin.hilt"
+            implementationClass = "project.side.ikdaman.app.HiltKotlinPlugin"
         }
     }
 }
