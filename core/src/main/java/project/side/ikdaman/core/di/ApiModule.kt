@@ -23,7 +23,7 @@ object ApiModule {
     fun provideAladinService(): BookService{
         return Retrofit.Builder()
             .baseUrl("http://www.aladin.co.kr/")
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .addConverterFactory(MoshiConverterFactory.create(moshi).asLenient())
             .build()
             .create(BookService::class.java)
     }
