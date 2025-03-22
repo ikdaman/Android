@@ -21,14 +21,14 @@ import project.side.ikdaman.core.navigation.ExitToRightTransition
 import project.side.ikdaman.core.navigation.LOGIN_ROUTE
 import project.side.ikdaman.core.navigation.MAIN_ROUTE
 import project.side.ikdaman.core.navigation.SEARCH_ROUTE
-import project.side.ikdaman.core.navigation.SIGNUP_ROUTE
+import project.side.ikdaman.core.navigation.TUTORIAL_ROUTE
 import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.feature.barcode.BarcodeScreen
 import project.side.ikdaman.feature.bookedit.BookEditScreen
 import project.side.ikdaman.feature.detail.BookDetailScreen
 import project.side.ikdaman.feature.login.LoginScreen
 import project.side.ikdaman.feature.search.SearchScreen
-import project.side.ikdaman.feature.signup.SignUpScreen
+import project.side.ikdaman.feature.tutorial.TutorialScreen
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -38,12 +38,12 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppTheme {
                 val navController = rememberNavController()
-                NavHost(navController = navController, startDestination = LOGIN_ROUTE) {
+                NavHost(navController = navController, startDestination = MAIN_ROUTE) {
                     slideComposable(LOGIN_ROUTE) {
                         LoginScreen(navController)
                     }
-                    slideComposable(SIGNUP_ROUTE) {
-                        SignUpScreen(navController)
+                    slideComposable(TUTORIAL_ROUTE) {
+                        TutorialScreen(navController)
                     }
                     slideComposable(MAIN_ROUTE) {
                         MainScreen(navController)

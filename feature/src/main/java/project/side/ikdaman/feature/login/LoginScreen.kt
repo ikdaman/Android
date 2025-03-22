@@ -15,7 +15,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import project.side.ikdaman.core.navigation.LOGIN_ROUTE
 import project.side.ikdaman.core.navigation.MAIN_ROUTE
-import project.side.ikdaman.core.navigation.SIGNUP_ROUTE
+import project.side.ikdaman.core.navigation.TUTORIAL_ROUTE
 import project.side.ikdaman.core.ui.AppTheme
 
 @Composable
@@ -44,7 +44,7 @@ fun LoginScreen(
 }
 
 private fun navigateToSignUpScreen(navController: NavController) {
-    navController.navigate(SIGNUP_ROUTE)
+    navController.navigate(TUTORIAL_ROUTE)
 }
 
 private fun navigateToHomeScreen(navController: NavController) {
