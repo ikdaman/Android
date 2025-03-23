@@ -8,3 +8,10 @@ plugins {
 android {
     setNamespace("core")
 }
+
+dependencies{
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.converter.moshi)
+    implementation(libs.moshi.kotlin)
+}

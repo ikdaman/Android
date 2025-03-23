@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.runtime.Composable
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
@@ -49,7 +50,7 @@ class MainActivity : ComponentActivity() {
                         MainScreen(navController)
                     }
                     slideComposable(SEARCH_ROUTE) {
-                        SearchScreen(navController)
+                        SearchScreen(navController, hiltViewModel())
                     }
                     slideComposable(BARCODE_ROUTE) {
                         BarcodeScreen(navController)

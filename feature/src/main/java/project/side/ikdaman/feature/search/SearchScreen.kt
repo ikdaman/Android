@@ -3,7 +3,10 @@ package project.side.ikdaman.feature.search
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -11,29 +14,41 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import project.side.ikdaman.core.navigation.BOOK_EDIT_ROUTE
 import project.side.ikdaman.core.ui.AppTheme
 
 @Composable
-fun SearchScreen(navController: NavController) {
+fun SearchScreen(navController: NavController, searchViewModel:SearchViewModel) {
     SearchScreenUI(
         onBack = {
             navController.popBackStack()
         },
         onNavigateToEditScreen = {
             navController.navigate(BOOK_EDIT_ROUTE)
+        },
+        onSearchKeywordChange = {
+            searchViewModel.searchBookWithTitle(it)
         }
     )
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun SearchScreenUI(onBack: () -> Unit = {}, onNavigateToEditScreen: () -> Unit = {}) {
+fun SearchScreenUI(
+    onBack: () -> Unit = {},
+    onNavigateToEditScreen: () -> Unit = {},
+    onSearchKeywordChange: (String) -> Unit = {}
+) {
+    val searchKeyword = remember { mutableStateOf("") }
     Scaffold(
         topBar = {
             IconButton(
@@ -51,6 +66,24 @@ fun SearchScreenUI(onBack: () -> Unit = {}, onNavigateToEditScreen: () -> Unit =
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                TextField(
+                    value = searchKeyword.value,
+                    onValueChange = {
+                        searchKeyword.value = it
+                    }
+                )
+                Spacer(Modifier.width(8.dp))
+                Button(
+                    onClick = {
+                        onSearchKeywordChange(searchKeyword.value)
+                    }
+                ) {
+                    Text("검색")
+                }
+            }
             Text(text = "Search Screen")
             Button(
                 onClick = onNavigateToEditScreen
