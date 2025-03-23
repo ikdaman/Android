@@ -50,7 +50,7 @@ class MainActivity : ComponentActivity() {
                         MainScreen(navController)
                     }
                     slideComposable(SEARCH_ROUTE) {
-                        SearchScreen(navController, hiltViewModel())
+                        SearchScreen(navController)
                     }
                     slideComposable(BARCODE_ROUTE) {
                         BarcodeScreen(navController)

@@ -16,19 +16,30 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import project.side.ikdaman.core.navigation.BOOK_EDIT_ROUTE
+import project.side.ikdaman.core.navigation.MAIN_ROUTE
 import project.side.ikdaman.core.ui.AppTheme
 
 @Composable
-fun SearchScreen(navController: NavController, searchViewModel:SearchViewModel) {
+fun SearchScreen(
+    navController: NavController,
+    searchViewModel: SearchViewModel = hiltViewModel(
+        navController.getBackStackEntry(MAIN_ROUTE)
+    )
+) {
+    val totalCountState = searchViewModel.totalCount.collectAsState()
+
     SearchScreenUI(
+        totalCount = totalCountState.value,
         onBack = {
             navController.popBackStack()
         },
@@ -44,6 +55,7 @@ fun SearchScreen(navController: NavController, searchViewModel:SearchViewModel) 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun SearchScreenUI(
+    totalCount: Int = 0,
     onBack: () -> Unit = {},
     onNavigateToEditScreen: () -> Unit = {},
     onSearchKeywordChange: (String) -> Unit = {}
@@ -66,6 +78,7 @@ fun SearchScreenUI(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            Text("총 도서 수: $totalCount")
             Row(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
