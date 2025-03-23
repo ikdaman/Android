@@ -9,7 +9,8 @@ interface BookService {
         @Query("ttbkey") ttbkey: String = "ttbgju060611831001",
         @Query("Query") query: String,
         @Query("QueryType") queryType: String = "Title",
-        @Query("output") output: String = "JS"
+        @Query("output") output: String = "js",
+        @Query("Version") version: String = "20131101"
     ): BookSearchResponse
 }
 

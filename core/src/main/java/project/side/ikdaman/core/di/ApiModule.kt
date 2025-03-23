@@ -20,16 +20,16 @@ object ApiModule {
         .build()
 
     @Provides
-    fun provideAladinService(): BookService{
+    fun provideAladinService(): BookService {
         return Retrofit.Builder()
-            .baseUrl("http://www.aladin.co.kr/")
-            .addConverterFactory(MoshiConverterFactory.create(moshi).asLenient())
+            .baseUrl("https://www.aladin.co.kr/")
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
             .create(BookService::class.java)
     }
 
     @Provides
-    fun provideBookRepository(service: BookService): BookRepository{
+    fun provideBookRepository(service: BookService): BookRepository {
         return BookRepository(service)
     }
 }
