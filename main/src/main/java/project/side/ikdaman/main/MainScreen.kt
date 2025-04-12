@@ -65,13 +65,6 @@ fun MainScreen(appNavController: NavHostController) {
             }
             Button(
                 onClick = {
-                    addBookDialogState.value = true
-                }
-            ) {
-                Text("+")
-            }
-            Button(
-                onClick = {
                     mainNavController.popBackStack()
                     mainNavController.navigate(HOME_ROUTE) {
                         restoreState = false
