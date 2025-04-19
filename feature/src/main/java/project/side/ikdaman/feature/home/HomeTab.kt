@@ -3,8 +3,10 @@ package project.side.ikdaman.feature.home
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,6 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,6 +67,7 @@ enum class HomeTabViewMode {
 
 @Composable
 fun HomeTabUI(
+    paletteViewState: MutableState<Boolean> = remember { mutableStateOf(false) },
     onNavigateTo: (String) -> Unit = {}
 ) {
     val paletteColors = listOf(
@@ -93,13 +97,17 @@ fun HomeTabUI(
         ) {
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .padding(start = 18.dp, end = 18.dp, top = 22.dp)
+                    .padding(start = 6.dp, end = 18.dp, top = 6.dp)
                     .fillMaxWidth()
             ) {
                 Surface(
                     shadowElevation = 4.dp,
                     shape = CircleShape,
+                    modifier = Modifier.padding(12.dp).clickable {
+                        paletteViewState.value = !paletteViewState.value
+                    }
                 ) {
                     Box(
                         Modifier
@@ -126,9 +134,15 @@ fun HomeTabUI(
             val progress = 0.5f
             LeftDayBubble(day)
             Spacer(Modifier.height(17.dp))
-            Spacer(Modifier.height(284.dp))
+            val imageUrls = listOf(
+                "https://picsum.photos/199/284?random=4",
+                "https://picsum.photos/199/284?random=5",
+                "https://picsum.photos/199/284?random=6",
+                "null"
+            )
+            BookCarousel(imageUrls)
             Spacer(Modifier.height(19.dp))
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(verticalArrangement = Arrangement.SpaceAround, horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.height(42.dp)) {
                 AppText("소년이 온다", style = HomeTextStyles.bookTitleText)
                 AppText("한강", style = HomeTextStyles.bookAuthorText)
             }
@@ -173,6 +187,72 @@ fun HomeTabUI(
                 }
             }
         }
+
+        if (paletteViewState.value) {
+            Box(Modifier.fillMaxSize().clickable {
+                paletteViewState.value = false
+            })
+            Box(Modifier.padding(top = 59.dp, start = 20.dp).align(Alignment.TopStart)) {
+                PaletteView(paletteColors, selectedColor, paletteViewState) {
+                    selectedColor.value = it
+                    paletteViewState.value = false
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PaletteView(
+    paletteColors: List<Color>,
+    selectedColor: MutableState<Color>,
+    paletteViewState: MutableState<Boolean>,
+    onSelected: (Color) -> Unit = {}
+) {
+    Row(Modifier.clip(RoundedCornerShape(5.dp)).background(Color.White).padding(15.dp)) {
+        val selectedBorderColor = Color(0xFF565656)
+        paletteColors.forEachIndexed { index, color ->
+            val isSelected = selectedColor.value == color
+            Surface(
+                shadowElevation = 4.dp,
+                shape = CircleShape,
+                modifier = Modifier.clickable {
+                    onSelected(color)
+                }
+            ) {
+                Box(
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(color)
+                        .size(23.dp)
+                        .border(width = 1.5.dp, color = if (isSelected) selectedBorderColor else Color.White, shape = CircleShape)
+                        .clickable {
+                            selectedColor.value = color
+                            paletteViewState.value = false
+                        }
+                )
+            }
+            if (index != paletteColors.size - 1) {
+                Spacer(Modifier.width(10.dp))
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PalettePreview() {
+    AppTheme {
+        val paletteColors = listOf(
+            Palette.first,
+            Palette.second,
+            Palette.third,
+            Palette.fourth,
+            Palette.fifth
+        )
+        val selectedColor = remember { mutableStateOf(Palette.first) }
+        val paletteViewState = remember { mutableStateOf(false) }
+        PaletteView(paletteColors, selectedColor, paletteViewState)
     }
 }
 
@@ -209,7 +289,7 @@ private fun LeftDayBubble(day: Int = 31) {
 fun GradientBox(
     modifier: Modifier = Modifier,
     gradient: Brush,
-    content: @Composable () -> Unit = {}
+    content: @Composable BoxScope.() -> Unit = {}
 ) {
     Box(
         modifier = modifier.background(brush = gradient),
@@ -223,6 +303,8 @@ fun GradientBox(
 @Preview(showBackground = true, widthDp = 393, heightDp = 869-56-47)
 fun HomeTabPreview() {
     AppTheme {
-        HomeTabUI()
+        HomeTabUI(
+            paletteViewState = remember { mutableStateOf(true) }
+        )
     }
 }
