@@ -1,5 +1,8 @@
 [versions]
 agp = "8.8.0"
+barcodeScanning = "17.3.0"
+cameraCore = "1.4.2"
+coilCompose = "2.4.0"
 converterMoshi = "2.9.0"
 javaxInject = "1"
 kotlin = "2.1.0"
@@ -35,10 +38,16 @@ androidDesugarJdkLibs = "2.1.4"
 androidxLifecycle = "2.8.7"
 
 androidxComposeNavigation = "2.8.5"
+cameraLifecycle = "1.4.2"
+cameraView = "1.4.2"
 
 [libraries]
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
 android-desugarJdkLibs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "androidDesugarJdkLibs" }
+androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraCore" }
+androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "cameraCore" }
+barcode-scanning = { module = "com.google.mlkit:barcode-scanning", version.ref = "barcodeScanning" }
+coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
 converter-moshi = { module = "com.squareup.retrofit2:converter-moshi", version.ref = "converterMoshi" }
 javax-inject = { module = "javax.inject:javax.inject", version.ref = "javaxInject" }
@@ -93,6 +102,8 @@ kotest-assertions = { group = "io.kotest", name = "kotest-assertions-core", vers
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
 
 oss-licenses-plugin = { group = "com.google.android.gms", name = "oss-licenses-plugin", version.ref = "ossLicensesPlugin" }
+androidx-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "cameraLifecycle" }
+androidx-camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "cameraView" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
