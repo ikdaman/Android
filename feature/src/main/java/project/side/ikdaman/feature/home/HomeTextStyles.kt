@@ -38,6 +38,13 @@ object HomeTextStyles {
         fontSize = 13.sp,
         lineHeight = 18.sp,
         letterSpacing = (-0.4).sp,
-        color = Color(0xFF666666)
+    )
+
+    val emptyBookText = TextStyle(
+        fontWeight = FontWeight.Normal,
+        fontSize = 15.sp,
+        lineHeight = 17.sp,
+        letterSpacing = (-0.4).sp,
+        color = Color.Black
     )
 }
