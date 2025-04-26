@@ -1,7 +1,7 @@
 package project.side.ikdaman.feature.home
 
 data class HomeBookItem(
-    val id: Int,
+    val id: String,
     val imageUrl: String,
     val addedDateTime: Long,
     val lastEditedDateTime: Long,

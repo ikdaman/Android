@@ -1,7 +1,12 @@
 package project.side.ikdaman.feature.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,17 +18,23 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -31,102 +42,171 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.ui.AppText
 import project.side.ikdaman.core.ui.AppTheme
+import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.core.view.BookProgressBar
+import project.side.ikdaman.core.view.GradientBox
 
 @Composable
-fun ListBooks(books: List<HomeBookItem>) {
+fun ListBooks(
+    pinnedItems: List<HomeBookItem> = emptyList(),
+    unpinnedItems: List<HomeBookItem> = emptyList(),
+    onPinItem: (String) -> Unit = {}
+) {
     Spacer(Modifier.height(20.dp))
     SimpleBubble()
     Spacer(Modifier.height(15.dp))
-    Column(
-        modifier = Modifier.verticalScroll(rememberScrollState())
-    ) {
-        books.forEachIndexed { index, item ->
-            Row(
-                modifier = Modifier
-                    .padding(horizontal = 20.dp)
-                    .clip(RoundedCornerShape(5.dp))
-                    .fillMaxWidth()
-                    .height(105.dp)
-                    .background(Color.White.copy(alpha = 0.7f))
-                    .padding(11.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                val isLoading = remember { mutableStateOf(true) }
-                Box(
-                    Modifier
-                        .background(Color(0xFFF2F2F2))
-                        .width(58.dp)
-                        .height(83.dp)
-                ) {
-                    Image(
-                        painter = rememberAsyncImagePainter(
-                            model = item.imageUrl,
-                            placeholder = null,
-                            onLoading = {
-                                isLoading.value = true
-                            },
-                            onSuccess = {
-                                isLoading.value = false
-                            },
-                            onError = {
-                                isLoading.value = false
-                            },
-                            error = painterResource(R.drawable.no_image)
-                        ),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Fit
-                    )
-                    if (isLoading.value) {
-                        CircularProgressIndicator(
-                            modifier = Modifier
-                                .size(29.dp)
-                                .align(Alignment.Center),
-                            color = Color.Black,
-                            strokeWidth = 2.dp
-                        )
-                    }
-                }
-                Spacer(Modifier.width(12.dp))
-                Column {
-                    Row(
-                        verticalAlignment = Alignment.Top,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column(
-                            Modifier
-                                .height(42.dp)
-                                .weight(1f),
-                            verticalArrangement = Arrangement.SpaceAround
-                        ) {
-                            AppText(
-                                item.title,
-                                style = HomeTextStyles.bookTitleText
-                            )
-                            AppText(
-                                item.author,
-                                style = HomeTextStyles.bookAuthorText
-                            )
-                        }
-                        Image(
-                            imageVector = ImageVector.vectorResource(R.drawable.clip_icon),
-                            contentDescription = null,
-                        )
-                    }
-                    Spacer(Modifier.height(26.dp))
-                    BookProgressBar(260, item.progress)
-                }
-            }
-            if (index != books.size) {
-                Spacer(Modifier.height(10.dp))
+
+
+    val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
+
+    val items = pinnedItems + unpinnedItems
+
+    val visibleMap = remember { mutableStateMapOf<String, Boolean>() }
+
+    // 🛠️ 리스트가 바뀌면 자동으로 visible 상태도 초기화
+    LaunchedEffect(pinnedItems, unpinnedItems) {
+        items.forEach { item ->
+            if (visibleMap[item.id] != true) {
+                visibleMap[item.id] = false
+                delay(50) // 살짝 딜레이 주고
+                visibleMap[item.id] = true // 등장 애니메이션 트리거
             }
         }
-        Spacer(Modifier.height((101 + 56).dp))
+    }
+
+    LazyColumn(
+        state = listState,
+    ) {
+        itemsIndexed(
+            items = items,
+            key = { _, item -> item.id }
+        ) { index, item ->
+            val isVisible = visibleMap[item.id] ?: true
+
+            AnimatedVisibility(
+                visible = isVisible,
+                enter = slideInVertically(
+                    animationSpec = tween(durationMillis = 200)
+                ) { fullHeight -> fullHeight },
+            ) {
+                ListBooksDetail(item, index < pinnedItems.size, onPinItem = {
+                    visibleMap[item.id] = false
+                    coroutineScope.launch {
+                        delay(300)
+                        onPinItem(item.id)
+                        delay(300)
+                        listState.animateScrollToItem(0)
+                    }
+                })
+            }
+            if (index != pinnedItems.size + unpinnedItems.size - 1) {
+                Spacer(Modifier.height(10.dp))
+            } else {
+                Spacer(Modifier.height((101 + 56).dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun AnimatedVisibilityScope.ListBooksDetail(
+    item: HomeBookItem,
+    isPinned: Boolean,
+    onPinItem: () -> Unit
+) {
+    val clipColor = if (isPinned) Color(0xFF222221) else Color(0xFFCECECE)
+
+    Row(
+        modifier = Modifier
+            .animateEnterExit(
+                enter = slideInVertically(
+                    animationSpec = tween(durationMillis = 300)
+                ) { fullHeight -> fullHeight },
+            )
+            .padding(horizontal = 20.dp)
+            .clip(RoundedCornerShape(5.dp))
+            .fillMaxWidth()
+            .height(105.dp)
+            .background(Color.White.copy(alpha = 0.7f))
+            .padding(11.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        val isLoading = remember { mutableStateOf(true) }
+        Box(
+            Modifier
+                .background(Color(0xFFF2F2F2))
+                .width(58.dp)
+                .height(83.dp)
+        ) {
+            Image(
+                painter = rememberAsyncImagePainter(
+                    model = item.imageUrl,
+                    placeholder = null,
+                    onLoading = {
+                        isLoading.value = true
+                    },
+                    onSuccess = {
+                        isLoading.value = false
+                    },
+                    onError = {
+                        isLoading.value = false
+                    },
+                    error = painterResource(R.drawable.no_image)
+                ),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit
+            )
+            if (isLoading.value) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(29.dp)
+                        .align(Alignment.Center),
+                    color = Color.Black,
+                    strokeWidth = 2.dp
+                )
+            }
+        }
+        Spacer(Modifier.width(12.dp))
+        Column {
+            Row(
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(
+                    Modifier
+                        .height(42.dp)
+                        .weight(1f),
+                    verticalArrangement = Arrangement.SpaceAround
+                ) {
+                    AppText(
+                        item.title,
+                        style = HomeTextStyles.bookTitleText
+                    )
+                    AppText(
+                        item.author,
+                        style = HomeTextStyles.bookAuthorText
+                    )
+                }
+                Image(
+                    imageVector = ImageVector.vectorResource(R.drawable.clip_icon),
+                    contentDescription = null,
+                    colorFilter = ColorFilter.tint(clipColor),
+                    modifier = Modifier.clickable {
+                        onPinItem()
+                    }
+                )
+            }
+            Spacer(Modifier.height(26.dp))
+            BookProgressBar(260, item.progress)
+        }
     }
 }
 
@@ -160,14 +240,22 @@ private fun SimpleBubble() {
 }
 
 @Composable
-@Preview(showBackground = true, backgroundColor = 0xFF000000)
+@Preview(showBackground = true)
 fun ListBooksPreview() {
     AppTheme {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            ListBooks(
-                books = listOf(
+        GradientBox(
+            Modifier.fillMaxSize(),
+            gradient = Brush.verticalGradient(
+                colors = listOf(
+                    Palette.second,
+                    Palette.third.copy(alpha = 0.2f),
+                )
+            )
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                val pinnedItems = listOf(
                     HomeBookItem(
-                        id = 0,
+                        id = "0",
                         imageUrl = "https://picsum.photos/250/284?random=1",
                         addedDateTime = System.currentTimeMillis(),
                         lastEditedDateTime = System.currentTimeMillis(),
@@ -176,7 +264,7 @@ fun ListBooksPreview() {
                         firstImpression = "테스트 테스트"
                     ),
                     HomeBookItem(
-                        id = 1,
+                        id = "1",
                         imageUrl = "https://picsum.photos/250/284?random=2",
                         addedDateTime = System.currentTimeMillis() - (24 * 60 * 60 * 1000),
                         lastEditedDateTime = System.currentTimeMillis() - (24 * 60 * 60 * 1000),
@@ -188,7 +276,7 @@ fun ListBooksPreview() {
                         progress = 1f
                     ),
                     HomeBookItem(
-                        id = 2,
+                        id = "2",
                         imageUrl = "https://picsum.photos/250/284?random=3",
                         addedDateTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
                         lastEditedDateTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
@@ -197,7 +285,7 @@ fun ListBooksPreview() {
                         progress = 0.5f
                     ),
                     HomeBookItem(
-                        id = 3,
+                        id = "3",
                         imageUrl = "https://picsum.photos/250/284?random=4",
                         addedDateTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
                         lastEditedDateTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
@@ -206,7 +294,10 @@ fun ListBooksPreview() {
                         progress = 0.7f
                     ),
                 )
-            )
+                ListBooks(
+                    pinnedItems = pinnedItems,
+                )
+            }
         }
     }
 }

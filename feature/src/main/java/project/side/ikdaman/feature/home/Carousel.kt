@@ -1,8 +1,10 @@
 package project.side.ikdaman.feature.home
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -28,7 +30,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -43,19 +47,23 @@ import kotlin.math.absoluteValue
 
 @Composable
 fun BookCarousel(
+    deleteMode: MutableState<Boolean> = remember { mutableStateOf(false) },
     selectedBookIndex: MutableState<Int> = mutableStateOf(0),
-    items: List<HomeBookItem> = emptyList()
+    items: List<HomeBookItem> = emptyList(),
+    onDeleteClick: (HomeBookItem) -> Unit = {}
 ) {
     // Carousel
     val pagerState = rememberPagerState(pageCount = { items.size }, initialPage = 0)
     val coroutineScope = rememberCoroutineScope()
-    val deleteMode = remember { mutableStateOf(false) }
+
+    // 정확히 가운데로 오기 위해 화면 가로 길이에서 책 너비 빼기
+    val carouselPadding = calculateHorizontalPadding()
 
     HorizontalPager(
         state = pagerState,
         modifier = Modifier.fillMaxWidth(),
         pageSpacing = 32.dp, // 페이지 간 간격 유지
-        contentPadding = PaddingValues(horizontal = 100.dp) // 좌우 패딩을 넓게 설정해 좌우 페이지가 벽에 걸치도록
+        contentPadding = PaddingValues(horizontal = carouselPadding.dp) // 좌우 패딩을 넓게 설정해 좌우 페이지가 벽에 걸치도록
     ) { page ->
         selectedBookIndex.value = pagerState.currentPage
 
@@ -71,22 +79,35 @@ fun BookCarousel(
                 .graphicsLayer {
                     scaleX = scale
                     scaleY = scale
-                }
-                .clickable {
-                    // 탭 시 해당 페이지로 스크롤
-                    coroutineScope.launch {
-                        pagerState.animateScrollToPage(page)
-                    }
-                }
+                }.pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = {
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(page)
+                            }
+                        },
+                        onLongPress = {
+                            deleteMode.value = true
+                        }
+                    )
+                },
+            onDeleteClick = onDeleteClick,
         )
     }
+}
+
+@SuppressLint("ConfigurationScreenWidthHeight")
+@Composable
+private fun calculateHorizontalPadding(): Int {
+    return LocalConfiguration.current.screenWidthDp / 2 - 199 / 2
 }
 
 @Composable
 fun CarouselItemView(
     item: HomeBookItem,
     deleteMode: MutableState<Boolean>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onDeleteClick: (HomeBookItem) -> Unit = {}
 ) {
     val circleRed = Color(0xFFFF1818)
     val circleTextStyle = TextStyle(
@@ -147,6 +168,9 @@ fun CarouselItemView(
                     .background(circleRed)
                     .size(32.dp)
                     .align(Alignment.TopEnd)
+                    .clickable {
+                        onDeleteClick(item)
+                    }
             ) {
                 Box(
                     modifier = Modifier
@@ -177,7 +201,7 @@ fun CarouselItemPreView() {
         Row {
             CarouselItemView(
                 item = HomeBookItem(
-                    id = 0,
+                    id = "0",
                     imageUrl = "https://picsum.photos/250/284?random=1",
                     addedDateTime = System.currentTimeMillis(),
                     lastEditedDateTime = System.currentTimeMillis(),
@@ -198,7 +222,7 @@ fun CarouselPreview() {
         // 샘플 이미지 URL 리스트
         val items = listOf(
             HomeBookItem(
-                id = 0,
+                id = "0",
                 imageUrl = "https://picsum.photos/250/284?random=1",
                 addedDateTime = System.currentTimeMillis(),
                 lastEditedDateTime = System.currentTimeMillis(),
@@ -206,7 +230,7 @@ fun CarouselPreview() {
                 author = "한강1"
             ),
             HomeBookItem(
-                id = 1,
+                id = "1",
                 imageUrl = "https://picsum.photos/250/284?random=2",
                 addedDateTime = System.currentTimeMillis() - (24 * 60 * 60 * 1000),
                 lastEditedDateTime = System.currentTimeMillis() - (24 * 60 * 60 * 1000),
@@ -214,7 +238,7 @@ fun CarouselPreview() {
                 author = "한강1"
             ),
             HomeBookItem(
-                id = 2,
+                id = "2",
                 imageUrl = "https://picsum.photos/250/284?random=3",
                 addedDateTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
                 lastEditedDateTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
@@ -222,7 +246,7 @@ fun CarouselPreview() {
                 author = "한강1"
             ),
             HomeBookItem(
-                id = 3,
+                id = "3",
                 imageUrl = "https://picsum.photos/250/284?random=4",
                 addedDateTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
                 lastEditedDateTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),

@@ -15,6 +15,8 @@ kotlin {
 
 dependencies {
     implementation(libs.javax.inject)
+    // kotlin flow
+    implementation(libs.coroutines.core)
 
     implementation(libs.hilt.core)
     kapt(libs.hilt.compiler)

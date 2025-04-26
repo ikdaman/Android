@@ -8,4 +8,12 @@ object Palette {
     val third = Color(0xFF26843B)
     val fourth = Color(0xFF694E4E)
     val fifth = Color(0xFF595959)
+
+    val paletteColors = listOf(
+        first,
+        second,
+        third,
+        fourth,
+        fifth
+    )
 }

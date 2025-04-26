@@ -1,12 +1,13 @@
 package project.side.ikdaman.feature.home
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -45,6 +46,7 @@ import project.side.ikdaman.core.ui.AppText
 import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.core.view.BookProgressBarWithText
+import project.side.ikdaman.core.view.GradientBox
 
 @Composable
 fun HomeTab(
@@ -53,90 +55,16 @@ fun HomeTab(
         navController.getBackStackEntry(MAIN_ROUTE)
     )
 ) {
-    @Suppress("UNUSED_VARIABLE")
-    val count = viewModel.count.collectAsState()
-    val books = listOf(
-        HomeBookItem(
-            id = 0,
-            imageUrl = "https://picsum.photos/250/284?random=1",
-            addedDateTime = System.currentTimeMillis(),
-            lastEditedDateTime = System.currentTimeMillis(),
-            title = "소년이 온다1",
-            author = "한강1",
-            firstImpression = "테스트 테스트",
-            progress = 1f
-        ),
-        HomeBookItem(
-            id = 1,
-            imageUrl = "https://picsum.photos/199/284?random=9",
-            addedDateTime = System.currentTimeMillis() - (24 * 60 * 60 * 1000),
-            lastEditedDateTime = System.currentTimeMillis() - (24 * 60 * 60 * 1000),
-            title = "소년이 온다2",
-            author = "한강2",
-            firstImpression = "네가 죽은 뒤 장례식을 치르지 못해, 내 삶이 장례식이 되었다.\n" +
-                    "네가 방수 모포에 싸여 청소차에 실려간 뒤에.\n" +
-                    "용서할 수 없는 물줄기가 번쩍이며 분수대에서 뿜어져나온 뒤에.",
-            progress = 0.8f
-        ),
-        HomeBookItem(
-            id = 2,
-            imageUrl = "https://picsum.photos/250/284?random=3",
-            addedDateTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
-            lastEditedDateTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
-            title = "소년이 온다3",
-            author = "한강1",
-            progress = 0.4f
-        ),
-        HomeBookItem(
-            id = 3,
-            imageUrl = "null",
-            addedDateTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
-            lastEditedDateTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
-            title = "소년이 온다4",
-            author = "한강1"
-        ),
-        HomeBookItem(
-            id = 4,
-            imageUrl = "https://picsum.photos/250/284?random=8",
-            addedDateTime = System.currentTimeMillis(),
-            lastEditedDateTime = System.currentTimeMillis(),
-            title = "소년이 온다5",
-            author = "한강1",
-            firstImpression = "테스트 테스트",
-            progress = 1f
-        ),
-        HomeBookItem(
-            id = 5,
-            imageUrl = "https://picsum.photos/199/284?random=6",
-            addedDateTime = System.currentTimeMillis() - (24 * 60 * 60 * 1000),
-            lastEditedDateTime = System.currentTimeMillis() - (24 * 60 * 60 * 1000),
-            title = "소년이 온다6",
-            author = "한강2",
-            firstImpression = "네가 죽은 뒤 장례식을 치르지 못해, 내 삶이 장례식이 되었다.\n" +
-                    "네가 방수 모포에 싸여 청소차에 실려간 뒤에.\n" +
-                    "용서할 수 없는 물줄기가 번쩍이며 분수대에서 뿜어져나온 뒤에.",
-            progress = 0.8f
-        ),
-        HomeBookItem(
-            id = 6,
-            imageUrl = "https://picsum.photos/250/284?random=7",
-            addedDateTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
-            lastEditedDateTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
-            title = "소년이 온다7",
-            author = "한강1",
-            progress = 0.4f
-        ),
-        HomeBookItem(
-            id = 7,
-            imageUrl = "null",
-            addedDateTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
-            lastEditedDateTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
-            title = "소년이 온다8",
-            author = "한강1"
-        ),
-    )
     HomeTabUI(
-        books = books
+        books = viewModel.books,
+        pinnedItems = viewModel.pinnedItems.collectAsState().value,
+        unpinnedItems = viewModel.unpinnedItems.collectAsState().value,
+        onPinItem = {
+            viewModel.pinItem(it)
+        },
+        onDeleteClick = {
+            viewModel.deleteItem(it)
+        },
     )
 }
 
@@ -148,22 +76,24 @@ enum class HomeTabViewMode {
 @Composable
 fun HomeTabUI(
     books: List<HomeBookItem> = listOf(),
+    pinnedItems: List<HomeBookItem> = emptyList(),
+    unpinnedItems: List<HomeBookItem> = emptyList(),
     selectedViewMode: MutableState<HomeTabViewMode> = remember { mutableStateOf(HomeTabViewMode.CAROUSEL) },
-    paletteViewState: MutableState<Boolean> = remember { mutableStateOf(false) }
+    paletteViewState: MutableState<Boolean> = remember { mutableStateOf(false) },
+    onPinItem: (String) -> Unit = {},
+    onDeleteClick: (HomeBookItem) -> Unit = {}
 ) {
-    val paletteColors = listOf(
-        Palette.first,
-        Palette.second,
-        Palette.third,
-        Palette.fourth,
-        Palette.fifth
-    )
-
     val selectedColor = remember { mutableStateOf(Palette.first) }
     val selectedBookIndex = remember { mutableStateOf(0) }
+    val deleteMode = remember { mutableStateOf(false) }
 
     GradientBox(
-        Modifier.fillMaxSize(),
+        Modifier.fillMaxSize().clickable(
+            indication = null,
+            interactionSource = remember { MutableInteractionSource() }
+        ) {
+            deleteMode.value = false
+        },
         gradient = Brush.verticalGradient(
             colors = listOf(
                 selectedColor.value,
@@ -206,9 +136,13 @@ fun HomeTabUI(
 
             if (books.isNotEmpty()) {
                 if (selectedViewMode.value == HomeTabViewMode.CAROUSEL) {
-                    CarouselBooks(selectedBookIndex, books)
+                    CarouselBooks(deleteMode, selectedBookIndex, books, onDeleteClick)
                 } else {
-                    ListBooks(books)
+                    ListBooks(
+                        pinnedItems = pinnedItems,
+                        unpinnedItems = unpinnedItems,
+                        onPinItem = onPinItem
+                    )
                 }
             } else {
                 EmptyBookView()
@@ -227,7 +161,7 @@ fun HomeTabUI(
                     .padding(top = 59.dp, start = 20.dp)
                     .align(Alignment.TopStart)
             ) {
-                PaletteView(paletteColors, selectedColor, paletteViewState) {
+                PaletteView(Palette.paletteColors, selectedColor, paletteViewState) {
                     selectedColor.value = it
                     paletteViewState.value = false
                 }
@@ -260,15 +194,23 @@ private fun ColorPaletteButton(
     }
 }
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 private fun CarouselBooks(
+    deleteMode: MutableState<Boolean>,
     selectedBookIndex: MutableState<Int>,
-    books: List<HomeBookItem>
+    books: List<HomeBookItem>,
+    onDeleteClick: (HomeBookItem) -> Unit = {}
 ) {
     Spacer(Modifier.height(20.dp))
     LeftDayBubble(books[selectedBookIndex.value])
     Spacer(Modifier.height(17.dp))
-    BookCarousel(selectedBookIndex = selectedBookIndex, items = books)
+    BookCarousel(
+        deleteMode = deleteMode,
+        selectedBookIndex = selectedBookIndex,
+        items = books,
+        onDeleteClick = onDeleteClick,
+    )
     Spacer(Modifier.height(19.dp))
     Column(
         verticalArrangement = Arrangement.SpaceAround,
@@ -285,9 +227,8 @@ private fun CarouselBooks(
         )
     }
     Spacer(Modifier.height(10.dp))
-    val barWidth = LocalConfiguration.current.screenWidthDp - 40
     BookProgressBarWithText(
-        barWidth,
+        LocalConfiguration.current.screenWidthDp - 40,
         books[selectedBookIndex.value].progress,
         modifier = Modifier.padding(horizontal = 20.dp)
     )
@@ -469,6 +410,10 @@ fun PalettePreview() {
 private fun LeftDayBubble(bookItem: HomeBookItem) {
     val day = bookItem.getLeftDay()
     val isCompleted = bookItem.isCompleted()
+    if (isCompleted) {
+        Spacer(Modifier.height(41.dp))
+        return
+    }
     Box {
         Column(Modifier.align(Alignment.TopCenter)) {
             Row(
@@ -483,10 +428,11 @@ private fun LeftDayBubble(bookItem: HomeBookItem) {
                     contentDescription = null
                 )
                 Spacer(Modifier.width(5.dp))
-                if (isCompleted) {
-                    AppText("책을 다 읽었어요", style = HomeTextStyles.bubbleTextBold)
+                if (day == 0) {
+                    AppText("오늘 ", style = HomeTextStyles.bubbleTextBold)
+                    AppText("읽다만 책이에요", style = HomeTextStyles.bubbleTextRegular)
                 } else {
-                    AppText(if (day == 0) "방금 " else "${day}일 ", style = HomeTextStyles.bubbleTextBold)
+                    AppText("${day}일 ", style = HomeTextStyles.bubbleTextBold)
                     AppText("전에 읽다만 책이에요", style = HomeTextStyles.bubbleTextRegular)
                 }
             }
@@ -500,30 +446,14 @@ private fun LeftDayBubble(bookItem: HomeBookItem) {
     }
 }
 
-
 @Composable
-fun GradientBox(
-    modifier: Modifier = Modifier,
-    gradient: Brush,
-    content: @Composable BoxScope.() -> Unit = {}
-) {
-    Box(
-        modifier = modifier.background(brush = gradient),
-        contentAlignment = Alignment.Center
-    ) {
-        content()
-    }
-}
-
-
-@Composable
-@Preview(showBackground = true, widthDp = 393, heightDp = 869 - 56 - 47)
+@Preview(showBackground = true, widthDp = 420, heightDp = 869 - 56 - 47)
 fun CarouselHomeTabPreview() {
     AppTheme {
         HomeTabUI(
             books = listOf(
                 HomeBookItem(
-                    id = 0,
+                    id = "0",
                     imageUrl = "https://picsum.photos/250/284?random=1",
                     addedDateTime = System.currentTimeMillis(),
                     lastEditedDateTime = System.currentTimeMillis(),
@@ -535,7 +465,7 @@ fun CarouselHomeTabPreview() {
                     progress = 0.1f
                 ),
                 HomeBookItem(
-                    id = 1,
+                    id = "1",
                     imageUrl = "https://picsum.photos/250/284?random=2",
                     addedDateTime = System.currentTimeMillis() - (24 * 60 * 60 * 1000),
                     lastEditedDateTime = System.currentTimeMillis() - (24 * 60 * 60 * 1000),
@@ -545,7 +475,7 @@ fun CarouselHomeTabPreview() {
                     progress = 1f
                 ),
                 HomeBookItem(
-                    id = 2,
+                    id = "2",
                     imageUrl = "https://picsum.photos/250/284?random=3",
                     addedDateTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
                     lastEditedDateTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
@@ -553,7 +483,7 @@ fun CarouselHomeTabPreview() {
                     author = "한강1"
                 ),
                 HomeBookItem(
-                    id = 3,
+                    id = "3",
                     imageUrl = "https://picsum.photos/250/284?random=4",
                     addedDateTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
                     lastEditedDateTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
@@ -573,7 +503,7 @@ fun ListHomeTabPreview() {
         HomeTabUI(
             books = listOf(
                 HomeBookItem(
-                    id = 0,
+                    id = "0",
                     imageUrl = "https://picsum.photos/250/284?random=1",
                     addedDateTime = System.currentTimeMillis(),
                     lastEditedDateTime = System.currentTimeMillis(),
@@ -582,7 +512,7 @@ fun ListHomeTabPreview() {
                     firstImpression = ""
                 ),
                 HomeBookItem(
-                    id = 1,
+                    id = "1",
                     imageUrl = "https://picsum.photos/250/284?random=2",
                     addedDateTime = System.currentTimeMillis() - (12 * 60 * 60 * 1000),
                     lastEditedDateTime = System.currentTimeMillis() - (12 * 60 * 60 * 1000),
@@ -592,7 +522,7 @@ fun ListHomeTabPreview() {
                     progress = 1f
                 ),
                 HomeBookItem(
-                    id = 2,
+                    id = "2",
                     imageUrl = "https://picsum.photos/250/284?random=3",
                     addedDateTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
                     lastEditedDateTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
@@ -601,7 +531,7 @@ fun ListHomeTabPreview() {
                     progress = 0.5f
                 ),
                 HomeBookItem(
-                    id = 3,
+                    id = "3",
                     imageUrl = "https://picsum.photos/250/284?random=4",
                     addedDateTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
                     lastEditedDateTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
