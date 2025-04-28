@@ -21,9 +21,8 @@ internal fun Project.configureComposeAndroid() {
             add("implementation", libs.findLibrary("androidx.compose.material3").get())
             add("implementation", libs.findLibrary("androidx.compose.ui").get())
             add("implementation", libs.findLibrary("androidx.compose.ui.tooling.preview").get())
-
-//            implementation(libs.findLibrary("androidx.navigation.runtime.ktx").get())
             add("implementation", libs.findLibrary("androidx.navigation.runtime.ktx").get())
+            add("implementation", libs.findLibrary("coil.compose").get())
 
             add("androidTestImplementation", libs.findLibrary("androidx.junit").get())
             add("androidTestImplementation", libs.findLibrary("androidx.espresso.core").get())
