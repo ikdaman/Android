@@ -22,7 +22,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "Ikdaman"
 include(":app")
-include(":main")
 include(":core")
 include(":feature")
 include(":data")

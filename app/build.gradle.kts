@@ -26,7 +26,7 @@ android {
 }
 
 dependencies {
-    implementation(projects.main)
+    implementation(projects.feature)
     implementation(projects.core)
     implementation(projects.domain)
     implementation(projects.data)

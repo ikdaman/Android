@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -33,7 +32,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import project.side.ikdaman.app.main.R
+import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.navigation.BARCODE_ROUTE
 import project.side.ikdaman.core.navigation.BOOKSHELF_ROUTE
 import project.side.ikdaman.core.navigation.HOME_ROUTE
