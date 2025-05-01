@@ -43,6 +43,7 @@ import coil.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.launch
 import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.ui.AppText
+import project.side.ikdaman.domain.model.HomeBookItem
 import kotlin.math.absoluteValue
 
 @Composable
@@ -144,7 +145,7 @@ fun CarouselItemView(
             contentScale = ContentScale.Fit
         )
         // item.addedDateTime (Long Type) 값과 현재 시간을 비교해서 24시간 이내인지 확인
-        val isNew = (System.currentTimeMillis() - item.addedDateTime) < 24 * 60 * 60 * 1000
+        val isNew = (System.currentTimeMillis() - item.lastEditedTime) < 24 * 60 * 60 * 1000
         if (isNew) {
             Box(
                 modifier = Modifier
@@ -203,8 +204,7 @@ fun CarouselItemPreView() {
                 item = HomeBookItem(
                     id = "0",
                     imageUrl = "https://picsum.photos/250/284?random=1",
-                    addedDateTime = System.currentTimeMillis(),
-                    lastEditedDateTime = System.currentTimeMillis(),
+                    lastEditedTime = System.currentTimeMillis(),
                     title = "소년이 온다",
                     author = "한강"
                 ),
@@ -224,32 +224,28 @@ fun CarouselPreview() {
             HomeBookItem(
                 id = "0",
                 imageUrl = "https://picsum.photos/250/284?random=1",
-                addedDateTime = System.currentTimeMillis(),
-                lastEditedDateTime = System.currentTimeMillis(),
+                lastEditedTime = System.currentTimeMillis(),
                 title = "소년이 온다1",
                 author = "한강1"
             ),
             HomeBookItem(
                 id = "1",
                 imageUrl = "https://picsum.photos/250/284?random=2",
-                addedDateTime = System.currentTimeMillis() - (24 * 60 * 60 * 1000),
-                lastEditedDateTime = System.currentTimeMillis() - (24 * 60 * 60 * 1000),
+                lastEditedTime = System.currentTimeMillis() - (24 * 60 * 60 * 1000),
                 title = "소년이 온다1",
                 author = "한강1"
             ),
             HomeBookItem(
                 id = "2",
                 imageUrl = "https://picsum.photos/250/284?random=3",
-                addedDateTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
-                lastEditedDateTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
+                lastEditedTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
                 title = "소년이 온다1",
                 author = "한강1"
             ),
             HomeBookItem(
                 id = "3",
                 imageUrl = "https://picsum.photos/250/284?random=4",
-                addedDateTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
-                lastEditedDateTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
+                lastEditedTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
                 title = "소년이 온다1",
                 author = "한강1"
             ),
