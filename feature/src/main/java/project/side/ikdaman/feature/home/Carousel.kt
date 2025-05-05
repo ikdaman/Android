@@ -75,6 +75,7 @@ fun BookCarousel(
 
         CarouselItemView(
             item = items[page],
+            isNotSelectedPage = page != pagerState.currentPage,
             deleteMode = deleteMode,
             modifier = Modifier
                 .graphicsLayer {
@@ -106,6 +107,7 @@ private fun calculateHorizontalPadding(): Int {
 @Composable
 fun CarouselItemView(
     item: HomeBookItem,
+    isNotSelectedPage: Boolean = false,
     deleteMode: MutableState<Boolean>,
     modifier: Modifier = Modifier,
     onDeleteClick: (HomeBookItem) -> Unit = {}
@@ -141,7 +143,13 @@ fun CarouselItemView(
                 error = painterResource(R.drawable.no_image)
             ),
             contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().graphicsLayer {
+                alpha = if (deleteMode.value && isNotSelectedPage) {
+                    0.3f
+                } else {
+                    1f
+                }
+            },
             contentScale = ContentScale.Fit
         )
         // item.addedDateTime (Long Type) 값과 현재 시간을 비교해서 24시간 이내인지 확인

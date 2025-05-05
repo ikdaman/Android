@@ -1,6 +1,8 @@
 package project.side.ikdaman.feature.home
 
+import ExpandableInlineText
 import android.annotation.SuppressLint
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -17,8 +19,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,6 +30,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,6 +45,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.navigation.MAIN_ROUTE
 import project.side.ikdaman.core.ui.AppText
@@ -115,23 +122,32 @@ fun HomeTabUI(
                     .fillMaxWidth()
             ) {
                 ColorPaletteButton(paletteViewState, selectedColor)
-
-                if (selectedViewMode.value == HomeTabViewMode.CAROUSEL) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Image(
-                        imageVector = ImageVector.vectorResource(id = R.drawable.list),
+                        imageVector = ImageVector.vectorResource(R.drawable.bin),
                         contentDescription = null,
                         modifier = Modifier.clickable {
-                            selectedViewMode.value = HomeTabViewMode.LIST
+                            deleteMode.value = !deleteMode.value
                         }
                     )
-                } else {
-                    Image(
-                        imageVector = ImageVector.vectorResource(id = R.drawable.expand),
-                        contentDescription = null,
-                        modifier = Modifier.clickable {
-                            selectedViewMode.value = HomeTabViewMode.CAROUSEL
-                        }
-                    )
+                    Spacer(Modifier.width(14.dp))
+                    if (selectedViewMode.value == HomeTabViewMode.CAROUSEL) {
+                        Image(
+                            imageVector = ImageVector.vectorResource(id = R.drawable.list),
+                            contentDescription = null,
+                            modifier = Modifier.clickable {
+                                selectedViewMode.value = HomeTabViewMode.LIST
+                            }
+                        )
+                    } else {
+                        Image(
+                            imageVector = ImageVector.vectorResource(id = R.drawable.expand),
+                            contentDescription = null,
+                            modifier = Modifier.clickable {
+                                selectedViewMode.value = HomeTabViewMode.CAROUSEL
+                            }
+                        )
+                    }
                 }
             }
 
@@ -203,111 +219,122 @@ private fun CarouselBooks(
     books: List<HomeBookItem>,
     onDeleteClick: (HomeBookItem) -> Unit = {}
 ) {
-    Spacer(Modifier.height(20.dp))
-    LeftDayBubble(books[selectedBookIndex.value])
-    Spacer(Modifier.height(17.dp))
-    BookCarousel(
-        deleteMode = deleteMode,
-        selectedBookIndex = selectedBookIndex,
-        items = books,
-        onDeleteClick = onDeleteClick,
-    )
-    Spacer(Modifier.height(19.dp))
-    Column(
-        verticalArrangement = Arrangement.SpaceAround,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.height(42.dp)
-    ) {
-        AppText(
-            books[selectedBookIndex.value].title,
-            style = HomeTextStyles.bookTitleText
+    val state = rememberScrollState()
+    Column(Modifier.verticalScroll(state), horizontalAlignment = Alignment.CenterHorizontally,) {
+        Spacer(Modifier.height(20.dp))
+        LeftDayBubble(books[selectedBookIndex.value])
+        Spacer(Modifier.height(17.dp))
+        BookCarousel(
+            deleteMode = deleteMode,
+            selectedBookIndex = selectedBookIndex,
+            items = books,
+            onDeleteClick = onDeleteClick,
         )
-        AppText(
-            books[selectedBookIndex.value].author,
-            style = HomeTextStyles.bookAuthorText
-        )
-    }
-    Spacer(Modifier.height(10.dp))
-    BookProgressBarWithText(
-        LocalConfiguration.current.screenWidthDp - 40,
-        books[selectedBookIndex.value].progress,
-        modifier = Modifier.padding(horizontal = 20.dp)
-    )
-    Spacer(Modifier.height(30.dp))
-    val isImpressionEmpty = books[selectedBookIndex.value].firstImpression.isEmpty()
-    if (isImpressionEmpty) {
+        Spacer(Modifier.height(19.dp))
         Column(
-            Modifier
-                .padding(start = 20.dp, end = 20.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .fillMaxWidth()
-                .background(Color.White)
-                .padding(vertical = 25.dp, horizontal = 20.dp),
-            horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.SpaceAround,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.height(42.dp)
         ) {
-            Column {
-                AppText(
-                    "\uD83D\uDC95 책의 첫인상",
-                    modifier = Modifier.fillMaxWidth(),
-                    style = HomeTextStyles.bottomTitle,
-                )
-                Spacer(Modifier.height(10.dp))
-                AppText(
-                    firstImpressionText(books, selectedBookIndex),
-                    style = HomeTextStyles.bottomDescription.copy(
-                        color = Color(0xFF333333)
-                    ),
-                    maxLines = 3,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            }
-            Spacer(Modifier.height(15.dp))
-            Image(
-                imageVector = ImageVector.vectorResource(R.drawable.pencil),
-                contentDescription = null,
-                Modifier.size(24.dp)
+            AppText(
+                books[selectedBookIndex.value].title,
+                style = HomeTextStyles.bookTitleText
+            )
+            AppText(
+                books[selectedBookIndex.value].author,
+                style = HomeTextStyles.bookAuthorText
             )
         }
-    } else {
-        Column(
-            Modifier
-                .padding(start = 20.dp, end = 20.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .fillMaxWidth()
-                .background(Color.White)
-                .padding(25.dp),
-        ) {
-            Column {
-                AppText(
-                    "\uD83D\uDC95 책의 첫인상",
-                    modifier = Modifier.fillMaxWidth(),
-                    style = HomeTextStyles.bottomTitle,
-                )
-                Spacer(Modifier.height(10.dp))
-                AppText(
-                    firstImpressionText(books, selectedBookIndex),
-                    style = HomeTextStyles.bottomDescription.copy(
-                        color = Color(0xFF666666)
-                    ),
-                    maxLines = 3,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(54.dp),
+        Spacer(Modifier.height(10.dp))
+        BookProgressBarWithText(
+            LocalConfiguration.current.screenWidthDp - 40,
+            books[selectedBookIndex.value].progress,
+            modifier = Modifier.padding(horizontal = 20.dp)
+        )
+        Spacer(Modifier.height(20.dp))
+        Box {
+            Column(modifier = Modifier.padding(8.dp)) {
+                AppText("이 책의 기록 추가 +", style = HomeTextStyles.buttonText)
+                Box(
+                    Modifier
+                        .width(87.dp)
+                        .height(1.dp)
+                        .background(Color.Black)
                 )
             }
         }
-    }
-    Spacer(Modifier.height(13.dp))
-    Box {
-        Column(modifier = Modifier.padding(8.dp)) {
-            AppText("이 책의 기록 추가 +", style = HomeTextStyles.buttonText)
-            Box(
+        Spacer(Modifier.height(30.dp))
+        val isImpressionEmpty = books[selectedBookIndex.value].firstImpression.isEmpty()
+        if (isImpressionEmpty) {
+            Column(
                 Modifier
-                    .width(87.dp)
-                    .height(1.dp)
-                    .background(Color.Black)
-            )
+                    .padding(start = 20.dp, end = 20.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(vertical = 25.dp, horizontal = 20.dp),
+                horizontalAlignment = Alignment.End,
+            ) {
+                Column {
+                    AppText(
+                        "\uD83D\uDC95 책의 첫인상",
+                        modifier = Modifier.fillMaxWidth(),
+                        style = HomeTextStyles.bottomTitle,
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    AppText(
+                        firstImpressionText(books, selectedBookIndex),
+                        style = HomeTextStyles.bottomDescription.copy(
+                            color = Color(0xFF333333)
+                        ),
+                        maxLines = 3,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+                Spacer(Modifier.height(15.dp))
+                Image(
+                    imageVector = ImageVector.vectorResource(R.drawable.pencil),
+                    contentDescription = null,
+                    Modifier.size(24.dp)
+                )
+            }
+        } else {
+            Column(
+                Modifier
+                    .padding(start = 20.dp, end = 20.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(25.dp),
+            ) {
+                Column {
+                    AppText(
+                        "\uD83D\uDC95 책의 첫인상",
+                        modifier = Modifier.fillMaxWidth(),
+                        style = HomeTextStyles.bottomTitle,
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    val isExpanded = remember { mutableStateOf(false) }
+                    val scope = rememberCoroutineScope()
+                    ExpandableInlineText(
+                        text = firstImpressionText(books, selectedBookIndex),
+                        isExpanded = isExpanded,
+                        maxLines = 3,
+                        modifier = Modifier.fillMaxWidth(),
+                        callback = {
+                            scope.launch {
+                                delay(300)
+                                state.animateScrollTo(
+                                    value = state.maxValue,
+                                    animationSpec = tween(500)
+                                )
+                            }
+                        }
+                    )
+                }
+            }
         }
+        Spacer(Modifier.height(111.dp))
     }
 }
 
