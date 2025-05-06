@@ -2,6 +2,8 @@ package project.side.ikdaman.feature.home
 
 import ExpandableInlineText
 import android.annotation.SuppressLint
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -30,7 +32,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,14 +46,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.navigation.MAIN_ROUTE
 import project.side.ikdaman.core.ui.AppText
 import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.core.view.BookProgressBarWithText
+import project.side.ikdaman.core.view.DeleteDialog
 import project.side.ikdaman.core.view.GradientBox
 import project.side.ikdaman.domain.model.HomeBookItem
 
@@ -63,7 +63,12 @@ fun HomeTab(
         navController.getBackStackEntry(MAIN_ROUTE)
     )
 ) {
+    val deleteDialogState = remember { MutableTransitionState(false) }
+    val deleteItem = remember { mutableStateOf<HomeBookItem?>(null) }
+    val selectedColor = viewModel.selectedColor.collectAsState().value
+
     HomeTabUI(
+        selectedColor = selectedColor,
         books = viewModel.books.collectAsState().value,
         pinnedItems = viewModel.pinnedItems.collectAsState().value,
         unpinnedItems = viewModel.unpinnedItems.collectAsState().value,
@@ -71,8 +76,20 @@ fun HomeTab(
             viewModel.pinItem(it)
         },
         onDeleteClick = {
-            viewModel.deleteItem(it)
+            deleteItem.value = it
+            deleteDialogState.targetState = true
         },
+        onSelectColor = {
+            viewModel.saveSelectedColor(it)
+        },
+    )
+
+    DeleteDialog(
+        dialogState = deleteDialogState,
+        onDelete = {
+            viewModel.deleteItem(deleteItem.value!!)
+            deleteDialogState.targetState = false
+        }
     )
 }
 
@@ -83,29 +100,32 @@ enum class HomeTabViewMode {
 
 @Composable
 fun HomeTabUI(
+    selectedColor: Color = Palette.first,
     books: List<HomeBookItem> = listOf(),
     pinnedItems: List<HomeBookItem> = emptyList(),
     unpinnedItems: List<HomeBookItem> = emptyList(),
     selectedViewMode: MutableState<HomeTabViewMode> = remember { mutableStateOf(HomeTabViewMode.CAROUSEL) },
     paletteViewState: MutableState<Boolean> = remember { mutableStateOf(false) },
     onPinItem: (String) -> Unit = {},
-    onDeleteClick: (HomeBookItem) -> Unit = {}
+    onDeleteClick: (HomeBookItem) -> Unit = {},
+    onSelectColor: (Color) -> Unit = {},
 ) {
-    val selectedColor = remember { mutableStateOf(Palette.first) }
     val selectedBookIndex = remember { mutableStateOf(0) }
     val deleteMode = remember { mutableStateOf(false) }
 
     GradientBox(
-        Modifier.fillMaxSize().clickable(
-            indication = null,
-            interactionSource = remember { MutableInteractionSource() }
-        ) {
-            deleteMode.value = false
-        },
+        Modifier
+            .fillMaxSize()
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) {
+                deleteMode.value = false
+            },
         gradient = Brush.verticalGradient(
             colors = listOf(
-                selectedColor.value,
-                selectedColor.value.copy(alpha = 0.2f),
+                selectedColor,
+                selectedColor.copy(alpha = 0.2f),
             )
         )
     ) {
@@ -123,13 +143,15 @@ fun HomeTabUI(
             ) {
                 ColorPaletteButton(paletteViewState, selectedColor)
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Image(
-                        imageVector = ImageVector.vectorResource(R.drawable.bin),
-                        contentDescription = null,
-                        modifier = Modifier.clickable {
-                            deleteMode.value = !deleteMode.value
-                        }
-                    )
+                    if (!deleteMode.value && selectedViewMode.value == HomeTabViewMode.CAROUSEL) {
+                        Image(
+                            imageVector = ImageVector.vectorResource(R.drawable.bin),
+                            contentDescription = null,
+                            modifier = Modifier.clickable {
+                                deleteMode.value = !deleteMode.value
+                            }
+                        )
+                    }
                     Spacer(Modifier.width(14.dp))
                     if (selectedViewMode.value == HomeTabViewMode.CAROUSEL) {
                         Image(
@@ -179,7 +201,7 @@ fun HomeTabUI(
                     .align(Alignment.TopStart)
             ) {
                 PaletteView(Palette.paletteColors, selectedColor, paletteViewState) {
-                    selectedColor.value = it
+                    onSelectColor(it)
                     paletteViewState.value = false
                 }
             }
@@ -191,7 +213,7 @@ fun HomeTabUI(
 @Composable
 private fun ColorPaletteButton(
     paletteViewState: MutableState<Boolean>,
-    selectedColor: MutableState<Color>
+    selectedColor: Color
 ) {
     Surface(
         shadowElevation = 4.dp,
@@ -205,7 +227,7 @@ private fun ColorPaletteButton(
         Box(
             Modifier
                 .border(width = 1.5.dp, color = Color.White, shape = CircleShape)
-                .background(selectedColor.value)
+                .background(selectedColor)
                 .size(23.dp)
         )
     }
@@ -220,7 +242,7 @@ private fun CarouselBooks(
     onDeleteClick: (HomeBookItem) -> Unit = {}
 ) {
     val state = rememberScrollState()
-    Column(Modifier.verticalScroll(state), horizontalAlignment = Alignment.CenterHorizontally,) {
+    Column(Modifier.verticalScroll(state, reverseScrolling = true), horizontalAlignment = Alignment.CenterHorizontally) {
         Spacer(Modifier.height(20.dp))
         LeftDayBubble(books[selectedBookIndex.value])
         Spacer(Modifier.height(17.dp))
@@ -264,6 +286,7 @@ private fun CarouselBooks(
             }
         }
         Spacer(Modifier.height(30.dp))
+        val isExpanded = remember { mutableStateOf(false) }
         val isImpressionEmpty = books[selectedBookIndex.value].firstImpression.isEmpty()
         if (isImpressionEmpty) {
             Column(
@@ -273,29 +296,30 @@ private fun CarouselBooks(
                     .fillMaxWidth()
                     .background(Color.White)
                     .padding(vertical = 25.dp, horizontal = 20.dp),
-                horizontalAlignment = Alignment.End,
             ) {
-                Column {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     AppText(
                         "\uD83D\uDC95 책의 첫인상",
-                        modifier = Modifier.fillMaxWidth(),
                         style = HomeTextStyles.bottomTitle,
                     )
-                    Spacer(Modifier.height(10.dp))
-                    AppText(
-                        firstImpressionText(books, selectedBookIndex),
-                        style = HomeTextStyles.bottomDescription.copy(
-                            color = Color(0xFF333333)
-                        ),
-                        maxLines = 3,
-                        modifier = Modifier.fillMaxWidth(),
+                    Image(
+                        imageVector = ImageVector.vectorResource(R.drawable.pencil),
+                        contentDescription = null,
+                        Modifier.size(24.dp)
                     )
                 }
-                Spacer(Modifier.height(15.dp))
-                Image(
-                    imageVector = ImageVector.vectorResource(R.drawable.pencil),
-                    contentDescription = null,
-                    Modifier.size(24.dp)
+                Spacer(Modifier.height(10.dp))
+                AppText(
+                    firstImpressionText(books, selectedBookIndex),
+                    style = HomeTextStyles.bottomDescription.copy(
+                        color = Color(0xFF333333)
+                    ),
+                    maxLines = 3,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         } else {
@@ -304,34 +328,42 @@ private fun CarouselBooks(
                     .padding(start = 20.dp, end = 20.dp)
                     .clip(RoundedCornerShape(10.dp))
                     .fillMaxWidth()
+                    .animateContentSize(
+                        animationSpec = tween(300)
+                    )
                     .background(Color.White)
                     .padding(25.dp),
             ) {
-                Column {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     AppText(
                         "\uD83D\uDC95 책의 첫인상",
-                        modifier = Modifier.fillMaxWidth(),
                         style = HomeTextStyles.bottomTitle,
                     )
-                    Spacer(Modifier.height(10.dp))
-                    val isExpanded = remember { mutableStateOf(false) }
-                    val scope = rememberCoroutineScope()
-                    ExpandableInlineText(
-                        text = firstImpressionText(books, selectedBookIndex),
-                        isExpanded = isExpanded,
-                        maxLines = 3,
-                        modifier = Modifier.fillMaxWidth(),
-                        callback = {
-                            scope.launch {
-                                delay(300)
-                                state.animateScrollTo(
-                                    value = state.maxValue,
-                                    animationSpec = tween(500)
-                                )
+                    if (isExpanded.value) {
+                        Image(
+                            imageVector = ImageVector.vectorResource(R.drawable.arrow_small_up),
+                            contentDescription = null,
+                            modifier = Modifier.clickable {
+                                isExpanded.value = false
                             }
-                        }
-                    )
+                        )
+                    } else {
+                        Box(Modifier.size(24.dp))
+                    }
                 }
+                Spacer(Modifier.height(10.dp))
+                ExpandableInlineText(
+                    text = firstImpressionText(books, selectedBookIndex),
+                    isExpanded = isExpanded,
+                    maxLines = 3,
+                    modifier = Modifier.fillMaxWidth().animateContentSize(
+                        animationSpec = tween(100)
+                    ),
+                )
             }
         }
         Spacer(Modifier.height(111.dp))
@@ -374,7 +406,7 @@ private fun firstImpressionText(
 @Composable
 private fun PaletteView(
     paletteColors: List<Color>,
-    selectedColor: MutableState<Color>,
+    selectedColor: Color,
     paletteViewState: MutableState<Boolean>,
     onSelected: (Color) -> Unit = {}
 ) {
@@ -386,12 +418,13 @@ private fun PaletteView(
     ) {
         val selectedBorderColor = Color(0xFF565656)
         paletteColors.forEachIndexed { index, color ->
-            val isSelected = selectedColor.value == color
+            val isSelected = selectedColor == color
             Surface(
                 shadowElevation = 4.dp,
                 shape = CircleShape,
                 modifier = Modifier.clickable {
                     onSelected(color)
+                    paletteViewState.value = false
                 }
             ) {
                 Box(
@@ -404,10 +437,6 @@ private fun PaletteView(
                             color = if (isSelected) selectedBorderColor else Color.White,
                             shape = CircleShape
                         )
-                        .clickable {
-                            selectedColor.value = color
-                            paletteViewState.value = false
-                        }
                 )
             }
             if (index != paletteColors.size - 1) {
@@ -428,7 +457,7 @@ fun PalettePreview() {
             Palette.fourth,
             Palette.fifth
         )
-        val selectedColor = remember { mutableStateOf(Palette.first) }
+        val selectedColor = Palette.second
         val paletteViewState = remember { mutableStateOf(false) }
         PaletteView(paletteColors, selectedColor, paletteViewState)
     }
@@ -488,7 +517,7 @@ fun CarouselHomeTabPreview() {
                     author = "한강1",
                     firstImpression = "네가 죽은 뒤 장례식을 치르지 못해, 내 삶이 장례식이 되었다.\n" +
                             "네가 방수 모포에 싸여 청소차에 실려간 뒤에.\n" +
-                            "용서할 수 없는 물줄기가 번쩍이며 분수대에서 뿜어져나온 뒤에.",
+                            "용서할 수 없는 물줄기가 번쩍이며 분수대에서 뿜어져나온 뒤에. 기나긴 글이 이어집니다",
                     progress = 0.1f
                 ),
                 HomeBookItem(
@@ -543,6 +572,43 @@ fun ListHomeTabPreview() {
                     firstImpression = "",
                     progress = 1f
                 ),
+                HomeBookItem(
+                    id = "2",
+                    imageUrl = "https://picsum.photos/250/284?random=3",
+                    lastEditedTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
+                    title = "소년이 온다3",
+                    author = "한강1",
+                    progress = 0.5f
+                ),
+                HomeBookItem(
+                    id = "3",
+                    imageUrl = "https://picsum.photos/250/284?random=4",
+                    lastEditedTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
+                    title = "소년이 온다4",
+                    author = "한강1",
+                    progress = 0.7f
+                ),
+            ),
+            pinnedItems = listOf(
+                HomeBookItem(
+                    id = "0",
+                    imageUrl = "https://picsum.photos/250/284?random=1",
+                    lastEditedTime = System.currentTimeMillis(),
+                    title = "소년이 온다1",
+                    author = "한강1",
+                    firstImpression = ""
+                ),
+                HomeBookItem(
+                    id = "1",
+                    imageUrl = "https://picsum.photos/250/284?random=2",
+                    lastEditedTime = System.currentTimeMillis() - (12 * 60 * 60 * 1000),
+                    title = "소년이 온다2",
+                    author = "한강2",
+                    firstImpression = "",
+                    progress = 1f
+                ),
+            ),
+            unpinnedItems = listOf(
                 HomeBookItem(
                     id = "2",
                     imageUrl = "https://picsum.photos/250/284?random=3",

@@ -1,12 +1,15 @@
 package project.side.ikdaman.feature.home
 
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.domain.model.ApiResult
 import project.side.ikdaman.domain.model.HomeBookItem
+import project.side.ikdaman.domain.repository.PaletteRepository
 import project.side.ikdaman.domain.repository.PinningBookRepository
 import project.side.ikdaman.domain.usecase.GetReadingBooksUseCase
 import javax.inject.Inject
@@ -14,18 +17,29 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val pinningBookRepository: PinningBookRepository,
-    private val getReadingBooksUseCase: GetReadingBooksUseCase
+    private val getReadingBooksUseCase: GetReadingBooksUseCase,
+    private val paletteRepository: PaletteRepository
 ) : ViewModel() {
 
     val books = MutableStateFlow<List<HomeBookItem>>(emptyList())
     val pinnedItems = MutableStateFlow<List<HomeBookItem>>(emptyList())
     val unpinnedItems = MutableStateFlow<List<HomeBookItem>>(emptyList())
+    val selectedColor = MutableStateFlow(Palette.first)
 
     val isLoading = MutableStateFlow(false)
     val errorMessage = MutableStateFlow("")
 
     init {
         getBooks()
+        getPalette()
+    }
+
+    private fun getPalette() {
+        viewModelScope.launch {
+            paletteRepository.getPalette().collect { color ->
+                selectedColor.emit(Palette.getColor(color))
+            }
+        }
     }
 
     // TODO 나중에 책 추가되고 화면 업데이트 할 때도 이 함수를 호출해야 함
@@ -78,8 +92,15 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun deleteItem(item: HomeBookItem) {
 
+    }
+
+    fun saveSelectedColor(color: Color) {
+        viewModelScope.launch {
+            paletteRepository.setPalette(Palette.fromColor(color))
+        }
     }
 }
 

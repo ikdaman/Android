@@ -26,7 +26,6 @@ fun ExpandableInlineText(
     text: String,
     maxLines: Int = 3,
     isExpanded: MutableState<Boolean> = remember { mutableStateOf(false) },
-    callback: () -> Unit = {},
 ) {
     var shouldShowMore by remember { mutableStateOf(false) }
     var finalText by remember { mutableStateOf(AnnotatedString(text)) }
@@ -48,7 +47,6 @@ fun ExpandableInlineText(
             interactionSource = remember { MutableInteractionSource() },
         ) {
             isExpanded.value = !isExpanded.value
-            callback()
         })
     {
         Log.i("TAG", "isExpanded: ${isExpanded.value}")
@@ -75,7 +73,8 @@ fun ExpandableInlineText(
                             } else {
                                 finalText = AnnotatedString(text)
                             }
-                        } catch (e: Exception) {}
+                        } catch (_: Exception) {
+                        }
                     }
                 },
                 style = HomeTextStyles.bottomDescription.copy(
