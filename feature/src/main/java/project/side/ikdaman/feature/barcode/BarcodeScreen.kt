@@ -9,13 +9,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -32,54 +31,82 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.navigation.BOOK_EDIT_ROUTE
-import project.side.ikdaman.core.ui.AppTheme
+import project.side.ikdaman.core.navigation.MAIN_ROUTE
 import project.side.ikdaman.core.ui.PretendardFontFamily
+import project.side.ikdaman.domain.model.BookItem
+import project.side.ikdaman.domain.model.BookSearch
 
+private val TAG = "BarcodeScreen"
 private const val CAMERA_PERMISSION = Manifest.permission.CAMERA
 
 @OptIn(ExperimentalGetImage::class)
 @Composable
-fun BarcodeScreen(navController: NavController) {
+fun BarcodeScreen(
+    navController: NavController,
+    viewModel: BarcodeViewModel = hiltViewModel(
+        navController.getBackStackEntry(MAIN_ROUTE)
+    )
+) {
 
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var cameraProvider by remember { mutableStateOf<ProcessCameraProvider?>(null) }
     var isPermissionGranted by remember { mutableStateOf(false) }
+    val isbn = viewModel.isbn.collectAsStateWithLifecycle()
+    val searchResult = viewModel.searchResult.collectAsStateWithLifecycle()
 
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted -> isPermissionGranted = granted }
 
+    val barcodeScanner = remember {
+        BarcodeScanner()
+    }
+
     LaunchedEffect(Unit) {
         isPermissionGranted = checkPermission(context = context)
+    }
+
+    LaunchedEffect(isbn.value) {
+        viewModel.searchBookWithIsbn(isbn.value)
     }
 
     LaunchedEffect(isPermissionGranted) {
@@ -93,6 +120,14 @@ fun BarcodeScreen(navController: NavController) {
         }
     }
 
+    LaunchedEffect(Unit) {
+        barcodeScanner.isbnFlow.collect { value ->
+            if (value != null) {
+                viewModel.updateIsbn(value)
+            }
+        }
+    }
+
     BarcodeScreenUI(
         onBack = {
             navController.popBackStack()
@@ -103,6 +138,12 @@ fun BarcodeScreen(navController: NavController) {
         isPermissionGranted = isPermissionGranted,
         lifecycleOwner = lifecycleOwner,
         cameraProvider = cameraProvider,
+        searchResult = searchResult.value,
+        onDismissDialog = {
+            Log.d(TAG, "Dismiss Dialog")
+            viewModel.resetIsbn()
+        },
+        barcodeScanner = barcodeScanner
     )
 }
 
@@ -126,6 +167,9 @@ fun BarcodeScreenUI(
     isPermissionGranted: Boolean? = null,
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
     cameraProvider: ProcessCameraProvider? = null,
+    searchResult: BookSearch? = null,
+    onDismissDialog: () -> Unit = {},
+    barcodeScanner: BarcodeScanner
 ) {
     Scaffold(
         topBar = {
@@ -158,13 +202,33 @@ fun BarcodeScreenUI(
     ) { innerPadding ->
         if (isPermissionGranted == null) return@Scaffold
 
+        searchResult?.let { result ->
+            if (result.books.isNotEmpty()) {
+                BookBottomSheetDialog(
+                    bottomPaddingValues = innerPadding,
+                    bookItem = result.books[0],
+                    onAddBookClick = {},
+                    onDismiss = onDismissDialog
+                )
+            }
+
+        }
+
         if (isPermissionGranted == true) {
             CameraScreen(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
                 lifecycleOwner = lifecycleOwner,
                 cameraProvider = cameraProvider,
+                barcodeScanner = barcodeScanner
             )
         } else {
-            NoCameraScreen(modifier = Modifier.padding(innerPadding))
+            NoCameraScreen(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            )
         }
     }
 }
@@ -172,55 +236,20 @@ fun BarcodeScreenUI(
 @OptIn(ExperimentalGetImage::class)
 @Composable
 private fun CameraScreen(
+    modifier: Modifier = Modifier,
     cameraProvider: ProcessCameraProvider? = null,
     lifecycleOwner: LifecycleOwner,
+    barcodeScanner: BarcodeScanner
 ) {
     if (cameraProvider == null) return
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val canvasWidth = constraints.maxWidth
-        val canvasHeight = constraints.maxHeight
-
-        val focusWidthPx = with(LocalDensity.current) { 362.dp.toPx() }
-        val focusHeightPx = with(LocalDensity.current) { 245.dp.toPx() }
-
-        val leftPx = (canvasWidth - focusWidthPx) / 2
-        val topPx = (canvasHeight - focusHeightPx) / 2
-
-        val focusRect = Rect(
-            left = leftPx,
-            top = topPx,
-            right = (leftPx + focusWidthPx),
-            bottom = (topPx + focusHeightPx)
-        )
-
-        Log.d("hkhk", "Compose focusRect: $focusRect")
-
-        val barcodeScanner = remember {
-            BarcodeScanner(
-                focusRect = android.graphics.Rect(
-                    leftPx.toInt(),
-                    topPx.toInt(),
-                    (leftPx + focusWidthPx).toInt(),
-                    (topPx + focusHeightPx).toInt()
-                ),
-                screenWidth = canvasWidth,
-                screenHeight = canvasHeight
-            )
-        }
-
-        LaunchedEffect(Unit) {
-            Log.d("hkhk", "CameraScreen: 초기 실행")
-            barcodeScanner.barcodeFlow.collect { value ->
-                Log.d("hkhk", "CameraScreen: $value")
-            }
-        }
 
         AndroidView(
             factory = { ctx ->
                 val previewView = PreviewView(ctx)
 
-                val preview = androidx.camera.core.Preview.Builder().build().also {
+                val preview = Preview.Builder().build().also {
                     it.surfaceProvider = previewView.surfaceProvider
                 }
 
@@ -243,6 +272,22 @@ private fun CameraScreen(
                 previewView
             },
             modifier = Modifier.fillMaxSize()
+        )
+
+        val canvasWidth = constraints.maxWidth
+        val canvasHeight = constraints.maxHeight
+
+        val focusWidthPx = with(LocalDensity.current) { 362.dp.toPx() }
+        val focusHeightPx = with(LocalDensity.current) { 245.dp.toPx() }
+
+        val leftPx = (canvasWidth - focusWidthPx) / 2
+        val topPx = (canvasHeight - focusHeightPx) / 2
+
+        val focusRect = Rect(
+            left = leftPx,
+            top = topPx,
+            right = (leftPx + focusWidthPx),
+            bottom = (topPx + focusHeightPx)
         )
 
         BarcodeOverlay(
@@ -327,6 +372,65 @@ fun BarcodeOverlay(
 private fun checkPermission(context: Context): Boolean =
     context.checkSelfPermission(CAMERA_PERMISSION) == PERMISSION_GRANTED
 
+@kotlin.OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BookBottomSheetDialog(
+    bottomPaddingValues: PaddingValues,
+    bookItem: BookItem,
+    onAddBookClick: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // 책 썸네일
+            AsyncImage(
+                model = bookItem.cover,
+                contentDescription = "책 썸네일",
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // 책 정보
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = bookItem.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = bookItem.author,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+            }
+
+            // "이 책 추가" 버튼
+            Button(
+                onClick = onAddBookClick,
+                modifier = Modifier.height(36.dp),
+                shape = RoundedCornerShape(8.dp),
+                contentPadding = PaddingValues(horizontal = 12.dp)
+            ) {
+                Text(text = "이 책 추가 +")
+            }
+        }
+    }
+}
 //@OptIn(ExperimentalGetImage::class)
 //@Composable
 //@Preview(showBackground = true)

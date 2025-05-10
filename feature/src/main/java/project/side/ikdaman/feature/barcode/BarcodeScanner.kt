@@ -1,6 +1,5 @@
 package project.side.ikdaman.feature.barcode
 
-import android.graphics.Point
 import android.graphics.Rect
 import android.util.Log
 import androidx.camera.core.ExperimentalGetImage
@@ -13,12 +12,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.util.concurrent.Executors
 
+private val TAG = "BarcodeScanner"
+
 @ExperimentalGetImage
-class BarcodeScanner(
-    private val focusRect: Rect,
-    private val screenWidth: Int,
-    private val screenHeight: Int
-) {
+class BarcodeScanner {
     private val barcodeScanner = BarcodeScanning.getClient()
     private val executor = Executors.newSingleThreadExecutor()
 //    private val executor = Dispatchers.Default.asExecutor()
@@ -32,8 +29,8 @@ class BarcodeScanner(
             })
         }
 
-    private val _barcodeFlow = MutableStateFlow<String?>(null)
-    val barcodeFlow = _barcodeFlow.asStateFlow()
+    private val _isbnFlow = MutableStateFlow<String?>(null)
+    val isbnFlow = _isbnFlow.asStateFlow()
 
     private fun processImageProxy(imageProxy: ImageProxy) {
         val mediaImage = imageProxy.image
@@ -42,43 +39,39 @@ class BarcodeScanner(
                 mediaImage, imageProxy.imageInfo.rotationDegrees
             )
 
-            // 카메라 이미지 크기 가져오기
-            val imageWidth = mediaImage.width.toFloat()
-            val imageHeight = mediaImage.height.toFloat()
-
-            // 화면 크기 가져오기
-            val canvasWidth = screenWidth.toFloat()
-            val canvasHeight = screenHeight.toFloat()
-
             barcodeScanner.process(inputImage)
                 .addOnSuccessListener { barcodes ->
                     for (barcode in barcodes) {
                         if (barcode.valueType == TYPE_ISBN) {
-                            val boundingBox = barcode.boundingBox
-                            if (boundingBox != null) {
-                                // 바코드의 bounding box를 화면 크기 기준으로 변환
-                                val scaledBoundingBox = scaleBoundingBoxToScreen(
-                                    boundingBox,
-                                    imageWidth,
-                                    imageHeight,
-                                    canvasWidth,
-                                    canvasHeight
-                                )
-
-                                Log.d("hkhk", "scaledBoundingBox: $scaledBoundingBox")
-                                Log.d("hkhk", "focusRect: $focusRect")
-                                if (isBoundingBoxWithinFocusRect(scaledBoundingBox, focusRect)) {
-                                    barcode.rawValue?.let { value ->
-                                        _barcodeFlow.tryEmit(value)
-                                    }
-                                }
+                            barcode.rawValue?.let { value ->
+                                Log.d(TAG, "processImageProxy: $value")
+                                _isbnFlow.tryEmit(value)
                             }
+//                            val boundingBox = barcode.boundingBox
+//                            if (boundingBox != null) {
+//                                // 바코드의 bounding box를 화면 크기 기준으로 변환
+//                                val scaledBoundingBox = scaleBoundingBoxToScreen(
+//                                    boundingBox,
+//                                    imageWidth,
+//                                    imageHeight,
+//                                    canvasWidth,
+//                                    canvasHeight
+//                                )
+//
+//                                Log.d("hkhk", "scaledBoundingBox: $scaledBoundingBox")
+//                                Log.d("hkhk", "focusRect: $focusRect")
+//                                if (isBoundingBoxWithinFocusRect(scaledBoundingBox, focusRect)) {
+//                                    barcode.rawValue?.let { value ->
+//                                        _barcodeFlow.tryEmit(value)
+//                                    }
+//                                }
+//                            }
                         }
                     }
                     imageProxy.close()
                 }
                 .addOnFailureListener { e ->
-                    Log.e("hkhk", "processImageProxy: $e")
+                    Log.e(TAG, "processImageProxy: $e")
                     imageProxy.close()
                 }
         } else {
