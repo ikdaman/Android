@@ -58,11 +58,9 @@ fun SearchScreen(
     )
 ) {
     val searchKeyword by remember { mutableStateOf("") }
-    val selectedColor by remember { mutableStateOf(Palette.first) }
     val bookSearch by remember { mutableStateOf(BookSearch()) }
 
     SearchScreenUI(
-        selectedBackgroundColor = selectedColor,
         onBack = { navController.popBackStack() },
         onNavigateToEditScreen = {
             navController.navigate(BOOK_EDIT_ROUTE)
@@ -78,23 +76,25 @@ fun SearchScreen(
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun SearchScreenUI(
-    selectedBackgroundColor: Color = Palette.first,
     onNavigateToEditScreen: () -> Unit = {},
     onSearchKeywordChange: (String) -> Unit = {},
     searchKeyword: String = "",
     onBack: () -> Unit = {},
     bookSearch: BookSearch = BookSearch(),
 ) {
-    val backgroundGradientModifier = Modifier
-        .fillMaxSize()
-        .background(
-            brush = Brush.verticalGradient(
-                colors = listOf(
-                    selectedBackgroundColor,
-                    selectedBackgroundColor.copy(alpha = 0.2f),
+    val selectedColor by remember { mutableStateOf(Palette.first) }
+    val backgroundGradientModifier = remember {
+        Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        selectedColor,
+                        selectedColor.copy(alpha = 0.2f),
+                    )
                 )
             )
-        )
+    }
 
     Scaffold(
         topBar = {
