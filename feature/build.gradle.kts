@@ -12,4 +12,6 @@ dependencies {
     implementation(projects.core)
     implementation(projects.domain)
     implementation(libs.androidx.animation)
+
+    implementation(libs.kakao.login)
 }

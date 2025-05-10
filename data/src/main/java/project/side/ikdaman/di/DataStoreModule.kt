@@ -6,6 +6,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import project.side.ikdaman.data.repository.PinningBookRepositoryImpl
+import project.side.ikdaman.data.data_source.AuthDataStore
 import project.side.ikdaman.data.service.PinningBookService
 import project.side.ikdaman.domain.repository.PinningBookRepository
 import javax.inject.Singleton
@@ -18,10 +19,12 @@ object DataStoreModule {
     @Singleton
     fun provideDataStoreService(application: Application) = PinningBookService(application)
 
-
-
     @Provides
     @Singleton
     fun providePinningBookRepository(pinningBookService: PinningBookService): PinningBookRepository =
         PinningBookRepositoryImpl(pinningBookService)
+
+    @Provides
+    @Singleton
+    fun provideAuthDataStore(application: Application) = AuthDataStore(application)
 }

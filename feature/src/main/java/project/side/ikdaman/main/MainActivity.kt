@@ -38,7 +38,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppTheme {
                 val navController = rememberNavController()
-                NavHost(navController = navController, startDestination = MAIN_ROUTE) {
+                NavHost(navController = navController, startDestination = LOGIN_ROUTE) {
                     slideComposable(LOGIN_ROUTE) {
                         LoginScreen(navController)
                     }

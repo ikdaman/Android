@@ -1,0 +1,89 @@
+package project.side.ikdaman.feature.login
+
+import android.content.Context
+import com.kakao.sdk.auth.model.OAuthToken
+import com.kakao.sdk.common.model.ClientError
+import com.kakao.sdk.common.model.ClientErrorCause
+import com.kakao.sdk.user.UserApiClient
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
+
+object KakaoAuth {
+    // SocialLoginResult.errorMessage -> 개발자 출력용
+    suspend fun login(context: Context): SocialLoginResult =
+        suspendCancellableCoroutine { continuation ->
+            val callback: (OAuthToken?, Throwable?) -> Unit = { token, loginError ->
+                // 사용자가 로그인 취소(뒤로 가기 등)
+                if (loginError is ClientError && loginError.reason == ClientErrorCause.Cancelled) {
+                    continuation.resume(
+                        SocialLoginResult(
+                            isSuccess = false,
+                            errorMessage = ""
+                        )
+                    )
+                }
+                if (loginError != null || token == null) {  // 카카오 계정 로그인 실패
+                    continuation.resume(
+                        SocialLoginResult(
+                            isSuccess = false,
+                            errorMessage = loginError?.message ?: "카카오 로그인에 실패했습니다."
+                        )
+                    )
+                } else {    // 카카오 계정 로그인 성공
+                    UserApiClient.instance.me { user, userInfoError ->
+                        if (userInfoError != null || user?.id == null) {    // 사용자 정보 조회 실패
+                            continuation.resume(
+                                SocialLoginResult(
+                                    isSuccess = false,
+                                    errorMessage = userInfoError?.message ?: "정보를 가져오는데 실패했습니다."
+                                )
+                            )
+                        } else {    // 사용자 정보 조회 성공(로그인, 정보 조회 둘 다 성공 시 소셜 로그인 성공)
+                            continuation.resume(
+                                SocialLoginResult(
+                                    isSuccess = true,
+                                    socialAccessToken = token.accessToken,
+                                    provider = "KAKAO",
+                                    providerId = user.id.toString()
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (UserApiClient.instance.isKakaoTalkLoginAvailable(context)) {
+                UserApiClient.instance.loginWithKakaoTalk(context) { token, loginError ->
+                    if (loginError != null) {
+                        // 사용자가 로그인 취소
+                        if (loginError is ClientError && loginError.reason == ClientErrorCause.Cancelled) {
+                            return@loginWithKakaoTalk
+                        }
+                        UserApiClient.instance.loginWithKakaoAccount(context, callback = callback)
+                    } else if (token != null) {     // 카카오톡으로 로그인 성공
+                        UserApiClient.instance.me { user, userInfoError ->  // 사용자 정보 조회 실패
+                            if (userInfoError != null || user?.id == null) {
+                                continuation.resume(
+                                    SocialLoginResult(
+                                        isSuccess = false,
+                                        errorMessage = userInfoError?.message ?: "정보를 가져오는데 실패했습니다."
+                                    )
+                                )
+                            } else {    // 사용자 정보 조회 성공
+                                continuation.resume(
+                                    SocialLoginResult(
+                                        isSuccess = true,
+                                        socialAccessToken = token.accessToken,
+                                        provider = "KAKAO",
+                                        providerId = user.id.toString()
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            } else {
+                UserApiClient.instance.loginWithKakaoAccount(context, callback = callback)
+            }
+        }
+}

@@ -23,6 +23,7 @@ detekt = "1.23.7"
 ksp = "2.1.0-1.0.29"
 coroutine = "1.9.0"
 ossLicensesPlugin = "0.10.6"
+kakao-login = "2.21.2"
 
 ## Hilt
 # https://github.com/google/dagger/releases
@@ -100,6 +101,9 @@ kotest-assertions = { group = "io.kotest", name = "kotest-assertions-core", vers
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
 
 oss-licenses-plugin = { group = "com.google.android.gms", name = "oss-licenses-plugin", version.ref = "ossLicensesPlugin" }
+
+# social login
+kakao-login = { group = "com.kakao.sdk", name = "v2-user", version.ref = "kakao-login" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

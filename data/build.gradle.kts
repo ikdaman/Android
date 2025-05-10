@@ -1,4 +1,5 @@
 import project.side.ikdaman.app.setNamespace
+import java.util.Properties
 
 plugins {
     id("ikdaman.android.library")
@@ -6,6 +7,16 @@ plugins {
 
 android {
     setNamespace("data")
+    defaultConfig {
+        val properties = Properties()
+        properties.load(project.rootProject.file("key.properties").inputStream())
+
+        buildConfigField("String", "BASE_URL", "\"${properties.getProperty("BASE_URL")}\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
+    }
 }
 
 dependencies{
