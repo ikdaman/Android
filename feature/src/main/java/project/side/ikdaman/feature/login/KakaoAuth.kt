@@ -13,40 +13,47 @@ object KakaoAuth {
     suspend fun login(context: Context): SocialLoginResult =
         suspendCancellableCoroutine { continuation ->
             val callback: (OAuthToken?, Throwable?) -> Unit = { token, loginError ->
-                // 사용자가 로그인 취소(뒤로 가기 등)
-                if (loginError is ClientError && loginError.reason == ClientErrorCause.Cancelled) {
-                    continuation.resume(
-                        SocialLoginResult(
-                            isSuccess = false,
-                            errorMessage = ""
-                        )
-                    )
-                }
-                if (loginError != null || token == null) {  // 카카오 계정 로그인 실패
-                    continuation.resume(
-                        SocialLoginResult(
-                            isSuccess = false,
-                            errorMessage = loginError?.message ?: "카카오 로그인에 실패했습니다."
-                        )
-                    )
-                } else {    // 카카오 계정 로그인 성공
-                    UserApiClient.instance.me { user, userInfoError ->
-                        if (userInfoError != null || user?.id == null) {    // 사용자 정보 조회 실패
-                            continuation.resume(
-                                SocialLoginResult(
-                                    isSuccess = false,
-                                    errorMessage = userInfoError?.message ?: "정보를 가져오는데 실패했습니다."
-                                )
+                when {
+                    // 사용자가 로그인 취소(뒤로 가기 등)
+                    loginError is ClientError && loginError.reason == ClientErrorCause.Cancelled -> {
+                        continuation.resume(
+                            SocialLoginResult(
+                                isSuccess = false,
+                                errorMessage = ""
                             )
-                        } else {    // 사용자 정보 조회 성공(로그인, 정보 조회 둘 다 성공 시 소셜 로그인 성공)
-                            continuation.resume(
-                                SocialLoginResult(
-                                    isSuccess = true,
-                                    socialAccessToken = token.accessToken,
-                                    provider = "KAKAO",
-                                    providerId = user.id.toString()
-                                )
+                        )
+                    }
+
+                    // 카카오 계정 로그인 실패
+                    loginError != null || token == null -> {
+                        continuation.resume(
+                            SocialLoginResult(
+                                isSuccess = false,
+                                errorMessage = loginError?.message ?: "카카오 로그인에 실패했습니다."
                             )
+                        )
+                    }
+
+                    // 카카오 계정 로그인 성공
+                    else -> {
+                        UserApiClient.instance.me { user, userInfoError ->
+                            if (userInfoError != null || user?.id == null) {    // 사용자 정보 조회 실패
+                                continuation.resume(
+                                    SocialLoginResult(
+                                        isSuccess = false,
+                                        errorMessage = userInfoError?.message ?: "정보를 가져오는데 실패했습니다."
+                                    )
+                                )
+                            } else {    // 사용자 정보 조회 성공(로그인, 정보 조회 둘 다 성공 시 소셜 로그인 성공)
+                                continuation.resume(
+                                    SocialLoginResult(
+                                        isSuccess = true,
+                                        socialAccessToken = token.accessToken,
+                                        provider = "KAKAO",
+                                        providerId = user.id.toString()
+                                    )
+                                )
+                            }
                         }
                     }
                 }
