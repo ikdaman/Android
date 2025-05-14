@@ -11,6 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
+import project.side.ikdaman.core.navigation.ADD_BOOK_RECORD
 import project.side.ikdaman.core.navigation.BARCODE_ROUTE
 import project.side.ikdaman.core.navigation.BOOK_DETAIL_ROUTE
 import project.side.ikdaman.core.navigation.BOOK_EDIT_ROUTE
@@ -23,6 +24,8 @@ import project.side.ikdaman.core.navigation.MAIN_ROUTE
 import project.side.ikdaman.core.navigation.SEARCH_ROUTE
 import project.side.ikdaman.core.navigation.TUTORIAL_ROUTE
 import project.side.ikdaman.core.ui.AppTheme
+import project.side.ikdaman.feature.add_notes.AddRecordScreen
+import project.side.ikdaman.feature.add_notes.RecordType
 import project.side.ikdaman.feature.barcode.BarcodeScreen
 import project.side.ikdaman.feature.bookedit.BookEditScreen
 import project.side.ikdaman.feature.detail.BookDetailScreen
@@ -59,6 +62,10 @@ class MainActivity : ComponentActivity() {
                     }
                     slideComposable(BOOK_DETAIL_ROUTE) {
                         BookDetailScreen(navController)
+                    }
+                    slideComposable(ADD_BOOK_RECORD) {
+                        val recordType = it.arguments?.getString("recordType")
+                        AddRecordScreen(navController, RecordType.from(recordType))
                     }
                 }
             }
