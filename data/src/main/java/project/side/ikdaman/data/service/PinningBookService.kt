@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 
-val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "pinned_settings")
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "pinned_settings")
 
 class PinningBookService(private val context: Context) {
 

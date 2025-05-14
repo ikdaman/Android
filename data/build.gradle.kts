@@ -25,6 +25,7 @@ dependencies{
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.datastore.preferences.core)
     implementation(libs.retrofit)
+    implementation(libs.okhttp3.logging)
     implementation(libs.converter.gson)
     implementation(libs.converter.moshi)
     implementation(libs.moshi.kotlin)
