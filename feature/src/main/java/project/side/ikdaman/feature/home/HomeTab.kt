@@ -465,7 +465,7 @@ fun PalettePreview() {
 
 @Composable
 private fun LeftDayBubble(bookItem: HomeBookItem) {
-    val day = bookItem.getLeftDay()
+    val day = bookItem.getElapsedDays()
     val isCompleted = bookItem.isCompleted()
     if (isCompleted) {
         Spacer(Modifier.height(41.dp))

@@ -9,7 +9,7 @@ data class HomeBookItem(
     var progress: Float = 0F,
     var firstImpression: String = ""
 ) {
-    fun getLeftDay(): Int {
+    fun getElapsedDays(): Int {
         val currentTime = System.currentTimeMillis()
         val diff = currentTime - lastEditedTime
         val days = (diff / (1000 * 60 * 60 * 24)).toInt()
