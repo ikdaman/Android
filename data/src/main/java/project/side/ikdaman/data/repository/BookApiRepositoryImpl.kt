@@ -12,8 +12,12 @@ class BookApiRepositoryImpl(private val api: BookApiService) : BookApiRepository
         emit(ApiResult.Loading)
         val response = api.getReadingBookList()
         if (response.isSuccess()) {
-            val books = response.books!!.map { it.transformToDomain() }
-            emit(ApiResult.Success(books))
+            val books = response.books?.map { it.transformToDomain() }
+            if (books != null) {
+                emit(ApiResult.Success(books))
+            } else {
+                emit(ApiResult.Error("Books data is missing"))
+            }
         } else {
             emit(ApiResult.Error(response.message ?: ""))
         }
