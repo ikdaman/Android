@@ -8,6 +8,7 @@ import dagger.hilt.components.SingletonComponent
 import project.side.ikdaman.data.repository.PaletteRepositoryImpl
 import project.side.ikdaman.data.repository.PinningBookRepositoryImpl
 import project.side.ikdaman.data.service.PaletteService
+import project.side.ikdaman.data.data_source.AuthDataStore
 import project.side.ikdaman.data.service.PinningBookService
 import project.side.ikdaman.domain.repository.PaletteRepository
 import project.side.ikdaman.domain.repository.PinningBookRepository
@@ -34,4 +35,8 @@ object DataStoreModule {
     @Singleton
     fun providePaletteRepository(paletteService: PaletteService): PaletteRepository =
         PaletteRepositoryImpl(paletteService)
+
+	@Provides
+	@Singleton
+    fun provideAuthDataStore(application: Application) = AuthDataStore(application)
 }
