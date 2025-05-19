@@ -64,7 +64,12 @@ object KakaoAuth {
                     if (loginError != null) {
                         // 사용자가 로그인 취소
                         if (loginError is ClientError && loginError.reason == ClientErrorCause.Cancelled) {
-                            return@loginWithKakaoTalk
+                            continuation.resume(
+                                SocialLoginResult(
+                                    isSuccess = false,
+                                    errorMessage = ""
+                                )
+                            )
                         }
                         UserApiClient.instance.loginWithKakaoAccount(context, callback = callback)
                     } else if (token != null) {     // 카카오톡으로 로그인 성공
