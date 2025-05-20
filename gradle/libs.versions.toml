@@ -25,6 +25,7 @@ coroutine = "1.9.0"
 ossLicensesPlugin = "0.10.6"
 okhttp = "4.12.0"
 kakao-login = "2.21.2"
+naver-login = "5.10.0"
 
 ## Hilt
 # https://github.com/google/dagger/releases
@@ -106,6 +107,7 @@ oss-licenses-plugin = { group = "com.google.android.gms", name = "oss-licenses-p
 
 # social login
 kakao-login = { group = "com.kakao.sdk", name = "v2-user", version.ref = "kakao-login" }
+naver-login = { group = "com.navercorp.nid", name = "oauth", version.ref = "naver-login" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

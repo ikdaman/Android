@@ -13,4 +13,5 @@ dependencies {
     implementation(projects.domain)
 
     implementation(libs.kakao.login)
+    implementation(libs.naver.login)
 }
