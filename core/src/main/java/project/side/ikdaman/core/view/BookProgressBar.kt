@@ -1,5 +1,8 @@
 package project.side.ikdaman.core.view
 
+import android.annotation.SuppressLint
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +13,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import project.side.ikdaman.core.ui.AppText
 import project.side.ikdaman.core.ui.AppTheme
 
+@SuppressLint("UseOfNonLambdaOffsetOverload")
 @Composable
 fun BookProgressBarWithText(
     width: Int,
@@ -42,12 +48,22 @@ fun BookProgressBarWithText(
             progress > 0.9f -> 0.9f * width - 30 // 끝 경계
             else -> progress * width - 30
         }
+
+        val animatedOffset = remember { Animatable(0f) }
+
+        LaunchedEffect(textOffset) {
+            animatedOffset.animateTo(
+                targetValue = textOffset,
+                animationSpec = tween(durationMillis = 500)
+            )
+        }
+
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(50.dp))
                 .height(3.dp)
                 .background(Color.Black)
-                .width((progress * width).dp)
+                .width(animatedOffset.value.dp)
                 .align(Alignment.CenterStart)
         )
         val progressText = "${(progress * 100).toInt()}%"
@@ -61,7 +77,7 @@ fun BookProgressBarWithText(
                 letterSpacing = (-0.4).sp,
             ),
             modifier = Modifier
-                .offset(x = (textOffset).dp)
+                .offset(x = animatedOffset.value.dp)
                 .clip(RoundedCornerShape(20.dp))
                 .background(Color.Black)
                 .padding(vertical = 7.dp, horizontal = 10.dp)
@@ -74,6 +90,13 @@ fun BookProgressBar(
     width: Int,
     progress: Float,
 ) {
+    val animatedOffset = remember { Animatable(0f) }
+    LaunchedEffect(progress * width) {
+        animatedOffset.animateTo(
+            targetValue = progress * width,
+            animationSpec = tween(durationMillis = 500)
+        )
+    }
     Box {
         Box(
             modifier = Modifier
@@ -88,7 +111,7 @@ fun BookProgressBar(
                 .clip(RoundedCornerShape(50.dp))
                 .height(3.dp)
                 .background(Color.Black)
-                .width((progress * width).dp)
+                .width(animatedOffset.value.dp)
                 .align(Alignment.CenterStart)
         )
     }

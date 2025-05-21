@@ -23,6 +23,7 @@ internal fun Project.configureComposeAndroid() {
             add("implementation", libs.findLibrary("androidx.compose.ui.tooling.preview").get())
             add("implementation", libs.findLibrary("androidx.navigation.runtime.ktx").get())
             add("implementation", libs.findLibrary("coil.compose").get())
+            add("implementation", libs.findLibrary("androidx.animation").get())
 
             add("androidTestImplementation", libs.findLibrary("androidx.junit").get())
             add("androidTestImplementation", libs.findLibrary("androidx.espresso.core").get())

@@ -1,4 +1,4 @@
-package project.side.ikdaman.feature.home
+package project.side.ikdaman.domain.model
 
 data class HomeBookItem(
     val id: String = "",
@@ -7,13 +7,18 @@ data class HomeBookItem(
     val lastEditedDateTime: Long = 0L,
     val title: String = "",
     val author: String = "",
+    val id: String,
+    val imageUrl: String,
+    val lastEditedTime: Long,
+    val title: String,
+    val author: String,
     var progress: Float = 0F,
     var firstImpression: String = "",
     var totalPage: Int = 0,
 ) {
-    fun getLeftDay(): Int {
+    fun getElapsedDays(): Int {
         val currentTime = System.currentTimeMillis()
-        val diff = currentTime - addedDateTime
+        val diff = currentTime - lastEditedTime
         val days = (diff / (1000 * 60 * 60 * 24)).toInt()
         return if (days < 0) {
             0
