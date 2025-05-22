@@ -110,7 +110,7 @@ val dummy = mutableListOf(
     HomeBookItem(
         id = "0",
         imageUrl = "https://picsum.photos/250/284?random=1",
-        lastEditedTime = System.currentTimeMillis(),
+        lastEditedDateTime = System.currentTimeMillis(),
         title = "소년이 온다1",
         author = "한강1",
         firstImpression = "sample",
@@ -119,7 +119,7 @@ val dummy = mutableListOf(
     HomeBookItem(
         id = "1",
         imageUrl = "https://picsum.photos/199/284?random=9",
-        lastEditedTime = System.currentTimeMillis() - (24 * 60 * 60 * 1000),
+        lastEditedDateTime = System.currentTimeMillis() - (24 * 60 * 60 * 1000),
         title = "소년이 온다2",
         author = "한강2",
         firstImpression = "네가 죽은 뒤 장례식을 치르지 못해, 내 삶이 장례식이 되었다.\n" +
@@ -131,7 +131,7 @@ val dummy = mutableListOf(
     HomeBookItem(
         id = "2",
         imageUrl = "https://picsum.photos/250/284?random=3",
-        lastEditedTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
+        lastEditedDateTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
         title = "소년이 온다3",
         author = "한강1",
         progress = 0.4f
@@ -139,14 +139,14 @@ val dummy = mutableListOf(
     HomeBookItem(
         id = "3",
         imageUrl = "null",
-        lastEditedTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
+        lastEditedDateTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
         title = "소년이 온다4",
         author = "한강1"
     ),
     HomeBookItem(
         id = "4",
         imageUrl = "https://picsum.photos/250/284?random=8",
-        lastEditedTime = System.currentTimeMillis(),
+        lastEditedDateTime = System.currentTimeMillis(),
         title = "소년이 온다5",
         author = "한강1",
         firstImpression = "테스트 테스트",
@@ -155,7 +155,7 @@ val dummy = mutableListOf(
     HomeBookItem(
         id = "5",
         imageUrl = "https://picsum.photos/199/284?random=6",
-        lastEditedTime = System.currentTimeMillis() - (24 * 60 * 60 * 1000),
+        lastEditedDateTime = System.currentTimeMillis() - (24 * 60 * 60 * 1000),
         title = "소년이 온다6",
         author = "한강2",
         firstImpression = "네가 죽은 뒤 장례식을 치르지 못해, 내 삶이 장례식이 되었다.\n" +
@@ -166,7 +166,7 @@ val dummy = mutableListOf(
     HomeBookItem(
         id = "6",
         imageUrl = "https://picsum.photos/250/284?random=7",
-        lastEditedTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
+        lastEditedDateTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
         title = "소년이 온다7",
         author = "한강1",
         progress = 0.4f
@@ -174,7 +174,7 @@ val dummy = mutableListOf(
     HomeBookItem(
         id = "7",
         imageUrl = "null",
-        lastEditedTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
+        lastEditedDateTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
         title = "소년이 온다8",
         author = "한강1"
     ),

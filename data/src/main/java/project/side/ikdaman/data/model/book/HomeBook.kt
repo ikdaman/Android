@@ -24,7 +24,7 @@ data class HomeBook(
         return HomeBookItem(
             id = mybookId.toString(),
             imageUrl = coverImage,
-            lastEditedTime = lastEditedTime,
+            lastEditedDateTime = lastEditedTime,
             title = title,
             author = author,
             progress = progress.toFloat() / 100f,

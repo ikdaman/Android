@@ -65,7 +65,8 @@ class MainActivity : ComponentActivity() {
                     }
                     slideComposable(ADD_BOOK_RECORD) {
                         val recordType = it.arguments?.getString("recordType")
-                        AddRecordScreen(navController, RecordType.from(recordType))
+                        val bookId = it.arguments?.getString("bookId") ?: ""
+                        AddRecordScreen(navController, recordType = RecordType.from(recordType), bookId = bookId)
                     }
                 }
             }

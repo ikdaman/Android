@@ -6,9 +6,11 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -28,24 +30,41 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import project.side.ikdaman.app.feature.R
+import project.side.ikdaman.core.navigation.ADD_BOOK_RECORD
 import project.side.ikdaman.core.ui.AppText
 import project.side.ikdaman.core.ui.AppTheme
+import project.side.ikdaman.core.utils.oneClick
 
 @Composable
 fun AddRecordScreen(
     navController: NavController,
+    viewModel: AddRecordViewModel = hiltViewModel(
+        navController.getBackStackEntry(ADD_BOOK_RECORD)
+    ),
     recordType: RecordType,
-    onBack: () -> Unit = {},
-    onNavigateToEditScreen: () -> Unit = {},
+    bookId: String = "",
 ) {
     val textState = remember { mutableStateOf("") }
     AddRecordScreenUI(
         recordType = recordType,
         textState = textState,
-        onBack = onBack,
-        onNavigateToEditScreen = onNavigateToEditScreen
+        onBack = {
+            navController.popBackStack()
+        },
+        onConfirmFirstImpression = {
+            viewModel.addFirstImpression(bookId, it)
+            navController.popBackStack()
+        },
+        onConfirmMiddleRecord = { text, page ->
+            viewModel.addMiddleRecord(bookId, text, page)
+        },
+        onConfirmCompletedRecord = {
+            viewModel.addCompletedRecord(bookId, it)
+            navController.popBackStack()
+        },
     )
 }
 
@@ -55,9 +74,12 @@ fun AddRecordScreenUI(
     recordType: RecordType,
     textState: MutableState<String> = remember { mutableStateOf("") },
     onBack: () -> Unit = {},
-    onNavigateToEditScreen: () -> Unit = {},
+    onConfirmFirstImpression: (String) -> Unit = {},
+    onConfirmMiddleRecord: (String, Int) -> Unit = { _, _ -> },
+    onConfirmCompletedRecord: (String) -> Unit = {},
 ) {
-    val pageState = remember { mutableStateOf(0) }
+    val pageState: MutableState<Int?> = remember { mutableStateOf(null) }
+    val recordTypeState = remember { mutableStateOf(recordType) }
     Scaffold(
         topBar = {
             Box(
@@ -70,9 +92,9 @@ fun AddRecordScreenUI(
                 Image(
                     imageVector = ImageVector.vectorResource(R.drawable.arrow_back),
                     contentDescription = null,
-                    modifier = Modifier.align(Alignment.CenterStart)
+                    modifier = Modifier.align(Alignment.CenterStart).oneClick { onBack() }
                 )
-                val titleText = when (recordType) {
+                val titleText = when (recordTypeState.value) {
                     RecordType.FIRST -> "기록 추가하기"
                     RecordType.MIDDLE -> "기록 추가하기"
                     RecordType.FINAL -> "완독 기록하기"
@@ -83,40 +105,39 @@ fun AddRecordScreenUI(
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
-        },
-        bottomBar = {
-            Box(
-                modifier = Modifier
-                    .padding(20.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(Color.Black)
-                    .fillMaxWidth()
-                    .height(50.dp)
-                    .clickable { }
-            ) {
-                Text(
-                    "확인",
-                    style = AddRecordTextStyles.buttonTextStyle,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.Center)
-                )
-            }
         }
     ) {
-        Column {
+        Column(Modifier.fillMaxHeight()) {
             Spacer(Modifier.height(50.dp))
-            when (recordType) {
+            when (recordTypeState.value) {
                 RecordType.FIRST -> {
-                    FirstImpressionView(textState = textState)
+                    FirstImpressionView(
+                        textState = textState,
+                        onConfirm = {
+                            onConfirmFirstImpression(it)
+                        }
+                    )
                 }
 
                 RecordType.MIDDLE -> {
-                    AddMiddleRecordView(textState = textState, pageState = pageState)
+                    AddMiddleRecordView(
+                        textState = textState, pageState = pageState,
+                        onConfirm = { text, page ->
+                            onConfirmMiddleRecord(text, page)
+                        },
+                        onNavigateToCompleteView = {
+                            recordTypeState.value = RecordType.FINAL
+                        }
+                    )
                 }
 
                 RecordType.FINAL -> {
-                    ReadCompleteView(textState = textState)
+                    ReadCompleteView(
+                        textState = textState,
+                        onConfirm = {
+                            onConfirmCompletedRecord(it)
+                        }
+                    )
                 }
             }
         }
@@ -127,19 +148,15 @@ fun AddRecordScreenUI(
 @Composable
 fun AddRecordScreenFirstPreview() {
     AppTheme {
-        Column {
-            AddRecordScreenUI(recordType = RecordType.FIRST)
-        }
+        AddRecordScreenUI(recordType = RecordType.FIRST)
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, heightDp = 800)
 @Composable
 fun AddRecordScreenMiddlePreview() {
     AppTheme {
-        Column {
-            AddRecordScreenUI(recordType = RecordType.MIDDLE)
-        }
+        AddRecordScreenUI(recordType = RecordType.MIDDLE)
     }
 }
 
@@ -147,8 +164,6 @@ fun AddRecordScreenMiddlePreview() {
 @Composable
 fun AddRecordScreenFinalPreview() {
     AppTheme {
-        Column {
-            AddRecordScreenUI(recordType = RecordType.FINAL)
-        }
+        AddRecordScreenUI(recordType = RecordType.FINAL)
     }
 }

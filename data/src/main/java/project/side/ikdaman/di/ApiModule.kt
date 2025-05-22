@@ -14,12 +14,15 @@ import project.side.ikdaman.data.data_source.AuthDataStore
 import project.side.ikdaman.data.repository.AuthRepositoryImpl
 import project.side.ikdaman.data.repository.BookApiRepositoryImpl
 import project.side.ikdaman.data.repository.BookRepositoryImpl
+import project.side.ikdaman.data.repository.MyBooksApiRepositoryImpl
 import project.side.ikdaman.data.service.AuthService
 import project.side.ikdaman.data.service.BookApiService
 import project.side.ikdaman.data.service.BookService
+import project.side.ikdaman.data.service.MyBookApi
 import project.side.ikdaman.domain.repository.AuthRepository
 import project.side.ikdaman.domain.repository.BookApiRepository
 import project.side.ikdaman.domain.repository.BookRepository
+import project.side.ikdaman.domain.repository.MyBooksApiRepository
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import javax.inject.Qualifier
@@ -133,6 +136,24 @@ object ApiModule {
     @Singleton
     fun provideBookApiRepository(bookApiService: BookApiService): BookApiRepository {
         return BookApiRepositoryImpl(bookApiService)
+    }
+
+
+    @Provides
+    @Singleton
+    fun provideMyBookApi(@DefaultOkHttpClient okHttpClient: OkHttpClient): MyBookApi {
+        return Retrofit.Builder()
+            .baseUrl(API_URL) // Replace with your actual base URL
+            .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(MyBookApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideMyBooksApiRepository(myBookApi: MyBookApi): MyBooksApiRepository {
+        return MyBooksApiRepositoryImpl(myBookApi)
     }
 
     @Provides
