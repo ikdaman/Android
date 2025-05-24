@@ -1,9 +1,11 @@
 package project.side.ikdaman.data.model.responses
 
-data class BooksResponse<T>(
+import project.side.ikdaman.data.model.book.HomeBook
+
+data class BooksResponse(
+    val books: List<HomeBook>?,
     val code: Int? = 0,
-    val message: String? = "",
-    val books: T? = null
+    val message: String? = ""
 ) {
     fun isSuccess(): Boolean {
         return code == 0

@@ -9,6 +9,7 @@ import project.side.ikdaman.data.model.book.BookThink
 import project.side.ikdaman.data.model.book.HomeBook
 import project.side.ikdaman.data.model.book.UpdateBookThink
 import project.side.ikdaman.data.model.responses.BookDetailResponse
+import retrofit2.Response
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -23,7 +24,7 @@ interface MyBookApi {
         id: String,
         @Query("page") page: Int,
         @Query("limit") limit: Int
-    ): BookLogResponse
+    ): Response<BookLogResponse>
 
     // 나의 책 정보 조회
     @GET("mybooks/{id}")
@@ -39,7 +40,7 @@ interface MyBookApi {
 
     // 독서중인 책 목록 조회
     @GET("mybooks/in-progress")
-    suspend fun getReadingBookList(): BooksResponse<List<HomeBook>>
+    suspend fun getReadingBookList(): Response<BooksResponse>
 
     // 생각 추가
     @POST("mybooks/{id}/booklog")

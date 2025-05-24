@@ -6,19 +6,26 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import project.side.ikdaman.data.model.book.BookCompleted
 import project.side.ikdaman.data.model.book.BookThink
+import project.side.ikdaman.data.model.book.HomeBook
 import project.side.ikdaman.data.service.MyBookApi
 import project.side.ikdaman.data.utils.TimeUtils
 import project.side.ikdaman.domain.model.ApiResult
 import project.side.ikdaman.domain.model.BookDetail
 import project.side.ikdaman.domain.model.BookLog
+import project.side.ikdaman.domain.model.HomeBookItem
 import project.side.ikdaman.domain.repository.MyBooksApiRepository
 
 class MyBooksApiRepositoryImpl(private val api: MyBookApi) : MyBooksApiRepository {
     override fun getBookLog(bookId: String, page: Int, limit: Int): Flow<ApiResult<BookLog>> = flow {
         emit(ApiResult.Loading)
         val response = api.getBookLog(bookId, page, limit)
-        if (response.isSuccess()) {
-            emit(ApiResult.Success(response.bookLog!!))
+        if (response.isSuccessful) {
+            val body = response.body()
+            if (body != null && body.isSuccess()) {
+                emit(ApiResult.Success(body.bookLog!!))
+            } else {
+                emit(ApiResult.Error("책 로그 데이터가 없습니다."))
+            }
         } else {
             emit(ApiResult.Error("오류 발생"))
         }
@@ -43,15 +50,16 @@ class MyBooksApiRepositoryImpl(private val api: MyBookApi) : MyBooksApiRepositor
     override fun getBooks() = flow {
         emit(ApiResult.Loading)
         val response = api.getReadingBookList()
-        if (response.isSuccess()) {
-            val books = response.books?.map { it.transformToDomain() }
-            if (books != null) {
+        if (response.isSuccessful) {
+            val body = response.body()
+            val books = body?.books?.map { it.transformToDomain() }
+            if (books != null && body.isSuccess()) {
                 emit(ApiResult.Success(books))
             } else {
                 emit(ApiResult.Error("Books data is missing"))
             }
         } else {
-            emit(ApiResult.Error(response.message ?: ""))
+            emit(ApiResult.Error("" ?: ""))
         }
     }.catch {
         Log.e("BookApiRepository", "Error fetching books: ${it.message}", it)

@@ -48,7 +48,7 @@ class HomeViewModel @Inject constructor(
             getReadingBooksUseCase().collect { result ->
                 when (result) {
                     is ApiResult.Success -> {
-                        val bookList = dummy// result.data
+                        val bookList = result.data
                         books.emit(bookList)
                         pinningBookRepository.getPinningBook().collect { pinnedBookList ->
                             val pinned = bookList.filter { book -> book.id in pinnedBookList }
