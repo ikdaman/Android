@@ -10,10 +10,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -25,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -51,8 +56,27 @@ fun MainScreen(appNavController: NavHostController) {
     val currentDestination = remember { mutableStateOf(HOME_ROUTE) }
 
     Scaffold(
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { addBookDialogState.value = true },
+                containerColor = Color.Transparent,
+                elevation = FloatingActionButtonDefaults.elevation(
+                    defaultElevation = 0.dp,
+                    pressedElevation = 0.dp
+                )
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.floting),
+                    contentDescription = "Floating Button",
+                    modifier = Modifier.size(45.dp),
+                    tint = Color.Unspecified
+                )
+            }
+        },
         bottomBar = {
-            BottomTabs(mainNavController, currentDestination, appNavController)
+            BottomTabs(mainNavController, currentDestination) {
+                addBookDialogState.value = true
+            }
             if (addBookDialogState.value) {
                 ModalBottomSheet(
                     onDismissRequest = {
@@ -105,7 +129,7 @@ fun MainScreen(appNavController: NavHostController) {
 private fun BottomTabs(
     mainNavController: NavHostController,
     currentDestination: MutableState<String>,
-    appNavController: NavHostController
+    onClickAddBook: () -> Unit = {}
 ) {
     val currentRoute = currentDestination.value
     Column {
@@ -143,7 +167,7 @@ private fun BottomTabs(
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                 elevation = null,
                 onClick = {
-                    appNavController.navigate(SEARCH_ROUTE)
+                    onClickAddBook()
                 }
             ) {
                 if (currentRoute == SEARCH_ROUTE) {
@@ -211,7 +235,6 @@ fun BottomTabsPreView() {
         BottomTabs(
             mainNavController = mainNavController,
             currentDestination = remember { mutableStateOf(HOME_ROUTE) },
-            appNavController = appNavController
         )
     }
 }
