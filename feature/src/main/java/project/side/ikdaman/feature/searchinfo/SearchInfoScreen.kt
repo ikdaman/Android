@@ -1,10 +1,11 @@
-package project.side.ikdaman.feature.search
+package project.side.ikdaman.feature.searchinfo
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,11 +19,13 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,30 +37,46 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.core.ui.PretendardFontFamily
+import project.side.ikdaman.domain.model.BookItem
 
 @Composable
-fun SearchInfoScreen() {
+fun SearchInfoScreen(
+    isbn: String,
+    viewModel: SearchInfoViewModel = hiltViewModel(),
+    navController: NavController
+) {
     var initialImpression by remember { mutableStateOf("") }
+    val searchResult = viewModel.searchResult.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.searchBookWithIsbn(isbn)
+    }
 
     SearchInfoScreenUI(
         initialImpression = initialImpression,
-        onInitialImpressionChange = { initialImpression = it }
+        onInitialImpressionChange = { initialImpression = it },
+        bookItem = searchResult.value
     )
 }
 
 @SuppressLint("InvalidColorHexValue")
 @Composable
-fun SearchInfoScreenUI(
+private fun SearchInfoScreenUI(
     initialImpression: String = "",
     onInitialImpressionChange: (String) -> Unit = {},
+    bookItem: BookItem? = null
 ) {
     val selectedColor by remember { mutableStateOf(Palette.first) }
     val backgroundGradientModifier = remember {
@@ -105,11 +124,7 @@ fun SearchInfoScreenUI(
                 .padding(paddingValues)
                 .padding(horizontal = 20.dp)
         ) {
-//            AsyncImage(
-//                model = "https://contents.kyobobook.co.kr/sih/fit-in/458x0/pdt/4808936434120.jpg",
-//                contentDescription = "Book Cover",
-//                modifier = Modifier
-//            )
+            if (bookItem == null) return@Scaffold
 
             val labelTextStyle = TextStyle(
                 fontFamily = PretendardFontFamily,
@@ -124,12 +139,14 @@ fun SearchInfoScreenUI(
                 color = Color(0xff777777)
             )
 
-            Image(
-                painter = painterResource(R.drawable.sample_book_cover),
+            Spacer(Modifier.height(24.dp))
+
+            AsyncImage(
+                model = bookItem.cover,
                 contentDescription = "Book Cover",
                 modifier = Modifier
                     .size(width = 80.dp, height = 114.dp)
-                    .align(Alignment.CenterHorizontally)
+                    .align(Alignment.CenterHorizontally),
             )
 
             Spacer(Modifier.height(24.dp))
@@ -156,19 +173,19 @@ fun SearchInfoScreenUI(
                 Spacer(Modifier.width(30.dp))
                 Column {
                     Text(
-                        "소년이 온다",
+                        bookItem.title,
                         style = contentTextStyle
                     )
                     Text(
-                        "한강",
+                        bookItem.author,
                         style = contentTextStyle
                     )
                     Text(
-                        "창비",
+                        bookItem.publisher,
                         style = contentTextStyle
                     )
                     Text(
-                        "279",
+                        bookItem.subInfo?.itemPage ?: "0",
                         style = contentTextStyle
                     )
                 }
@@ -190,8 +207,10 @@ fun SearchInfoScreenUI(
                         fontFamily = PretendardFontFamily,
                         fontWeight = FontWeight.Bold,
                         fontSize = 12.sp,
+                        textDecoration = TextDecoration.Underline
+                    ),
+
                     )
-                )
             }
             Spacer(Modifier.height(30.dp))
             Text(
@@ -204,9 +223,7 @@ fun SearchInfoScreenUI(
                 onInitialImpressionChange = onInitialImpressionChange
             )
             Spacer(modifier = Modifier.weight(1f))
-            Button(onClick = {}, modifier = Modifier.fillMaxWidth()) {
-                Text("책 추가하기")
-            }
+            SearchResultAddButton(modifier = Modifier.fillMaxWidth())
         }
 
     }
@@ -273,6 +290,26 @@ private fun InitialImpressionTextField(
                 fontSize = 12.sp
             ),
             color = Color(0xff333333)
+        )
+    }
+}
+
+@Composable
+private fun SearchResultAddButton(modifier: Modifier) {
+    Button(
+        onClick = {},
+        modifier = modifier.padding(bottom = 78.dp),
+        shape = RoundedCornerShape(10.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+        contentPadding = PaddingValues(vertical = 11.dp)
+    ) {
+        Text(
+            text = "책 추가하기",
+            style = TextStyle(
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 15.sp
+            )
         )
     }
 }

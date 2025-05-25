@@ -138,9 +138,8 @@ fun BarcodeScreen(
         isPermissionGranted = isPermissionGranted,
         lifecycleOwner = lifecycleOwner,
         cameraProvider = cameraProvider,
-        searchResult = searchResult.value,
+        bookItem = searchResult.value,
         onDismissDialog = {
-            Log.d(TAG, "Dismiss Dialog")
             viewModel.resetIsbn()
         },
         barcodeScanner = barcodeScanner
@@ -167,7 +166,7 @@ fun BarcodeScreenUI(
     isPermissionGranted: Boolean? = null,
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
     cameraProvider: ProcessCameraProvider? = null,
-    searchResult: BookSearch? = null,
+    bookItem: BookItem? = null,
     onDismissDialog: () -> Unit = {},
     barcodeScanner: BarcodeScanner
 ) {
@@ -202,16 +201,13 @@ fun BarcodeScreenUI(
     ) { innerPadding ->
         if (isPermissionGranted == null) return@Scaffold
 
-        searchResult?.let { result ->
-            if (result.books.isNotEmpty()) {
-                BookBottomSheetDialog(
-                    bottomPaddingValues = innerPadding,
-                    bookItem = result.books[0],
-                    onAddBookClick = {},
-                    onDismiss = onDismissDialog
-                )
-            }
-
+        bookItem?.let {
+            BookBottomSheetDialog(
+                bottomPaddingValues = innerPadding,
+                bookItem = it,
+                onAddBookClick = {},
+                onDismiss = onDismissDialog
+            )
         }
 
         if (isPermissionGranted == true) {

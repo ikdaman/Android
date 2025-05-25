@@ -1,7 +1,6 @@
 package project.side.ikdaman.feature.search
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,9 +23,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -39,48 +40,58 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import project.side.ikdaman.app.feature.R
-import project.side.ikdaman.core.navigation.BOOK_EDIT_ROUTE
 import project.side.ikdaman.core.navigation.MAIN_ROUTE
+import project.side.ikdaman.core.navigation.SEARCH_INFO_ROUTE
 import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.core.ui.PretendardFontFamily
 import project.side.ikdaman.domain.model.BookItem
 import project.side.ikdaman.domain.model.BookSearch
+import project.side.ikdaman.domain.model.BookSubInfo
+
+private const val TAG = "SearchScreen"
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun SearchScreen(
     navController: NavController,
-    searchViewModel: SearchViewModel = hiltViewModel(
+    viewModel: SearchViewModel = hiltViewModel(
         navController.getBackStackEntry(MAIN_ROUTE)
     )
 ) {
-    val searchKeyword by remember { mutableStateOf("") }
-    val bookSearch by remember { mutableStateOf(BookSearch()) }
+    var searchKeyword by remember { mutableStateOf("") }
+    val bookSearch = viewModel.searchResult.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.selectedBookIsbn.collect {
+            navController.navigate("$SEARCH_INFO_ROUTE/$it")
+        }
+    }
 
     SearchScreenUI(
         onBack = { navController.popBackStack() },
-        onNavigateToEditScreen = {
-            navController.navigate(BOOK_EDIT_ROUTE)
-        },
         onSearchKeywordChange = {
-            searchViewModel.searchBookWithTitle(it)
+            searchKeyword = it
+            viewModel.searchBookWithTitle(it)
         },
         searchKeyword = searchKeyword,
-        bookSearch = bookSearch,
+        bookSearch = bookSearch.value,
+        onClickAddBookButton = { viewModel.emitSelectedBookIsbn(it) }
     )
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun SearchScreenUI(
-    onNavigateToEditScreen: () -> Unit = {},
     onSearchKeywordChange: (String) -> Unit = {},
     searchKeyword: String = "",
     onBack: () -> Unit = {},
-    bookSearch: BookSearch = BookSearch(),
+    bookSearch: BookSearch? = BookSearch(),
+    onClickAddBookButton: (Int) -> Unit = {}
 ) {
     val selectedColor by remember { mutableStateOf(Palette.first) }
     val backgroundGradientModifier = remember {
@@ -132,69 +143,14 @@ fun SearchScreenUI(
                 modifier = Modifier
                     .padding(paddingValues)
                     .padding(top = 24.dp),
-                value = searchKeyword,
-                onValueChange = onSearchKeywordChange
+                searchText = searchKeyword,
+                onSearchTextChanged = onSearchKeywordChange
             )
             SearchResultScreen(
                 searchKeyword = searchKeyword,
-                result = bookSearch
+                bookSearch = bookSearch,
+                onClickAddBookButton = onClickAddBookButton,
             )
-        }
-    }
-}
-
-@Composable
-private fun SearchTextField(
-    modifier: Modifier = Modifier,
-    value: String,
-    onValueChange: (String) -> Unit
-) {
-    BasicTextField(
-        modifier = modifier,
-        value = value,
-        onValueChange = onValueChange,
-        textStyle = TextStyle(
-            fontFamily = PretendardFontFamily,
-            fontWeight = FontWeight.Normal,
-            fontSize = 15.sp
-        )
-    ) { innerTextField ->
-        Box(
-            modifier = Modifier
-                .heightIn(min = 48.dp)
-                .fillMaxWidth()
-                .background(
-                    shape = RoundedCornerShape(5.dp),
-                    color = Color.White
-                )
-        ) {
-            if (value.isEmpty()) {
-                Text(
-                    "책 제목을 검색해주세요.", color = Color(0xff989898),
-                    style = TextStyle(
-                        fontFamily = PretendardFontFamily,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 15.sp
-                    ),
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .padding(horizontal = 15.dp)
-                )
-            }
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .padding(horizontal = 15.dp)
-            ) {
-                innerTextField()
-            }
-            IconButton(onClick = {}, modifier = Modifier.align(Alignment.CenterEnd)) {
-                Icon(
-                    painter = painterResource(R.drawable.magnifier),
-                    contentDescription = "Search",
-                    Modifier.size(24.dp)
-                )
-            }
         }
     }
 }
@@ -202,14 +158,19 @@ private fun SearchTextField(
 @Composable
 private fun SearchResultScreen(
     searchKeyword: String,
-    result: BookSearch
+    bookSearch: BookSearch?,
+    onClickAddBookButton: (Int) -> Unit
 ) {
-    if (result.totalBookCount == 0) {
+    if (bookSearch == null || bookSearch.totalBookCount == 0) {
         NoSearchResultScreen(searchKeyword)
     } else {
         LazyColumn(modifier = Modifier.padding(top = 24.dp)) {
-            items(result.books) { item ->
-                SearchResultItem(item)
+            items(bookSearch.books.withIndex().toList()) { (index, item) ->
+                SearchResultItem(
+                    bookItem = item,
+                    index = index,
+                    onClickAddBookButton = onClickAddBookButton
+                )
                 Box(
                     modifier = Modifier
                         .height(1.dp)
@@ -218,6 +179,137 @@ private fun SearchResultScreen(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun SearchTextField(
+    modifier: Modifier = Modifier,
+    searchText: String,
+    onSearchTextChanged: (String) -> Unit
+) {
+    BasicTextField(
+        modifier = modifier
+            .heightIn(min = 48.dp)
+            .fillMaxWidth()
+            .background(
+                shape = RoundedCornerShape(5.dp),
+                color = Color.White
+            ),
+        value = searchText,
+        onValueChange = {
+            onSearchTextChanged(it)
+        },
+        textStyle = TextStyle(
+            fontFamily = PretendardFontFamily,
+            fontWeight = FontWeight.Normal,
+            fontSize = 15.sp
+        ),
+        decorationBox = { innerTextField ->
+            Box(
+                modifier = Modifier
+
+            ) {
+                if (searchText.isEmpty()) {
+                    Text(
+                        "책 제목을 검색해주세요.", color = Color(0xff989898),
+                        style = TextStyle(
+                            fontFamily = PretendardFontFamily,
+                            fontWeight = FontWeight.Normal,
+                            fontSize = 15.sp
+                        ),
+                        modifier = Modifier
+                            .align(Alignment.CenterStart)
+                            .padding(horizontal = 15.dp)
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(horizontal = 15.dp)
+                ) {
+                    innerTextField()
+                }
+                IconButton(onClick = {}, modifier = Modifier.align(Alignment.CenterEnd)) {
+                    Icon(
+                        painter = painterResource(R.drawable.magnifier),
+                        contentDescription = "Search",
+                        Modifier.size(24.dp)
+                    )
+                }
+            }
+        }
+    )
+}
+
+@Composable
+private fun SearchResultItem(
+    bookItem: BookItem,
+    index: Int,
+    onClickAddBookButton: (Int) -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 15.dp)
+    ) {
+        Row {
+            AsyncImage(
+                model = bookItem.cover,
+                contentDescription = "Book Cover",
+                modifier = Modifier
+                    .size(width = 80.dp, height = 114.dp)
+            )
+            Column(modifier = Modifier.padding(start = 18.dp)) {
+                Text(
+                    text = bookItem.title,
+                    style = TextStyle(
+                        fontFamily = PretendardFontFamily,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp
+                    ),
+                    modifier = Modifier.padding(bottom = 3.dp)
+                )
+                Text(
+                    text = bookItem.author,
+                    style = TextStyle(
+                        fontFamily = PretendardFontFamily,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 12.sp
+                    )
+                )
+            }
+        }
+        SearchResultAddButton(
+            modifier = Modifier.align(Alignment.BottomEnd),
+            index = index,
+            onClick = onClickAddBookButton
+        )
+
+    }
+}
+
+@Composable
+private fun SearchResultAddButton(
+    modifier: Modifier,
+    index: Int,
+    onClick: (Int) -> Unit = {},
+) {
+    Button(
+        onClick = { onClick(index) },
+        modifier = modifier,
+        shape = RoundedCornerShape(5.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+        contentPadding = PaddingValues(vertical = 5.dp, horizontal = 12.dp)
+    ) {
+        Text(
+            text = "이 책 추가 +",
+            style = TextStyle(
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 12.sp
+            )
+        )
     }
 }
 
@@ -250,74 +342,6 @@ private fun NoSearchResultScreen(searchKeyword: String) {
 }
 
 @Composable
-private fun SearchResultItem(
-    bookItem: BookItem
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 15.dp)
-    ) {
-        Row {
-            // todo BookItem.cover 사용하기
-//            AsyncImage(
-//                model = bookItem.cover,
-//                contentDescription = "Book Cover",
-//                modifier = Modifier
-//                    .size(width = 80.dp, height = 114.dp)
-//            )
-            Image(
-                painter = painterResource(R.drawable.sample_book_cover),
-                contentDescription = "Book Cover",
-                modifier = Modifier
-                    .size(width = 80.dp, height = 114.dp)
-            )
-            Column(modifier = Modifier.padding(start = 18.dp)) {
-                Text(
-                    text = bookItem.title,
-                    style = TextStyle(
-                        fontFamily = PretendardFontFamily,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 14.sp
-                    ),
-                    modifier = Modifier.padding(bottom = 3.dp)
-                )
-                Text(
-                    text = bookItem.author,
-                    style = TextStyle(
-                        fontFamily = PretendardFontFamily,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 12.sp
-                    )
-                )
-            }
-        }
-        SearchResultAddButton(modifier = Modifier.align(Alignment.BottomEnd))
-
-    }
-}
-
-@Composable
-private fun SearchResultAddButton(modifier: Modifier) {
-    Button(
-        onClick = {},
-        modifier = modifier,
-        shape = RoundedCornerShape(5.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
-        contentPadding = PaddingValues(vertical = 5.dp, horizontal = 12.dp)
-    ) {
-        Text(
-            text = "이 책 추가 +",
-            style = TextStyle(
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Bold,
-                fontSize = 12.sp
-            )
-        )
-    }
-}
-
-@Composable
 @Preview(showBackground = true)
 private fun SearchScreenUIPreview() {
     AppTheme {
@@ -330,7 +354,9 @@ private fun SearchScreenUIPreview() {
                         title = "소년이 온다(개정판)",
                         author = "한강",
                         cover = "https://contents.kyobobook.co.kr/sih/fit-in/458x0/pdt/4808936434120.jpg",
-                        isbn = ""
+                        isbn = "",
+                        publisher = "창비",
+                        subInfo = BookSubInfo("279")
                     )
                 }
             )
