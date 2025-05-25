@@ -27,7 +27,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -63,8 +62,8 @@ fun SearchScreen(
         navController.getBackStackEntry(MAIN_ROUTE)
     )
 ) {
-    var searchKeyword by remember { mutableStateOf("") }
-    val bookSearch = viewModel.searchResult.collectAsStateWithLifecycle()
+    val bookSearch by viewModel.searchResult.collectAsStateWithLifecycle()
+    val searchKeyword by viewModel.searchKeyword.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.selectedBookIsbn.collect {
@@ -75,11 +74,10 @@ fun SearchScreen(
     SearchScreenUI(
         onBack = { navController.popBackStack() },
         onSearchKeywordChange = {
-            searchKeyword = it
-            viewModel.searchBookWithTitle(it)
+            viewModel.updateSearchKeyword(it)
         },
         searchKeyword = searchKeyword,
-        bookSearch = bookSearch.value,
+        bookSearch = bookSearch,
         onClickAddBookButton = { viewModel.emitSelectedBookIsbn(it) }
     )
 }
