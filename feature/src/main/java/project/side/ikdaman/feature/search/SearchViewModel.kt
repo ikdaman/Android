@@ -21,7 +21,7 @@ class SearchViewModel @Inject constructor(private val searchBookWithTitleUseCase
     private val _searchResult: MutableStateFlow<BookSearch?> = MutableStateFlow(null)
     val searchResult = _searchResult.asStateFlow()
 
-    private val _selectedBookIsbn = MutableSharedFlow<String?>(replay = 1)
+    private val _selectedBookIsbn = MutableSharedFlow<String?>(replay = 0)
     val selectedBookIsbn = _selectedBookIsbn.asSharedFlow()
 
     fun searchBookWithTitle(title: String) {
@@ -32,9 +32,11 @@ class SearchViewModel @Inject constructor(private val searchBookWithTitleUseCase
     }
 
     fun emitSelectedBookIsbn(index: Int) {
-        _searchResult.value?.let { result ->
-            if (result.books.isNotEmpty()) {
-                _selectedBookIsbn.tryEmit(result.books[index].isbn)
+        viewModelScope.launch {
+            _searchResult.value?.let { result ->
+                if (result.books.isNotEmpty()) {
+                    _selectedBookIsbn.emit(result.books[index].isbn)
+                }
             }
         }
     }

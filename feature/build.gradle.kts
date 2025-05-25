@@ -16,7 +16,6 @@ dependencies {
 
     implementation(libs.coil.compose)
     implementation(libs.barcode.scanning)
-
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
     implementation(libs.androidx.camera.core)
