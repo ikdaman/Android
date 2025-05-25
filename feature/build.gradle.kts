@@ -12,6 +12,8 @@ dependencies {
     implementation(projects.core)
     implementation(projects.domain)
 
+    implementation(libs.kakao.login)
+
     implementation(libs.coil.compose)
     implementation(libs.barcode.scanning)
 

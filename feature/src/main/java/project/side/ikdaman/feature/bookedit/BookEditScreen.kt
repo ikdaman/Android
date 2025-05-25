@@ -15,25 +15,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import project.side.ikdaman.core.navigation.MAIN_ROUTE
 import project.side.ikdaman.core.ui.AppTheme
-import project.side.ikdaman.feature.home.HomeViewModel
 
 @Composable
 fun BookEditScreen(
     navController: NavController,
-    homeViewModel: HomeViewModel = hiltViewModel(
-        navController.getBackStackEntry(MAIN_ROUTE)
-    )
 ) {
     BookEditScreenUI(
         onBack = {
             navController.popBackStack()
         },
         onComplete = {
-            homeViewModel.increaseCount()
             navController.popBackStack(MAIN_ROUTE, inclusive = false, saveState = false)
         }
     )
