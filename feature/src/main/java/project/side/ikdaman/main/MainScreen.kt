@@ -18,9 +18,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -78,36 +76,14 @@ fun MainScreen(appNavController: NavHostController) {
                 addBookDialogState.value = true
             }
             if (addBookDialogState.value) {
-                ModalBottomSheet(
-                    onDismissRequest = {
-                        addBookDialogState.value = false
-                    }
-                ) {
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text("책 등록하기")
-                        Button(
-                            onClick = {
-                                appNavController.navigate(SEARCH_ROUTE)
-                            }
-                        ) {
-                            Text("검색해서 등록")
-                        }
-                        Button(
-                            onClick = {
-                                appNavController.navigate(BARCODE_ROUTE)
-                            }
-                        ) {
-                            Text("바코드로 등록")
-                        }
-                    }
-                }
+                AddBookModalBottomSheet(
+                    onSearchClick = { appNavController.navigate(SEARCH_ROUTE) },
+                    onBarcodeClick = { appNavController.navigate(BARCODE_ROUTE) },
+                    onDismiss = { addBookDialogState.value = false }
+                )
             }
-        }) {
+        }
+    ) {
         NavHost(navController = mainNavController, startDestination = HOME_ROUTE) {
             composable(HOME_ROUTE) {
                 currentDestination.value = HOME_ROUTE
@@ -156,11 +132,12 @@ private fun BottomTabs(
                         imageVector = ImageVector.vectorResource(R.drawable.home_enabled),
                         contentDescription = null
                     )
-                } else
+                } else {
                     Image(
                         imageVector = ImageVector.vectorResource(R.drawable.home_disabled),
                         contentDescription = null
                     )
+                }
             }
 
             Button(
@@ -175,11 +152,12 @@ private fun BottomTabs(
                         imageVector = ImageVector.vectorResource(R.drawable.search_enabled),
                         contentDescription = null
                     )
-                } else
+                } else {
                     Image(
                         imageVector = ImageVector.vectorResource(R.drawable.search_disabled),
                         contentDescription = null
                     )
+                }
             }
             Button(
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
@@ -195,11 +173,12 @@ private fun BottomTabs(
                         imageVector = ImageVector.vectorResource(R.drawable.bookshelf_enabled),
                         contentDescription = null
                     )
-                } else
+                } else {
                     Image(
                         imageVector = ImageVector.vectorResource(R.drawable.bookshelf_disabled),
                         contentDescription = null
                     )
+                }
             }
 
             Button(
@@ -216,11 +195,12 @@ private fun BottomTabs(
                         imageVector = ImageVector.vectorResource(R.drawable.mypage_enabled),
                         contentDescription = null
                     )
-                } else
+                } else {
                     Image(
                         imageVector = ImageVector.vectorResource(R.drawable.mypage_disabled),
                         contentDescription = null
                     )
+                }
             }
         }
     }
