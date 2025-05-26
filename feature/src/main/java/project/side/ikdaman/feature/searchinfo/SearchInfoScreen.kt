@@ -1,7 +1,6 @@
 package project.side.ikdaman.feature.searchinfo
 
 import android.annotation.SuppressLint
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,6 +48,7 @@ import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.core.ui.PretendardFontFamily
+import project.side.ikdaman.core.view.GradientBox
 import project.side.ikdaman.domain.model.BookItem
 
 @Composable
@@ -59,6 +59,7 @@ fun SearchInfoScreen(
 ) {
     var initialImpression by remember { mutableStateOf("") }
     val searchResult = viewModel.searchResult.collectAsStateWithLifecycle()
+    val selectedColor by viewModel.selectedColor.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.searchBookWithIsbn(isbn)
@@ -74,24 +75,11 @@ fun SearchInfoScreen(
 @SuppressLint("InvalidColorHexValue")
 @Composable
 private fun SearchInfoScreenUI(
+    selectedColor: Color = Palette.first,
     initialImpression: String = "",
     onInitialImpressionChange: (String) -> Unit = {},
     bookItem: BookItem? = null
 ) {
-    val selectedColor by remember { mutableStateOf(Palette.first) }
-    val backgroundGradientModifier = remember {
-        Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        selectedColor,
-                        selectedColor.copy(alpha = 0.2f),
-                    )
-                )
-            )
-    }
-
     Scaffold(
         topBar = {
             Box(modifier = Modifier.fillMaxWidth()) {
@@ -119,113 +107,123 @@ private fun SearchInfoScreenUI(
             }
         },
     ) { paddingValues ->
-        Column(
-            modifier = backgroundGradientModifier
-                .padding(paddingValues)
-                .padding(horizontal = 20.dp)
-        ) {
-            if (bookItem == null) return@Scaffold
-
-            val labelTextStyle = TextStyle(
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 14.sp,
-            )
-
-            val contentTextStyle = TextStyle(
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Normal,
-                fontSize = 14.sp,
-                color = Color(0xff777777)
-            )
-
-            Spacer(Modifier.height(24.dp))
-
-            AsyncImage(
-                model = bookItem.cover,
-                contentDescription = "Book Cover",
-                modifier = Modifier
-                    .size(width = 80.dp, height = 114.dp)
-                    .align(Alignment.CenterHorizontally),
-            )
-
-            Spacer(Modifier.height(24.dp))
-
-            Row {
-                Column {
-                    Text(
-                        "책 제목",
-                        style = labelTextStyle,
-                    )
-                    Text(
-                        "작가",
-                        style = labelTextStyle,
-                    )
-                    Text(
-                        "출판사",
-                        style = labelTextStyle,
-                    )
-                    Text(
-                        "총 페이지",
-                        style = labelTextStyle,
-                    )
-                }
-                Spacer(Modifier.width(30.dp))
-                Column {
-                    Text(
-                        bookItem.title,
-                        style = contentTextStyle
-                    )
-                    Text(
-                        bookItem.author,
-                        style = contentTextStyle
-                    )
-                    Text(
-                        bookItem.publisher,
-                        style = contentTextStyle
-                    )
-                    Text(
-                        bookItem.subInfo?.itemPage ?: "0",
-                        style = contentTextStyle
-                    )
-                }
-            }
-            Spacer(Modifier.height(30.dp))
-            Row {
-                Text(
-                    "도서 정보 알라딘 제공",
-                    style = TextStyle(
-                        fontFamily = PretendardFontFamily,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 12.sp,
-                    )
+        GradientBox(
+            Modifier
+                .fillMaxSize(),
+            gradient = Brush.verticalGradient(
+                colors = listOf(
+                    selectedColor,
+                    selectedColor.copy(alpha = 0.2f),
                 )
-                Spacer(Modifier.width(9.dp))
-                Text(
-                    "알라딘에서 보기",
-                    style = TextStyle(
-                        fontFamily = PretendardFontFamily,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp,
-                        textDecoration = TextDecoration.Underline
-                    ),
+            )
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .padding(horizontal = 20.dp)
+            ) {
+                if (bookItem == null) return@Column
 
+                val labelTextStyle = TextStyle(
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp,
+                )
+
+                val contentTextStyle = TextStyle(
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 14.sp,
+                    color = Color(0xff777777)
+                )
+
+                Spacer(Modifier.height(24.dp))
+
+                AsyncImage(
+                    model = bookItem.cover,
+                    contentDescription = "Book Cover",
+                    modifier = Modifier
+                        .size(width = 80.dp, height = 114.dp)
+                        .align(Alignment.CenterHorizontally),
+                )
+
+                Spacer(Modifier.height(24.dp))
+
+                Row {
+                    Column {
+                        Text(
+                            "책 제목",
+                            style = labelTextStyle,
+                        )
+                        Text(
+                            "작가",
+                            style = labelTextStyle,
+                        )
+                        Text(
+                            "출판사",
+                            style = labelTextStyle,
+                        )
+                        Text(
+                            "총 페이지",
+                            style = labelTextStyle,
+                        )
+                    }
+                    Spacer(Modifier.width(30.dp))
+                    Column {
+                        Text(
+                            bookItem.title,
+                            style = contentTextStyle
+                        )
+                        Text(
+                            bookItem.author,
+                            style = contentTextStyle
+                        )
+                        Text(
+                            bookItem.publisher,
+                            style = contentTextStyle
+                        )
+                        Text(
+                            bookItem.subInfo?.itemPage ?: "0",
+                            style = contentTextStyle
+                        )
+                    }
+                }
+                Spacer(Modifier.height(30.dp))
+                Row {
+                    Text(
+                        "도서 정보 알라딘 제공",
+                        style = TextStyle(
+                            fontFamily = PretendardFontFamily,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 12.sp,
+                        )
                     )
-            }
-            Spacer(Modifier.height(30.dp))
-            Text(
-                "책의 첫인상",
-                style = labelTextStyle,
-            )
-            Spacer(Modifier.height(10.dp))
-            InitialImpressionTextField(
-                initialImpression = initialImpression,
-                onInitialImpressionChange = onInitialImpressionChange
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            SearchResultAddButton(modifier = Modifier.fillMaxWidth())
-        }
+                    Spacer(Modifier.width(9.dp))
+                    Text(
+                        "알라딘에서 보기",
+                        style = TextStyle(
+                            fontFamily = PretendardFontFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp,
+                            textDecoration = TextDecoration.Underline
+                        ),
 
+                        )
+                }
+                Spacer(Modifier.height(30.dp))
+                Text(
+                    "책의 첫인상",
+                    style = labelTextStyle,
+                )
+                Spacer(Modifier.height(10.dp))
+                InitialImpressionTextField(
+                    initialImpression = initialImpression,
+                    onInitialImpressionChange = onInitialImpressionChange
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                SearchResultAddButton(modifier = Modifier.fillMaxWidth())
+            }
+        }
     }
 }
 
