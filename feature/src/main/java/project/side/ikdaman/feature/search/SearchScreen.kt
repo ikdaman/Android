@@ -25,8 +25,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -48,6 +46,7 @@ import project.side.ikdaman.core.navigation.SEARCH_INFO_ROUTE
 import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.core.ui.PretendardFontFamily
+import project.side.ikdaman.core.view.GradientBox
 import project.side.ikdaman.domain.model.BookItem
 import project.side.ikdaman.domain.model.BookSearch
 import project.side.ikdaman.domain.model.BookSubInfo
@@ -64,6 +63,7 @@ fun SearchScreen(
 ) {
     val bookSearch by viewModel.searchResult.collectAsStateWithLifecycle()
     val searchKeyword by viewModel.searchKeyword.collectAsStateWithLifecycle()
+    val selectedColor by viewModel.selectedColor.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.selectedBookIsbn.collect {
@@ -72,6 +72,7 @@ fun SearchScreen(
     }
 
     SearchScreenUI(
+        selectedColor = selectedColor,
         onBack = { navController.popBackStack() },
         onSearchKeywordChange = {
             viewModel.updateSearchKeyword(it)
@@ -85,25 +86,13 @@ fun SearchScreen(
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun SearchScreenUI(
+    selectedColor: Color = Palette.first,
     onSearchKeywordChange: (String) -> Unit = {},
     searchKeyword: String = "",
     onBack: () -> Unit = {},
     bookSearch: BookSearch? = BookSearch(),
     onClickAddBookButton: (Int) -> Unit = {}
 ) {
-    val selectedColor by remember { mutableStateOf(Palette.first) }
-    val backgroundGradientModifier = remember {
-        Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        selectedColor,
-                        selectedColor.copy(alpha = 0.2f),
-                    )
-                )
-            )
-    }
 
     Scaffold(
         topBar = {
@@ -132,23 +121,33 @@ fun SearchScreenUI(
             }
         },
     ) { paddingValues ->
-        Column(
-            modifier = backgroundGradientModifier
-                .padding(horizontal = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+        GradientBox(
+            Modifier
+                .fillMaxSize(),
+            gradient = Brush.verticalGradient(
+                colors = listOf(
+                    selectedColor,
+                    selectedColor.copy(alpha = 0.2f),
+                )
+            )
         ) {
-            SearchTextField(
-                modifier = Modifier
-                    .padding(paddingValues)
-                    .padding(top = 24.dp),
-                searchText = searchKeyword,
-                onSearchTextChanged = onSearchKeywordChange
-            )
-            SearchResultScreen(
-                searchKeyword = searchKeyword,
-                bookSearch = bookSearch,
-                onClickAddBookButton = onClickAddBookButton,
-            )
+            Column(
+                modifier = Modifier.padding(horizontal = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                SearchTextField(
+                    modifier = Modifier
+                        .padding(paddingValues)
+                        .padding(top = 24.dp),
+                    searchText = searchKeyword,
+                    onSearchTextChanged = onSearchKeywordChange
+                )
+                SearchResultScreen(
+                    searchKeyword = searchKeyword,
+                    bookSearch = bookSearch,
+                    onClickAddBookButton = onClickAddBookButton,
+                )
+            }
         }
     }
 }

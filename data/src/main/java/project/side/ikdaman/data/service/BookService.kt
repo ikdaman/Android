@@ -1,13 +1,13 @@
 package project.side.ikdaman.data.service
 
-import project.side.ikdaman.data.Secret
+import project.side.ikdaman.app.data.BuildConfig
 import retrofit2.http.GET
 import retrofit2.http.Query
 
 interface BookService {
     @GET("ttb/api/ItemSearch.aspx")
     suspend fun searchBookWithTitle(
-        @Query("ttbkey") ttbkey: String = Secret.ttbkey,
+        @Query("ttbkey") ttbkey: String = BuildConfig.TTB_KEY,
         @Query("Query") query: String,
         @Query("QueryType") queryType: String = "Title",
         @Query("output") output: String = "js",
@@ -16,7 +16,7 @@ interface BookService {
 
     @GET("ttb/api/ItemLookUp.aspx")
     suspend fun searchBookWithIsbn(
-        @Query("ttbkey") ttbkey: String = Secret.ttbkey,
+        @Query("ttbkey") ttbkey: String = BuildConfig.TTB_KEY,
         @Query("ItemId") itemId: String,
         @Query("itemIdType") itemIdType: String = "ISBN13",
         @Query("output") output: String = "js",

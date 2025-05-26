@@ -14,15 +14,20 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.domain.model.BookSearch
+import project.side.ikdaman.domain.repository.PaletteRepository
 import project.side.ikdaman.domain.usecase.SearchBookWithTitleUseCase
 import javax.inject.Inject
 
 private const val TAG = "SearchViewModel"
 
 @HiltViewModel
-class SearchViewModel @Inject constructor(private val searchBookWithTitleUseCase: SearchBookWithTitleUseCase) :
-    ViewModel() {
+class SearchViewModel @Inject constructor(
+    private val searchBookWithTitleUseCase: SearchBookWithTitleUseCase,
+    private val paletteRepository: PaletteRepository
+) : ViewModel() {
+    val selectedColor = MutableStateFlow(Palette.first)
 
     private val _selectedBookIsbn = MutableSharedFlow<String?>(replay = 0)
     val selectedBookIsbn = _selectedBookIsbn.asSharedFlow()
@@ -42,6 +47,18 @@ class SearchViewModel @Inject constructor(private val searchBookWithTitleUseCase
             started = SharingStarted.Lazily,
             initialValue = null
         )
+
+    init {
+        getPalette()
+    }
+
+    private fun getPalette() {
+        viewModelScope.launch {
+            paletteRepository.getPalette().collect { color ->
+                selectedColor.emit(Palette.getColor(color))
+            }
+        }
+    }
 
     fun updateSearchKeyword(title: String) {
         _searchKeyword.value = title
