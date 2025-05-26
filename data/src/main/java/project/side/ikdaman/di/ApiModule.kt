@@ -120,13 +120,8 @@ object ApiModule {
 
     @Provides
     @Singleton
-    fun provideMyBookApi(@AuthOkHttpClient okHttpClient: OkHttpClient): MyBookApi {
-        return Retrofit.Builder()
-            .baseUrl(BuildConfig.BASE_URL)
-            .client(okHttpClient)
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
-            .build()
-            .create(MyBookApi::class.java)
+    fun provideMyBookApi(@AuthRetrofit authRetrofit: Retrofit): MyBookApi {
+        return authRetrofit.create(MyBookApi::class.java)
     }
 
     @Provides
