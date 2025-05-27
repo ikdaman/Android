@@ -76,9 +76,7 @@ fun LoginScreen(
             }
         },
         onNaverLogin = {
-            viewModel.naverLogin {
-                navigateToTutorialScreen(navController)
-            }
+            viewModel.naverLogin(context)
         },
         onKakaoLogin = {
             viewModel.kakaoLogin(context)
