@@ -14,12 +14,14 @@ import project.side.ikdaman.data.data_source.AuthDataStore
 import project.side.ikdaman.data.repository.AuthRepositoryImpl
 import project.side.ikdaman.data.repository.BookApiRepositoryImpl
 import project.side.ikdaman.data.repository.BookRepositoryImpl
+import project.side.ikdaman.data.repository.UserRepositoryImpl
 import project.side.ikdaman.data.service.AuthService
 import project.side.ikdaman.data.service.BookApiService
 import project.side.ikdaman.data.service.BookService
 import project.side.ikdaman.domain.repository.AuthRepository
 import project.side.ikdaman.domain.repository.BookApiRepository
 import project.side.ikdaman.domain.repository.BookRepository
+import project.side.ikdaman.domain.repository.UserRepository
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import javax.inject.Qualifier
@@ -148,5 +150,11 @@ object ApiModule {
         authDataStore: AuthDataStore,
     ): AuthRepository {
         return AuthRepositoryImpl(authService, authDataStore)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserRepository(authDataStore: AuthDataStore): UserRepository {
+        return UserRepositoryImpl(authDataStore)
     }
 }

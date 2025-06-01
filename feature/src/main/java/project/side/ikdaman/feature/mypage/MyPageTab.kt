@@ -1,30 +1,164 @@
 package project.side.ikdaman.feature.mypage
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.indication
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import project.side.ikdaman.app.feature.R
+import project.side.ikdaman.core.navigation.USERINFO_ROUTE
 import project.side.ikdaman.core.ui.AppTheme
 
-@Suppress("UNUSED_PARAMETER")
 @Composable
-fun MyPageTab(navController: NavController) {
-    MyPageTabUI()
+fun MyPageTab(
+    navController: NavController,
+    viewModel: MyPageViewModel = hiltViewModel()
+) {
+    val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
+    val isChecked = remember { mutableStateOf(false) }
+    MyPageTabUI(
+        nickname = uiState.nickname,
+        isChecked = isChecked.value,
+        navigateToEditProfile = { navController.navigate(USERINFO_ROUTE) }
+    ) {
+        isChecked.value = !isChecked.value
+    }
 }
 
 @Composable
-fun MyPageTabUI() {
-    Box(Modifier.fillMaxSize()) {
-        Text(text = "MyPage", modifier = Modifier.align(Alignment.Center))
+fun MyPageTabUI(
+    nickname: String,
+    isChecked: Boolean,
+    navigateToEditProfile: () -> Unit = {},
+    onCheckedChanged: (Boolean) -> Unit = {}
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+
+    Column(Modifier.fillMaxSize()) {
+        Text(
+            "${nickname}님,\n안녕하세요!",
+            style = MyPageTextStyle.TitleText,
+            modifier = Modifier.padding(top = 85.dp, start = 23.dp)
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 20.dp, top = 34.dp, bottom = 30.dp, end = 21.dp)
+                .clickable { navigateToEditProfile() },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("내 정보 관리", style = MyPageTextStyle.MenuText)
+            Spacer(modifier = Modifier.weight(1f))
+            Image(
+                painterResource(R.drawable.arrow_right),
+                contentDescription = null,
+                modifier = Modifier.size(14.dp),
+            )
+        }
+        Spacer(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(10.dp)
+                .background(Color(0xFFF9F9F9))
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 20.dp, end = 22.dp, top = 27.dp, bottom = 21.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("푸시 메시지 설정", style = MyPageTextStyle.MenuText)
+            Spacer(modifier = Modifier.weight(1f))
+            Switch(
+                checked = isChecked,
+                onCheckedChange = onCheckedChanged,
+                modifier = Modifier
+                    .scale(0.9f)
+                    .size(49.dp, 26.dp)
+                    .indication(interactionSource, null),
+                interactionSource = interactionSource,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = Color.White,
+                    checkedTrackColor = Color(0xFF444444),
+                    uncheckedThumbColor = Color.White,
+                    uncheckedTrackColor = Color(0xFFBBBBBB),
+                    uncheckedBorderColor = Color(0xFFBBBBBB),
+                ),
+            )
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 30.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text("시간", style = MyPageTextStyle.MenuText)
+            Spacer(modifier = Modifier.weight(1f))
+        }
+        Spacer(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(10.dp)
+                .background(Color(0xFFF9F9F9))
+        )
+        Spacer(modifier = Modifier.height(27.dp))
+        MyPageMenuItem("공지사항")
+        MyPageMenuItem("서비스 이용약관")
+        MyPageMenuItem("개인정보 처리방침")
+        MyPageMenuItem("1:1 문의")
     }
+}
+
+@Composable
+fun MyPageMenuItem(
+    text: String = "",
+    onClick: () -> Unit = {}
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .clickable { onClick() },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier.height(26.dp),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            Text(text, style = MyPageTextStyle.SubMenuText)
+        }
+    }
+    Spacer(modifier = Modifier.height(12.dp))
 }
 
 @Composable
 @Preview(showBackground = true)
 fun MyPageTabUIPreview() {
-    AppTheme { MyPageTabUI() }
+    AppTheme { MyPageTabUI("닉네임", false) }
 }

@@ -12,3 +12,5 @@ const val SEARCH_ROUTE = "Search"
 const val BARCODE_ROUTE = "Barcode"
 const val BOOK_EDIT_ROUTE = "BookEdit"
 const val BOOK_DETAIL_ROUTE = "BookDetail"
+
+const val USERINFO_ROUTE = "UserInfo"
