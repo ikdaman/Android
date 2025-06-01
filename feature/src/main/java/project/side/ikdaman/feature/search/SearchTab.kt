@@ -55,10 +55,10 @@ private const val TAG = "SearchScreen"
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun SearchScreen(
-    navController: NavController,
+fun SearchTab(
+    appNavController: NavController,
     viewModel: SearchViewModel = hiltViewModel(
-        navController.getBackStackEntry(MAIN_ROUTE)
+        appNavController.getBackStackEntry(MAIN_ROUTE)
     )
 ) {
     val bookSearch by viewModel.searchResult.collectAsStateWithLifecycle()
@@ -67,13 +67,13 @@ fun SearchScreen(
 
     LaunchedEffect(Unit) {
         viewModel.selectedBookIsbn.collect {
-            navController.navigate("$SEARCH_INFO_ROUTE/$it")
+            appNavController.navigate("$SEARCH_INFO_ROUTE/$it")
         }
     }
 
-    SearchScreenUI(
+    SearchTabUI(
         selectedColor = selectedColor,
-        onBack = { navController.popBackStack() },
+        onBack = { appNavController.popBackStack() },
         onSearchKeywordChange = {
             viewModel.updateSearchKeyword(it)
         },
@@ -85,7 +85,7 @@ fun SearchScreen(
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun SearchScreenUI(
+fun SearchTabUI(
     selectedColor: Color = Palette.first,
     onSearchKeywordChange: (String) -> Unit = {},
     searchKeyword: String = "",
@@ -93,7 +93,6 @@ fun SearchScreenUI(
     bookSearch: BookSearch? = BookSearch(),
     onClickAddBookButton: (Int) -> Unit = {}
 ) {
-
     Scaffold(
         topBar = {
             Box(modifier = Modifier.fillMaxWidth()) {
@@ -209,7 +208,8 @@ private fun SearchTextField(
             ) {
                 if (searchText.isEmpty()) {
                     Text(
-                        "책 제목을 검색해주세요.", color = Color(0xff989898),
+                        "책 제목을 검색해주세요.",
+                        color = Color(0xff989898),
                         style = TextStyle(
                             fontFamily = PretendardFontFamily,
                             fontWeight = FontWeight.Normal,
@@ -282,7 +282,6 @@ private fun SearchResultItem(
             index = index,
             onClick = onClickAddBookButton
         )
-
     }
 }
 
@@ -318,31 +317,33 @@ private fun NoSearchResultScreen(searchKeyword: String) {
             .padding(top = 174.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(
-            text = searchKeyword,
-            style = TextStyle(
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Bold,
-                fontSize = 15.sp
+        if (searchKeyword.isNotEmpty()) {
+            Text(
+                text = searchKeyword,
+                style = TextStyle(
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp
+                )
             )
-        )
-        Text(
-            text = "에 대한 검색결과가 없어요.\n\n검색 결과를 다시한번 확인해 주세요.",
-            style = TextStyle(
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Normal,
-                fontSize = 15.sp
-            ),
-            textAlign = TextAlign.Center
-        )
+            Text(
+                text = "에 대한 검색결과가 없어요.\n\n검색 결과를 다시한번 확인해 주세요.",
+                style = TextStyle(
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 15.sp
+                ),
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
 
 @Composable
 @Preview(showBackground = true)
-private fun SearchScreenUIPreview() {
+private fun SearchTabUIPreview() {
     AppTheme {
-        SearchScreenUI(
+        SearchTabUI(
             searchKeyword = "소년",
             bookSearch = BookSearch(
                 totalBookCount = 5,
@@ -363,9 +364,9 @@ private fun SearchScreenUIPreview() {
 
 @Composable
 @Preview(showBackground = true)
-private fun SearchScreenNUIPreview_No_Result() {
+private fun SearchTabUIPreview_No_Result() {
     AppTheme {
-        SearchScreenUI(
+        SearchTabUI(
             searchKeyword = "소년ㅇㄴㅇ",
             bookSearch = BookSearch(
                 totalBookCount = 0,

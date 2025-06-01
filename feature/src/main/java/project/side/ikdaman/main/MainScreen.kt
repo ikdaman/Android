@@ -1,19 +1,18 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package project.side.ikdaman.main
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -36,7 +35,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import project.side.ikdaman.app.feature.R
-import project.side.ikdaman.core.navigation.BARCODE_ROUTE
 import project.side.ikdaman.core.navigation.BOOKSHELF_ROUTE
 import project.side.ikdaman.core.navigation.HOME_ROUTE
 import project.side.ikdaman.core.navigation.MY_PAGE_ROUTE
@@ -45,58 +43,72 @@ import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.feature.bookshelf.BookShelfTab
 import project.side.ikdaman.feature.home.HomeTab
 import project.side.ikdaman.feature.mypage.MyPageTab
+import project.side.ikdaman.feature.search.SearchTab
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun MainScreen(appNavController: NavHostController) {
     val mainNavController = rememberNavController()
-    val addBookDialogState = remember { mutableStateOf(false) }
     val currentDestination = remember { mutableStateOf(HOME_ROUTE) }
+    val addBookDialogState = remember { mutableStateOf(false) }
 
-    Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { addBookDialogState.value = true },
-                containerColor = Color.Transparent,
-                elevation = FloatingActionButtonDefaults.elevation(
-                    defaultElevation = 0.dp,
-                    pressedElevation = 0.dp
-                )
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.floting),
-                    contentDescription = "Floating Button",
-                    modifier = Modifier.size(45.dp),
-                    tint = Color.Unspecified
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            floatingActionButton = {
+                if (currentDestination.value == HOME_ROUTE) {
+                    FloatingActionButton(
+                        onClick = { addBookDialogState.value = true },
+                        containerColor = Color.Transparent,
+                        elevation = FloatingActionButtonDefaults.elevation(
+                            defaultElevation = 0.dp,
+                            pressedElevation = 0.dp
+                        )
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.floting),
+                            contentDescription = "Floating Button",
+                            modifier = Modifier.size(45.dp),
+                            tint = Color.Unspecified
+                        )
+                    }
+                }
+            },
+            bottomBar = {
+                BottomTabs(
+                    mainNavController = mainNavController,
+                    currentDestination = currentDestination,
+                    showAddBookDialog = {
+                        addBookDialogState.value = true
+                    }
                 )
             }
-        },
-        bottomBar = {
-            BottomTabs(mainNavController, currentDestination) {
-                addBookDialogState.value = true
-            }
-            if (addBookDialogState.value) {
-                AddBookModalBottomSheet(
-                    onSearchClick = { appNavController.navigate(SEARCH_ROUTE) },
-                    onBarcodeClick = { appNavController.navigate(BARCODE_ROUTE) },
-                    onDismiss = { addBookDialogState.value = false }
-                )
+        ) {
+            NavHost(navController = mainNavController, startDestination = HOME_ROUTE) {
+                composable(HOME_ROUTE) {
+                    currentDestination.value = HOME_ROUTE
+                    HomeTab(appNavController)
+                }
+                composable(SEARCH_ROUTE) {
+                    currentDestination.value = SEARCH_ROUTE
+                    SearchTab(appNavController)
+                }
+                composable(BOOKSHELF_ROUTE) {
+                    currentDestination.value = BOOKSHELF_ROUTE
+                    BookShelfTab(appNavController)
+                }
+                composable(MY_PAGE_ROUTE) {
+                    currentDestination.value = MY_PAGE_ROUTE
+                    MyPageTab(appNavController)
+                }
             }
         }
-    ) {
-        NavHost(navController = mainNavController, startDestination = HOME_ROUTE) {
-            composable(HOME_ROUTE) {
-                currentDestination.value = HOME_ROUTE
-                HomeTab(appNavController)
-            }
-            composable(BOOKSHELF_ROUTE) {
-                currentDestination.value = BOOKSHELF_ROUTE
-                BookShelfTab(appNavController)
-            }
-            composable(MY_PAGE_ROUTE) {
-                currentDestination.value = MY_PAGE_ROUTE
-                MyPageTab(appNavController)
-            }
+
+        if (addBookDialogState.value) {
+            AddBookModalBottomSheet(
+                mainNavController = mainNavController,
+                appNavController = appNavController,
+                onDismiss = { addBookDialogState.value = false }
+            )
         }
     }
 }
@@ -105,7 +117,7 @@ fun MainScreen(appNavController: NavHostController) {
 private fun BottomTabs(
     mainNavController: NavHostController,
     currentDestination: MutableState<String>,
-    onClickAddBook: () -> Unit = {}
+    showAddBookDialog: () -> Unit = {}
 ) {
     val currentRoute = currentDestination.value
     Column {
@@ -144,7 +156,7 @@ private fun BottomTabs(
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                 elevation = null,
                 onClick = {
-                    onClickAddBook()
+                    showAddBookDialog()
                 }
             ) {
                 if (currentRoute == SEARCH_ROUTE) {
