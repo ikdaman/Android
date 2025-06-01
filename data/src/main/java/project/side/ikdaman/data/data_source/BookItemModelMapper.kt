@@ -1,11 +1,13 @@
 package project.side.ikdaman.data.data_source
 
-import project.side.ikdaman.data.service.BookSearchResponse
+import project.side.ikdaman.data.service.BookSearchWithIsbnResponse
+import project.side.ikdaman.data.service.BookSearchWithTitleResponse
 import project.side.ikdaman.domain.model.BookItem
 import project.side.ikdaman.domain.model.BookSearch
+import project.side.ikdaman.domain.model.BookSubInfo
 
 object BookItemModelMapper {
-    fun mapToDomainModel(bookItemModel: BookSearchResponse): BookSearch {
+    fun mapFromTitleResponse(bookItemModel: BookSearchWithTitleResponse): BookSearch {
         return BookSearch(
             totalBookCount = bookItemModel.totalResults,
             books = bookItemModel.item.map {
@@ -13,7 +15,24 @@ object BookItemModelMapper {
                     title = it.title,
                     author = it.author,
                     cover = it.cover,
-                    isbn = it.isbn13 ?: it.isbn ?: ""
+                    publisher = it.publisher,
+                    isbn = it.isbn13 ?: it.isbn ?: "",
+                )
+            }
+        )
+    }
+
+    fun mapFromIsbnResponse(bookItemModel: BookSearchWithIsbnResponse): BookSearch {
+        return BookSearch(
+            totalBookCount = bookItemModel.totalResults,
+            books = bookItemModel.item.map {
+                BookItem(
+                    title = it.title,
+                    author = it.author,
+                    cover = it.cover,
+                    publisher = it.publisher,
+                    isbn = it.isbn13 ?: it.isbn ?: "",
+                    subInfo = BookSubInfo(it.subInfo.itemPage)
                 )
             }
         )

@@ -12,6 +12,9 @@ android {
         properties.load(project.rootProject.file("key.properties").inputStream())
 
         buildConfigField("String", "BASE_URL", "\"${properties.getProperty("BASE_URL")}\"")
+
+        val ttbKey = properties.getProperty("TTB_KEY")
+        buildConfigField("String", "TTB_KEY", "\"$ttbKey\"")
     }
 
     buildFeatures {
