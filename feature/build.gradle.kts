@@ -13,6 +13,7 @@ dependencies {
     implementation(projects.domain)
 
     implementation(libs.kakao.login)
+    implementation(libs.naver.login)
 
     implementation(libs.coil.compose)
     implementation(libs.barcode.scanning)
