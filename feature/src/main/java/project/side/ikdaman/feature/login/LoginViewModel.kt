@@ -23,8 +23,10 @@ class LoginViewModel @Inject constructor(
         callback()
     }
 
-    fun naverLogin(callback: () -> Unit) {
-        callback()
+    fun naverLogin(context: Context) {
+        handleLogin {
+            NaverAuth.login(context)
+        }
     }
 
     fun kakaoLogin(context: Context) {
@@ -61,7 +63,7 @@ class LoginViewModel @Inject constructor(
                     if (socialLoginResult.errorMessage.isNullOrBlank()) { // 사용자 취소(뒤로 가기 등)
                         _loginState.value = LoginState.Init
                     } else {
-                        Log.d("AUTH", "KAKAO LOGIN ERROR: ${socialLoginResult.errorMessage}")
+                        Log.d("AUTH", "SOCIAL LOGIN ERROR: ${socialLoginResult.errorMessage}")
                         _loginState.value = LoginState.Error("로그인에 실패했습니다.")
                     }
                 }
