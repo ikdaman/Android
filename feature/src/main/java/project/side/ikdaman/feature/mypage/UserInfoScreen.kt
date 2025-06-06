@@ -24,6 +24,7 @@ import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -44,6 +45,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -51,15 +53,18 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import project.side.ikdaman.app.feature.R
+import project.side.ikdaman.domain.model.UserInfo
+
+enum class Gender { MALE, FEMALE, NONE }
 
 @Composable
 fun UserInfoScreen(navController: NavController, viewModel: UserInfoViewModel = hiltViewModel()) {
-    // TODO 닉네임 비어있지 않은지, 중복 확인
     // TODO 생년월일 yyyy-MM-dd 형식인지, 날짜 유효한지 확인
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
 
     UserInfoScreenUI(
-        userNickname = uiState.nickname,
+        isLoading = uiState.isLoading,
+        userInfo = uiState.userInfo,
         nickState = uiState.nickState,
         updateNickState = viewModel::updateNickState,
         checkNickname = viewModel::checkNickname
@@ -68,25 +73,30 @@ fun UserInfoScreen(navController: NavController, viewModel: UserInfoViewModel = 
     }
 }
 
-enum class Gender { MALE, FEMALE, NONE }
-
 @Composable
 fun UserInfoScreenUI(
-    userNickname: String,
+    isLoading: Boolean = false,
+    userInfo: UserInfo,
     nickState: NickState = NickState.INIT,
     updateNickState: (NickState) -> Unit = {},
     checkNickname: (String) -> Unit = {},
     navigateBack: () -> Unit = {}
 ) {
     val nickname = remember { mutableStateOf(TextFieldValue()) }
-    val birthday = remember { mutableStateOf(TextFieldValue()) }
+    val birthdate = remember { mutableStateOf(TextFieldValue()) }
     val gender = remember { mutableStateOf(Gender.NONE) }
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    LaunchedEffect(userNickname) {
-        nickname.value = TextFieldValue(userNickname)
+    LaunchedEffect(userInfo) {
+        nickname.value = TextFieldValue(userInfo.nickname)
+        birthdate.value = TextFieldValue(userInfo.birthdate)
+        gender.value = when (userInfo.gender) {
+            "male" -> Gender.MALE
+            "female" -> Gender.FEMALE
+            else -> Gender.NONE
+        }
     }
 
     LaunchedEffect(nickState) {
@@ -121,6 +131,15 @@ fun UserInfoScreenUI(
             )
         }
     ) { innerPadding ->
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .zIndex(1f)
+            ) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
+        }
         Column(
             Modifier
                 .fillMaxSize()
@@ -142,7 +161,7 @@ fun UserInfoScreenUI(
                     coroutineScope = coroutineScope,
                     value = nickname.value
                 ) {
-                    if (it.text == userNickname) {   // 기존에 사용하던 닉네임
+                    if (it.text == userInfo.nickname) {   // 기존에 사용하던 닉네임
                         updateNickState(NickState.INIT)
                     } else if (nickname.value.text != it.text && nickState != NickState.CHECK) {  // 닉네임이 변경된 경우에만 중복확인하도록
                         updateNickState(NickState.CHECK)
@@ -165,15 +184,18 @@ fun UserInfoScreenUI(
                 modifier = Modifier.fillMaxWidth(),
                 bringIntoViewRequester = bringIntoViewRequester,
                 coroutineScope = coroutineScope,
-                value = birthday.value
+                value = birthdate.value
             ) {
-                birthday.value = it
+                birthdate.value = it
             }
             UserInfoLabel("성별")
             Row {
                 UserInfoButton(
                     text = "남",
-                    onClick = { gender.value = Gender.MALE },
+                    onClick = {
+                        gender.value =
+                            if (gender.value == Gender.MALE) Gender.NONE else Gender.MALE
+                    },
                     style = MyPageTextStyle.GenderButtonText,
                     containerColor = if (gender.value == Gender.MALE)
                         Color(0xFF858585) else Color(0xFFF5F5F5)
@@ -181,7 +203,10 @@ fun UserInfoScreenUI(
                 Spacer(modifier = Modifier.width(10.dp))
                 UserInfoButton(
                     text = "여",
-                    onClick = { gender.value = Gender.FEMALE },
+                    onClick = {
+                        gender.value =
+                            if (gender.value == Gender.FEMALE) Gender.NONE else Gender.FEMALE
+                    },
                     style = MyPageTextStyle.GenderButtonText,
                     containerColor = if (gender.value == Gender.FEMALE)
                         Color(0xFF858585) else Color(0xFFF5F5F5),
@@ -305,5 +330,5 @@ fun UserInfoTextField(
 @Preview(showBackground = true)
 @Composable
 fun UserInfoScreenPreview() {
-    UserInfoScreenUI("닉네임")
+    UserInfoScreenUI(userInfo = UserInfo("닉네임", "1999-01-01", "male"))
 }

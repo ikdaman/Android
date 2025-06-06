@@ -7,22 +7,47 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import project.side.ikdaman.domain.model.ApiResult
-import project.side.ikdaman.domain.repository.UserRepository
+import project.side.ikdaman.domain.model.UserInfo
 import project.side.ikdaman.domain.usecase.CheckNicknameUseCase
+import project.side.ikdaman.domain.usecase.GetUserInfoUseCase
 import javax.inject.Inject
 
 @HiltViewModel
 class UserInfoViewModel @Inject constructor(
-    private val userRepository: UserRepository,
-    private val checkNicknameUseCase: CheckNicknameUseCase
+    private val checkNicknameUseCase: CheckNicknameUseCase,
+    private val getUserInfoUseCase: GetUserInfoUseCase
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(UserInfoUiState())
     val uiState = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {
-            userRepository.getNickName().collect {
-                _uiState.value = _uiState.value.copy(nickname = it ?: "")
+            getUserInfo()
+        }
+    }
+
+    private fun getUserInfo() {
+        _uiState.value = _uiState.value.copy(isLoading = true)
+
+        viewModelScope.launch {
+            when (val result = getUserInfoUseCase()) {
+                is ApiResult.Success -> {
+                    _uiState.value = _uiState.value.copy(
+                        isSuccess = true,
+                        isLoading = false,
+                        userInfo = result.data
+                    )
+                }
+
+                is ApiResult.Error -> {
+                    _uiState.value = _uiState.value.copy(
+                        isSuccess = false,
+                        isLoading = false,
+                        message = result.message
+                    )
+                }
+
+                is ApiResult.Loading -> Unit
             }
         }
     }
@@ -34,12 +59,14 @@ class UserInfoViewModel @Inject constructor(
             when (val result = checkNicknameUseCase(nickname)) {
                 is ApiResult.Success -> {
                     _uiState.value = _uiState.value.copy(
+                        isLoading = false,
                         nickState = if (result.data) NickState.VALID else NickState.INVALID
                     )
                 }
 
                 is ApiResult.Error -> {
                     _uiState.value = _uiState.value.copy(
+                        isLoading = false,
                         nickState = NickState.ERROR,
                         message = result.message
                     )
@@ -58,8 +85,9 @@ class UserInfoViewModel @Inject constructor(
 }
 
 data class UserInfoUiState(
+    val isSuccess: Boolean = true,
     val isLoading: Boolean = false,
-    val nickname: String = "",
+    val userInfo: UserInfo = UserInfo(),
     val nickState: NickState = NickState.INIT,
     val message: String = ""
 )
