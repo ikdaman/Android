@@ -18,6 +18,7 @@ import project.side.ikdaman.data.repository.UserRepositoryImpl
 import project.side.ikdaman.data.service.AuthService
 import project.side.ikdaman.data.service.BookApiService
 import project.side.ikdaman.data.service.BookService
+import project.side.ikdaman.data.service.UserService
 import project.side.ikdaman.domain.repository.AuthRepository
 import project.side.ikdaman.domain.repository.BookApiRepository
 import project.side.ikdaman.domain.repository.BookRepository
@@ -154,7 +155,13 @@ object ApiModule {
 
     @Provides
     @Singleton
-    fun provideUserRepository(authDataStore: AuthDataStore): UserRepository {
-        return UserRepositoryImpl(authDataStore)
+    fun provideUserRepository(authDataStore: AuthDataStore, userService: UserService): UserRepository {
+        return UserRepositoryImpl(authDataStore, userService)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserService(@AuthRetrofit retrofit: Retrofit): UserService {
+        return retrofit.create(UserService::class.java)
     }
 }

@@ -1,10 +1,11 @@
 package project.side.ikdaman.feature.mypage
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,25 +22,30 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
@@ -47,10 +53,17 @@ import kotlinx.coroutines.launch
 import project.side.ikdaman.app.feature.R
 
 @Composable
-fun UserInfoScreen(navController: NavController) {
+fun UserInfoScreen(navController: NavController, viewModel: UserInfoViewModel = hiltViewModel()) {
     // TODO 닉네임 비어있지 않은지, 중복 확인
     // TODO 생년월일 yyyy-MM-dd 형식인지, 날짜 유효한지 확인
-    UserInfoScreenUI {
+    val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
+
+    UserInfoScreenUI(
+        userNickname = uiState.nickname,
+        nickState = uiState.nickState,
+        updateNickState = viewModel::updateNickState,
+        checkNickname = viewModel::checkNickname
+    ) {
         navController.popBackStack()
     }
 }
@@ -58,12 +71,43 @@ fun UserInfoScreen(navController: NavController) {
 enum class Gender { MALE, FEMALE, NONE }
 
 @Composable
-fun UserInfoScreenUI(navigateBack: () -> Unit = {}) {
+fun UserInfoScreenUI(
+    userNickname: String,
+    nickState: NickState = NickState.INIT,
+    updateNickState: (NickState) -> Unit = {},
+    checkNickname: (String) -> Unit = {},
+    navigateBack: () -> Unit = {}
+) {
     val nickname = remember { mutableStateOf(TextFieldValue()) }
     val birthday = remember { mutableStateOf(TextFieldValue()) }
     val gender = remember { mutableStateOf(Gender.NONE) }
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    LaunchedEffect(userNickname) {
+        nickname.value = TextFieldValue(userNickname)
+    }
+
+    LaunchedEffect(nickState) {
+        when (nickState) {
+            NickState.VALID -> {
+                Toast.makeText(context, "사용 가능한 닉네임입니다.", Toast.LENGTH_SHORT).show()
+            }
+
+            NickState.INVALID -> {
+                Toast.makeText(context, "사용할 수 없는 닉네임입니다.", Toast.LENGTH_SHORT).show()
+                updateNickState(NickState.CHECK)
+            }
+
+            NickState.ERROR -> {
+                Toast.makeText(context, "오류가 발생했습니다. 잠시 후 다시 시도해 주세요.", Toast.LENGTH_SHORT).show()
+                updateNickState(NickState.CHECK)
+            }
+
+            else -> Unit
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -98,14 +142,22 @@ fun UserInfoScreenUI(navigateBack: () -> Unit = {}) {
                     coroutineScope = coroutineScope,
                     value = nickname.value
                 ) {
+                    if (it.text == userNickname) {   // 기존에 사용하던 닉네임
+                        updateNickState(NickState.INIT)
+                    } else if (nickname.value.text != it.text && nickState != NickState.CHECK) {  // 닉네임이 변경된 경우에만 중복확인하도록
+                        updateNickState(NickState.CHECK)
+                    }
                     nickname.value = it
                 }
                 Spacer(modifier = Modifier.width(10.dp))
                 UserInfoButton(
                     text = "중복 확인",
-                    onClick = {},
+                    onClick = {
+                        checkNickname(nickname.value.text)
+                    },
+                    enabled = nickname.value.text.isNotBlank() && nickState == NickState.CHECK,
                     style = MyPageTextStyle.CheckButtonText,
-                    backgroundColor = Color(0xFF858585)
+                    containerColor = Color(0xFF858585)
                 )
             }
             UserInfoLabel("생년월일")
@@ -123,7 +175,7 @@ fun UserInfoScreenUI(navigateBack: () -> Unit = {}) {
                     text = "남",
                     onClick = { gender.value = Gender.MALE },
                     style = MyPageTextStyle.GenderButtonText,
-                    backgroundColor = if (gender.value == Gender.MALE)
+                    containerColor = if (gender.value == Gender.MALE)
                         Color(0xFF858585) else Color(0xFFF5F5F5)
                 )
                 Spacer(modifier = Modifier.width(10.dp))
@@ -131,7 +183,7 @@ fun UserInfoScreenUI(navigateBack: () -> Unit = {}) {
                     text = "여",
                     onClick = { gender.value = Gender.FEMALE },
                     style = MyPageTextStyle.GenderButtonText,
-                    backgroundColor = if (gender.value == Gender.FEMALE)
+                    containerColor = if (gender.value == Gender.FEMALE)
                         Color(0xFF858585) else Color(0xFFF5F5F5),
                 )
             }
@@ -139,9 +191,12 @@ fun UserInfoScreenUI(navigateBack: () -> Unit = {}) {
             UserInfoButton(
                 modifier = Modifier.bringIntoViewRequester(bringIntoViewRequester),
                 text = "저장하기",
-                onClick = {},
+                onClick = {
+                    //실제 저장 API 호출
+                },
+                enabled = nickState == NickState.VALID || nickState == NickState.INIT,
                 style = MyPageTextStyle.ButtonText,
-                backgroundColor = Color.Black,
+                containerColor = Color.Black,
                 fillMaxWidth = true
             )
             Spacer(modifier = Modifier.height(40.dp))
@@ -180,24 +235,30 @@ fun UserInfoButton(
     modifier: Modifier = Modifier,
     text: String,
     onClick: () -> Unit,
+    enabled: Boolean = true,
     style: TextStyle,
-    backgroundColor: Color,
+    containerColor: Color,
+    disabledContainerColor: Color = Color.Unspecified,
     fillMaxWidth: Boolean = false,
 ) {
-    Box(
-        modifier = Modifier
+    Button(
+        modifier = modifier
             .then(
                 if (fillMaxWidth) Modifier
                     .fillMaxWidth()
                     .height(50.dp)
                 else Modifier.size(80.dp, 54.dp)
-            )
-            .clip(RoundedCornerShape(10.dp))
-            .background(backgroundColor)
-            .clickable { onClick() }
-            .then(modifier)
+            ),
+        onClick = onClick,
+        enabled = enabled,
+        contentPadding = PaddingValues(horizontal = 0.dp),
+        shape = RoundedCornerShape(10.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = containerColor,
+            disabledContainerColor = disabledContainerColor,
+        )
     ) {
-        Text(text, style = style, modifier = Modifier.align(Alignment.Center))
+        Text(text, style = style)
     }
 }
 
@@ -244,5 +305,5 @@ fun UserInfoTextField(
 @Preview(showBackground = true)
 @Composable
 fun UserInfoScreenPreview() {
-    UserInfoScreenUI()
+    UserInfoScreenUI("닉네임")
 }
