@@ -10,4 +10,6 @@ interface UserRepository {
     suspend fun checkNickname(nickname: String): ApiResult<Boolean>
 
     suspend fun getUserInfo(): ApiResult<UserInfo>
+
+    suspend fun updateUserInfo(userInfo: UserInfo): ApiResult<Unit>
 }

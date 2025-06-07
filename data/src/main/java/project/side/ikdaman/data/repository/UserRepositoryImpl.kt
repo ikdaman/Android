@@ -21,7 +21,7 @@ class UserRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 response.body()?.let {
                     ApiResult.Success(it.available)
-                }?: ApiResult.Error("응답이 비어있습니다.")
+                } ?: ApiResult.Error("응답이 비어있습니다.")
             } else {
                 ApiResult.Error("서버 오류: ${response.code()}, ${response.message()}")
             }
@@ -36,10 +36,21 @@ class UserRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 response.body()?.let {
                     ApiResult.Success(it.toDomain())
-                }?: ApiResult.Error("응답이 비어있습니다.")
+                } ?: ApiResult.Error("응답이 비어있습니다.")
             } else {
                 ApiResult.Error("서버 오류: ${response.code()}, ${response.message()}")
             }
+        } catch (e: Exception) {
+            ApiResult.Error("서버 오류: ${e.message}")
+        }
+    }
+
+    override suspend fun updateUserInfo(userInfo: UserInfo): ApiResult<Unit> {
+        return try {
+            val response = userService.updateUserInfo(userInfo)
+            if (response.isSuccessful) {
+                ApiResult.Success(Unit)
+            } else ApiResult.Error("서버 오류: ${response.code()}, ${response.message()}")
         } catch (e: Exception) {
             ApiResult.Error("서버 오류: ${e.message}")
         }

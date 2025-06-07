@@ -55,21 +55,26 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.domain.model.UserInfo
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.format.ResolverStyle
-
-enum class Gender { MALE, FEMALE, NONE }
 
 @Composable
 fun UserInfoScreen(navController: NavController, viewModel: UserInfoViewModel = hiltViewModel()) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.uiEvent.collect { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
 
     UserInfoScreenUI(
         isLoading = uiState.isLoading,
         userInfo = uiState.userInfo,
-        nickState = uiState.nickState,
-        updateNickState = viewModel::updateNickState,
+        nicknameIsValid = uiState.nicknameIsValid,
+        birthdateIsValid = uiState.birthdateIsValid,
+        updateNicknameIsValid = viewModel::updateNicknameIsValid,
+        updateBirthdateIsValid = viewModel::updateBirthdateIsValid,
+        updateUserInfo = viewModel::updateUserInfo,
         checkNickname = viewModel::checkNickname
     ) {
         navController.popBackStack()
@@ -80,47 +85,24 @@ fun UserInfoScreen(navController: NavController, viewModel: UserInfoViewModel = 
 fun UserInfoScreenUI(
     isLoading: Boolean = false,
     userInfo: UserInfo,
-    nickState: NickState = NickState.INIT,
-    updateNickState: (NickState) -> Unit = {},
+    nicknameIsValid: Boolean = true,
+    birthdateIsValid: Boolean = true,
+    updateNicknameIsValid: (String) -> Unit = {},
+    updateBirthdateIsValid: (String) -> Unit = {},
     checkNickname: (String) -> Unit = {},
+    updateUserInfo: (String, String, String) -> Unit = { _, _, _ -> },
     navigateBack: () -> Unit = {}
 ) {
     val nickname = remember { mutableStateOf(TextFieldValue()) }
     val birthdate = remember { mutableStateOf(TextFieldValue()) }
     val gender = remember { mutableStateOf(Gender.NONE) }
-    val birthdateIsValid = remember { mutableStateOf(true) }
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
-    val context = LocalContext.current
 
     LaunchedEffect(userInfo) {
         nickname.value = TextFieldValue(userInfo.nickname)
-        birthdate.value = TextFieldValue(userInfo.birthdate)
-        gender.value = when (userInfo.gender) {
-            "male" -> Gender.MALE
-            "female" -> Gender.FEMALE
-            else -> Gender.NONE
-        }
-    }
-
-    LaunchedEffect(nickState) {
-        when (nickState) {
-            NickState.VALID -> {
-                Toast.makeText(context, "사용 가능한 닉네임입니다.", Toast.LENGTH_SHORT).show()
-            }
-
-            NickState.INVALID -> {
-                Toast.makeText(context, "사용할 수 없는 닉네임입니다.", Toast.LENGTH_SHORT).show()
-                updateNickState(NickState.CHECK)
-            }
-
-            NickState.ERROR -> {
-                Toast.makeText(context, "오류가 발생했습니다. 잠시 후 다시 시도해 주세요.", Toast.LENGTH_SHORT).show()
-                updateNickState(NickState.CHECK)
-            }
-
-            else -> Unit
-        }
+        birthdate.value = TextFieldValue(userInfo.birthdate ?: "")
+        gender.value = Gender.toGender(userInfo.gender ?: "")
     }
 
     Scaffold(
@@ -165,11 +147,7 @@ fun UserInfoScreenUI(
                     coroutineScope = coroutineScope,
                     value = nickname.value
                 ) {
-                    if (it.text == userInfo.nickname) {   // 기존에 사용하던 닉네임
-                        updateNickState(NickState.INIT)
-                    } else if (nickname.value.text != it.text && nickState != NickState.CHECK) {  // 닉네임이 변경된 경우에만 중복확인하도록
-                        updateNickState(NickState.CHECK)
-                    }
+                    updateNicknameIsValid(it.text)
                     nickname.value = it
                 }
                 Spacer(modifier = Modifier.width(10.dp))
@@ -178,7 +156,7 @@ fun UserInfoScreenUI(
                     onClick = {
                         checkNickname(nickname.value.text)
                     },
-                    enabled = nickname.value.text.isNotBlank() && nickState == NickState.CHECK,
+                    enabled = nickname.value.text.isNotBlank() && !nicknameIsValid,
                     style = MyPageTextStyle.CheckButtonText,
                     containerColor = Color(0xFF858585)
                 )
@@ -189,16 +167,15 @@ fun UserInfoScreenUI(
                 bringIntoViewRequester = bringIntoViewRequester,
                 coroutineScope = coroutineScope,
                 value = birthdate.value
-            ) { newValue ->
-                val (formatted, correctedCursor) = onDateChanged(birthdate.value, newValue)
+            ) {
+                val (formatted, correctedCursor) = onDateChanged(birthdate.value, it)
 
                 birthdate.value = TextFieldValue(
                     text = formatted,
                     selection = TextRange(correctedCursor)
                 )
 
-                birthdateIsValid.value =
-                    formatted.isEmpty() || (formatted.length == 10 && isValidDate(formatted))
+                updateBirthdateIsValid(formatted)
             }
             UserInfoLabel("성별")
             Row {
@@ -210,7 +187,7 @@ fun UserInfoScreenUI(
                     },
                     style = MyPageTextStyle.GenderButtonText,
                     containerColor = if (gender.value == Gender.MALE)
-                        Color(0xFF858585) else Color(0xFFF5F5F5)
+                        Color(0xFF858585) else Color(0xFFF5F5F5)    //TODO 색상 변경
                 )
                 Spacer(modifier = Modifier.width(10.dp))
                 UserInfoButton(
@@ -229,9 +206,13 @@ fun UserInfoScreenUI(
                 modifier = Modifier.bringIntoViewRequester(bringIntoViewRequester),
                 text = "저장하기",
                 onClick = {
-                    //실제 저장 API 호출
+                    updateUserInfo(
+                        nickname.value.text,
+                        birthdate.value.text,
+                        gender.value.genderToString()
+                    )
                 },
-                enabled = (nickState == NickState.VALID || nickState == NickState.INIT) && birthdateIsValid.value,
+                enabled = nicknameIsValid && birthdateIsValid,
                 style = MyPageTextStyle.ButtonText,
                 containerColor = Color.Black,
                 fillMaxWidth = true
@@ -337,60 +318,6 @@ fun UserInfoTextField(
             textStyle = MyPageTextStyle.TextFieldText
         )
     }
-}
-
-private fun calculateCursorPosition(
-    oldText: String,
-    newText: String,
-    newCursorRawPos: Int
-): Int {
-    val dashPositions = setOf(4, 7)
-    var cursor = newCursorRawPos
-
-    val isInsert = newText.length > oldText.length
-    val isDelete = newText.length < oldText.length
-
-    when {
-        isInsert && dashPositions.contains(cursor - 1) -> cursor += 1
-        isDelete && dashPositions.contains(cursor) -> cursor -= 1
-        !isInsert && !isDelete && dashPositions.contains(cursor) -> cursor += 1
-    }
-
-    return cursor.coerceIn(0, newText.length)
-}
-
-private fun isValidDate(dateStr: String): Boolean {
-    return try {
-        LocalDate.parse(
-            dateStr, DateTimeFormatter.ofPattern("uuuu-MM-dd").withResolverStyle(
-                ResolverStyle.STRICT
-            )
-        )
-        true
-    } catch (e: Exception) {
-        false
-    }
-}
-
-private fun onDateChanged(
-    birthdate: TextFieldValue,
-    newValue: TextFieldValue
-): Pair<String, Int> {
-    val oldDigits = birthdate.text.filter { it.isDigit() }
-    val newDigits = newValue.text.filter { it.isDigit() }
-
-    val isDelete = newDigits.length < oldDigits.length
-    val digits = if (isDelete) oldDigits.dropLast(1) else newDigits.take(8)
-
-    val formatted = buildString {
-        digits.forEachIndexed { i, c ->
-            if (i == 4 || i == 6) append("-")
-            append(c)
-        }
-    }.take(10)
-    val correctedCursor = calculateCursorPosition(birthdate.text, formatted, newValue.selection.end)
-
-    return formatted to correctedCursor
 }
 
 @Preview(showBackground = true)
