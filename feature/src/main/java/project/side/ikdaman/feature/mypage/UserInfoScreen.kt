@@ -41,6 +41,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
@@ -54,12 +55,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.domain.model.UserInfo
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.ResolverStyle
 
 enum class Gender { MALE, FEMALE, NONE }
 
 @Composable
 fun UserInfoScreen(navController: NavController, viewModel: UserInfoViewModel = hiltViewModel()) {
-    // TODO 생년월일 yyyy-MM-dd 형식인지, 날짜 유효한지 확인
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
 
     UserInfoScreenUI(
@@ -85,6 +88,7 @@ fun UserInfoScreenUI(
     val nickname = remember { mutableStateOf(TextFieldValue()) }
     val birthdate = remember { mutableStateOf(TextFieldValue()) }
     val gender = remember { mutableStateOf(Gender.NONE) }
+    val birthdateIsValid = remember { mutableStateOf(true) }
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -185,8 +189,16 @@ fun UserInfoScreenUI(
                 bringIntoViewRequester = bringIntoViewRequester,
                 coroutineScope = coroutineScope,
                 value = birthdate.value
-            ) {
-                birthdate.value = it
+            ) { newValue ->
+                val (formatted, correctedCursor) = onDateChanged(birthdate.value, newValue)
+
+                birthdate.value = TextFieldValue(
+                    text = formatted,
+                    selection = TextRange(correctedCursor)
+                )
+
+                birthdateIsValid.value =
+                    formatted.isEmpty() || (formatted.length == 10 && isValidDate(formatted))
             }
             UserInfoLabel("성별")
             Row {
@@ -219,7 +231,7 @@ fun UserInfoScreenUI(
                 onClick = {
                     //실제 저장 API 호출
                 },
-                enabled = nickState == NickState.VALID || nickState == NickState.INIT,
+                enabled = (nickState == NickState.VALID || nickState == NickState.INIT) && birthdateIsValid.value,
                 style = MyPageTextStyle.ButtonText,
                 containerColor = Color.Black,
                 fillMaxWidth = true
@@ -325,6 +337,60 @@ fun UserInfoTextField(
             textStyle = MyPageTextStyle.TextFieldText
         )
     }
+}
+
+private fun calculateCursorPosition(
+    oldText: String,
+    newText: String,
+    newCursorRawPos: Int
+): Int {
+    val dashPositions = setOf(4, 7)
+    var cursor = newCursorRawPos
+
+    val isInsert = newText.length > oldText.length
+    val isDelete = newText.length < oldText.length
+
+    when {
+        isInsert && dashPositions.contains(cursor - 1) -> cursor += 1
+        isDelete && dashPositions.contains(cursor) -> cursor -= 1
+        !isInsert && !isDelete && dashPositions.contains(cursor) -> cursor += 1
+    }
+
+    return cursor.coerceIn(0, newText.length)
+}
+
+private fun isValidDate(dateStr: String): Boolean {
+    return try {
+        LocalDate.parse(
+            dateStr, DateTimeFormatter.ofPattern("uuuu-MM-dd").withResolverStyle(
+                ResolverStyle.STRICT
+            )
+        )
+        true
+    } catch (e: Exception) {
+        false
+    }
+}
+
+private fun onDateChanged(
+    birthdate: TextFieldValue,
+    newValue: TextFieldValue
+): Pair<String, Int> {
+    val oldDigits = birthdate.text.filter { it.isDigit() }
+    val newDigits = newValue.text.filter { it.isDigit() }
+
+    val isDelete = newDigits.length < oldDigits.length
+    val digits = if (isDelete) oldDigits.dropLast(1) else newDigits.take(8)
+
+    val formatted = buildString {
+        digits.forEachIndexed { i, c ->
+            if (i == 4 || i == 6) append("-")
+            append(c)
+        }
+    }.take(10)
+    val correctedCursor = calculateCursorPosition(birthdate.text, formatted, newValue.selection.end)
+
+    return formatted to correctedCursor
 }
 
 @Preview(showBackground = true)
