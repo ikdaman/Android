@@ -49,7 +49,10 @@ class UserRepositoryImpl @Inject constructor(
         return try {
             val response = userService.updateUserInfo(userInfo)
             if (response.isSuccessful) {
-                ApiResult.Success(Unit)
+                response.body()?.let {
+                    authDataStore.saveNickname(it.nickname)
+                    ApiResult.Success(Unit)
+                } ?: ApiResult.Error("응답이 비어있습니다.")
             } else ApiResult.Error("서버 오류: ${response.code()}, ${response.message()}")
         } catch (e: Exception) {
             ApiResult.Error("서버 오류: ${e.message}")
