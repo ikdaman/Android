@@ -8,7 +8,7 @@ data class HomeBook(
     val mybookId: Int,
     val title: String = "",
     val author: String = "",
-    val progress: Int = 0,
+    val progress: String = "0.00%",
     val coverImage: String = "",
     val firstImpression: String = "",
     val recentEdit: String // yyyy-MM-ddTHH:mm:ssZ format
@@ -27,7 +27,7 @@ data class HomeBook(
             lastEditedDateTime = lastEditedTime,
             title = title,
             author = author,
-            progress = progress.toFloat() / 100f,
+            progress = progress.replace("%","").toFloat() / 100f,
             firstImpression = firstImpression
         )
     }

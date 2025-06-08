@@ -4,15 +4,12 @@ import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
+import project.side.ikdaman.core.utils.TimeUTC
 import project.side.ikdaman.data.model.book.BookCompleted
 import project.side.ikdaman.data.model.book.BookThink
-import project.side.ikdaman.data.model.book.HomeBook
 import project.side.ikdaman.data.service.MyBookApi
-import project.side.ikdaman.data.utils.TimeUtils
 import project.side.ikdaman.domain.model.ApiResult
-import project.side.ikdaman.domain.model.BookDetail
 import project.side.ikdaman.domain.model.BookLog
-import project.side.ikdaman.domain.model.HomeBookItem
 import project.side.ikdaman.domain.repository.MyBooksApiRepository
 
 class MyBooksApiRepositoryImpl(private val api: MyBookApi) : MyBooksApiRepository {
@@ -34,12 +31,34 @@ class MyBooksApiRepositoryImpl(private val api: MyBookApi) : MyBooksApiRepositor
         emit(ApiResult.Error("Network error: ${it.message}"))
     }
 
-    override fun getBookInfo(bookId: String): Flow<ApiResult<BookDetail>> {
-        TODO("Not yet implemented")
+    override fun getBookInfo(bookId: String) = flow {
+        emit(ApiResult.Loading)
+        val response = api.getBookInfo(bookId)
+        if (response.isSuccessful) {
+            val body = response.body()
+            if (body != null && body.isSuccess()) {
+                emit(ApiResult.Success(body))
+            } else {
+                emit(ApiResult.Error("책 정보가 없습니다."))
+            }
+        } else {
+            emit(ApiResult.Error("오류 발생"))
+        }
+    }.catch {
+        Log.e("BookApiRepository", "Error fetching book info: ${it.message}", it)
+        emit(ApiResult.Error("Network error: ${it.message}"))
     }
 
-    override fun deleteBook(bookId: String): Flow<ApiResult<Unit>> {
-        TODO("Not yet implemented")
+    override fun deleteBook(bookId: String) = flow {
+        val response = api.deleteBook(bookId)
+        if (response.isSuccessful) {
+            emit(ApiResult.Success(Unit))
+        } else {
+            emit(ApiResult.Error("오류 발생"))
+        }
+    }.catch {
+        Log.e("BookApiRepository", "Error deleting book: ${it.message}", it)
+        emit(ApiResult.Error("Network error: ${it.message}"))
     }
 
     override fun postImpression(bookId: String, impression: String): Flow<ApiResult<Unit>> {
@@ -59,7 +78,7 @@ class MyBooksApiRepositoryImpl(private val api: MyBookApi) : MyBooksApiRepositor
                 emit(ApiResult.Error("Books data is missing"))
             }
         } else {
-            emit(ApiResult.Error("" ?: ""))
+            emit(ApiResult.Error(""))
         }
     }.catch {
         Log.e("BookApiRepository", "Error fetching books: ${it.message}", it)
@@ -68,8 +87,8 @@ class MyBooksApiRepositoryImpl(private val api: MyBookApi) : MyBooksApiRepositor
 
     override fun addThink(bookId: String, content: String, page: Int): Flow<ApiResult<Unit>> = flow {
         emit(ApiResult.Loading)
-        val response = api.addThink(bookId, BookThink(content, page, TimeUtils.nowUTC()))
-        if (response.isSuccess()) {
+        val response = api.addThink(bookId, BookThink(content, page, TimeUTC.now()))
+        if (response.isSuccessful) {
             emit(ApiResult.Success(Unit))
         } else {
             emit(ApiResult.Error("오류 발생"))
@@ -89,7 +108,7 @@ class MyBooksApiRepositoryImpl(private val api: MyBookApi) : MyBooksApiRepositor
 
     override fun addCompleted(bookId: String, content: String): Flow<ApiResult<Unit>> = flow {
         emit(ApiResult.Loading)
-        val response = api.addCompleted(bookId, BookCompleted(content, TimeUtils.nowUTC()))
+        val response = api.addCompleted(bookId, BookCompleted(content, TimeUTC.now()))
         if (response.isSuccess()) {
             emit(ApiResult.Success(Unit))
         } else {

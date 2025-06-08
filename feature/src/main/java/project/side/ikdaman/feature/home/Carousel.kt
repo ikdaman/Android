@@ -51,7 +51,8 @@ fun BookCarousel(
     deleteMode: MutableState<Boolean> = remember { mutableStateOf(false) },
     selectedBookIndex: MutableState<Int> = mutableStateOf(0),
     items: List<HomeBookItem> = emptyList(),
-    onDeleteClick: (HomeBookItem) -> Unit = {}
+    onDeleteClick: (HomeBookItem) -> Unit = {},
+    onBookClicked: (String) -> Unit = {},
 ) {
     // Carousel
     val pagerState = rememberPagerState(pageCount = { items.size }, initialPage = 0)
@@ -86,6 +87,9 @@ fun BookCarousel(
                         onTap = {
                             coroutineScope.launch {
                                 pagerState.animateScrollToPage(page)
+                                if (!deleteMode.value && page == pagerState.currentPage) {
+                                    onBookClicked(items[page].id)
+                                }
                             }
                         },
                         onLongPress = {

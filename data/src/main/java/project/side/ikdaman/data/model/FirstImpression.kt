@@ -1,6 +1,6 @@
 package project.side.ikdaman.data.model
 
-import project.side.ikdaman.data.utils.TimeUtils
+import project.side.ikdaman.core.utils.TimeUTC
 
 data class FirstImpression(
     val impression: String,
@@ -10,7 +10,7 @@ data class FirstImpression(
         fun create(impression: String): FirstImpression {
             return FirstImpression(
                 impression = impression,
-                createdAt = TimeUtils.nowUTC()
+                createdAt = TimeUTC.now()
             )
         }
     }

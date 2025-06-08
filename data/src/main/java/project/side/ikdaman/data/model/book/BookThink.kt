@@ -1,6 +1,6 @@
 package project.side.ikdaman.data.model.book
 
-import project.side.ikdaman.data.utils.TimeUtils
+import project.side.ikdaman.core.utils.TimeUTC
 
 data class BookThink(
     val content: String,
@@ -12,9 +12,13 @@ data class BookThink(
             return BookThink(
                 content = content,
                 page = page,
-                createdAt = TimeUtils.nowUTC()
+                createdAt = TimeUTC.now()
             )
         }
+    }
+
+    fun toJsonString(): String {
+        return """{"content":"$content","page":$page,"createdAt":"$createdAt"}"""
     }
 }
 

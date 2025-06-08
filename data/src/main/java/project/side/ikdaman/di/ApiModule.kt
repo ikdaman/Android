@@ -21,7 +21,6 @@ import project.side.ikdaman.domain.repository.AuthRepository
 import project.side.ikdaman.domain.repository.BookRepository
 import project.side.ikdaman.domain.repository.MyBooksApiRepository
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
 import javax.inject.Qualifier
 import javax.inject.Singleton

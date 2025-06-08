@@ -63,19 +63,37 @@ class MainActivity : ComponentActivity() {
                             navArgument("isbn") { type = NavType.StringType }
                         )
                     ) { backStackEntry ->
-                        val isbn = backStackEntry.arguments?.getString("isbn") ?: return@slideComposable
+                        val isbn =
+                            backStackEntry.arguments?.getString("isbn") ?: return@slideComposable
                         SearchInfoScreen(isbn = isbn, navController = navController)
                     }
                     slideComposable(BOOK_EDIT_ROUTE) {
                         BookEditScreen(navController)
                     }
-                    slideComposable(BOOK_DETAIL_ROUTE) {
-                        BookDetailScreen(navController)
+                    slideComposable(
+                        "$BOOK_DETAIL_ROUTE/{bookId}",
+                        arguments = listOf(
+                            navArgument("bookId") { type = NavType.StringType }
+                        )
+                    ) {
+                        val bookId = it.arguments?.getString("bookId") ?: return@slideComposable
+                        BookDetailScreen(navController, bookId = bookId)
                     }
-                    slideComposable(ADD_BOOK_RECORD) {
-                        val recordType = it.arguments?.getString("recordType")
-                        val bookId = it.arguments?.getString("bookId") ?: ""
-                        AddRecordScreen(navController, recordType = RecordType.from(recordType), bookId = bookId)
+                    slideComposable(
+                        "$ADD_BOOK_RECORD/{recordType}/{bookId}",
+                        arguments = listOf(
+                            navArgument("recordType") { type = NavType.StringType },
+                            navArgument("bookId") { type = NavType.StringType }
+                        )
+                    ) {
+                        val recordType = it.arguments?.getString("recordType") ?: RecordType.MIDDLE.name
+                        val bookId = it.arguments?.getString("bookId") ?: return@slideComposable
+
+                        AddRecordScreen(
+                            navController,
+                            recordType = RecordType.from(recordType),
+                            bookId = bookId
+                        )
                     }
                 }
             }

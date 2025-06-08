@@ -41,6 +41,7 @@ fun ReadCompleteView(
         verticalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier
             .fillMaxHeight()
+            .background(Color.White)
             .imePadding()
             .noEffectClick { focusManager.clearFocus() }
     ) {
