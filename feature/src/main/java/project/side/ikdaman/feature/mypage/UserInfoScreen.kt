@@ -185,9 +185,10 @@ fun UserInfoScreenUI(
                         gender.value =
                             if (gender.value == Gender.MALE) Gender.NONE else Gender.MALE
                     },
+                    isSelected = gender.value == Gender.MALE,
                     style = MyPageTextStyle.GenderButtonText,
-                    containerColor = if (gender.value == Gender.MALE)
-                        Color(0xFF858585) else Color(0xFFF5F5F5)    //TODO 색상 변경
+                    containerColor = Color(0xFFF5F5F5),
+                    selectedContainerColor = Color.Black
                 )
                 Spacer(modifier = Modifier.width(10.dp))
                 UserInfoButton(
@@ -196,9 +197,10 @@ fun UserInfoScreenUI(
                         gender.value =
                             if (gender.value == Gender.FEMALE) Gender.NONE else Gender.FEMALE
                     },
+                    isSelected = gender.value == Gender.FEMALE,
                     style = MyPageTextStyle.GenderButtonText,
-                    containerColor = if (gender.value == Gender.FEMALE)
-                        Color(0xFF858585) else Color(0xFFF5F5F5),
+                    containerColor = Color(0xFFF5F5F5),
+                    selectedContainerColor = Color.Black
                 )
             }
             Spacer(modifier = Modifier.height(40.dp))
@@ -254,8 +256,10 @@ fun UserInfoButton(
     text: String,
     onClick: () -> Unit,
     enabled: Boolean = true,
+    isSelected: Boolean = false,
     style: TextStyle,
     containerColor: Color,
+    selectedContainerColor: Color = Color.Unspecified,
     disabledContainerColor: Color = Color.Unspecified,
     fillMaxWidth: Boolean = false,
 ) {
@@ -272,11 +276,11 @@ fun UserInfoButton(
         contentPadding = PaddingValues(horizontal = 0.dp),
         shape = RoundedCornerShape(10.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = containerColor,
+            containerColor = if (isSelected) selectedContainerColor else containerColor,
             disabledContainerColor = disabledContainerColor,
         )
     ) {
-        Text(text, style = style)
+        Text(text, style = if (isSelected) style.copy(Color.White) else style)
     }
 }
 
