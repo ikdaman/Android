@@ -49,6 +49,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.navigation.ADD_BOOK_RECORD
+import project.side.ikdaman.core.navigation.BOOK_DETAIL_ROUTE
 import project.side.ikdaman.core.navigation.HOME_ROUTE
 import project.side.ikdaman.core.navigation.MAIN_ROUTE
 import project.side.ikdaman.core.ui.AppText
@@ -98,8 +99,8 @@ fun HomeTab(
         onAddRecord = { bookId ->
             navController.navigate("$ADD_BOOK_RECORD/${RecordType.MIDDLE.name}/$bookId")
         },
-        onBookClicked = {
-            navController.navigate("")
+        onBookClicked = { bookId ->
+            navController.navigate("${BOOK_DETAIL_ROUTE}/$bookId")
         }
     )
 

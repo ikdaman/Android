@@ -8,9 +8,9 @@ data class HomeBook(
     val mybookId: Int,
     val title: String = "",
     val author: String = "",
-    val progress: String = "0.00%",
+    val progress: String = "0",
     val coverImage: String = "",
-    val firstImpression: String = "",
+    val firstImpression: String? = "",
     val recentEdit: String // yyyy-MM-ddTHH:mm:ssZ format
 ) {
     fun transformToDomain(): HomeBookItem {
@@ -27,8 +27,8 @@ data class HomeBook(
             lastEditedDateTime = lastEditedTime,
             title = title,
             author = author,
-            progress = progress.replace("%","").toFloat() / 100f,
-            firstImpression = firstImpression
+            progress = progress.toFloat() / 100f,
+            firstImpression = firstImpression ?: "",
         )
     }
 }

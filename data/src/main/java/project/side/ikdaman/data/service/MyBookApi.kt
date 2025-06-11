@@ -45,7 +45,7 @@ interface MyBookApi {
 
     // 생각 추가
     @POST("mybooks/{id}/booklog")
-    suspend fun addThink(@Path("id") id: String, @Body body: BookThink): Response<EmptyResponse?>
+    suspend fun addThink(@Path("id") id: String, @Body body: BookThink): Response<Unit>
 
     // 생각 삭제
     @DELETE("mybooks/{id}/booklog{logId}")

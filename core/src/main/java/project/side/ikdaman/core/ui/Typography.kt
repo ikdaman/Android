@@ -7,6 +7,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import project.side.ikdaman.app.core.R
 
 val PretendardFontFamily = FontFamily(
@@ -22,6 +23,7 @@ fun AppText(
     style: TextStyle = TextStyle(),
     maxLines: Int = 1,
     softWrap: Boolean = true,
+    overflow: TextOverflow = TextOverflow.Ellipsis,
 ) {
     Text(
         modifier = modifier,
@@ -29,5 +31,6 @@ fun AppText(
         style = style.copy(fontFamily = PretendardFontFamily),
         maxLines = maxLines,
         softWrap = softWrap,
+        overflow = overflow,
     )
 }
