@@ -1,5 +1,6 @@
 package project.side.ikdaman.feature.add_notes
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
@@ -29,14 +31,46 @@ import project.side.ikdaman.core.ui.AppText
 import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.core.utils.noEffectClick
 import project.side.ikdaman.core.utils.oneClick
-import project.side.ikdaman.domain.model.HomeBookItem
+import project.side.ikdaman.domain.model.ApiResult
+import project.side.ikdaman.domain.model.BookDetail
+import project.side.ikdaman.domain.model.BookInfo
 
 @Composable
 fun FirstImpressionView(
-    bookItem: HomeBookItem = HomeBookItem(),
+    result: ApiResult<BookDetail>,
     textState: MutableState<String> = remember { mutableStateOf("") },
     onConfirm: (String) -> Unit = {},
 ) {
+    if (result is ApiResult.Error) {
+        Log.e("AddMiddleRecordView", "Error loading book item: ${result.message}")
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(20.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            AppText(
+                "책 정보를 불러오는 데 실패했습니다.\n${result.message}",
+                modifier = Modifier.align(Alignment.Center),
+            )
+        }
+        return
+    }
+    if (result is ApiResult.Loading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(20.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            AppText("책 정보를 불러오는 중...")
+        }
+        return
+    }
+    val data = (result as ApiResult.Success<BookDetail>).data
+
     val focusManager = LocalFocusManager.current
 
     Column(
@@ -53,7 +87,7 @@ fun FirstImpressionView(
         ) {
             AppText("이 책의 첫인상", style = AddRecordTextStyles.titleTextStyle)
             Spacer(Modifier.height(10.dp))
-            AppText("소년이 온다 / 한강", style = AddRecordTextStyles.subtitleTextStyle)
+            AppText("${data.bookInfo.title} / ${data.bookInfo.author}", style = AddRecordTextStyles.subtitleTextStyle)
             Spacer(Modifier.height(40.dp))
             Box(
                 modifier = Modifier
@@ -134,6 +168,16 @@ fun FirstImpressionView(
 @Composable
 fun FirstImpressionViewPreview() {
     AppTheme {
-        FirstImpressionView()
+        FirstImpressionView(
+            result = ApiResult.Success(
+                BookDetail(
+                    bookInfo = BookInfo(
+                        title = "책 제목",
+                        author = "저자 이름",
+                        totalPage = 300,
+                    )
+                )
+            ),
+        )
     }
 }

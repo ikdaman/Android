@@ -110,9 +110,7 @@ fun ReadCompleteView(
                 .fillMaxWidth()
                 .height(50.dp)
                 .oneClick(500) {
-                    if (textState.value.isNotEmpty()) {
-                        onConfirm(textState.value)
-                    }
+                    onConfirm(textState.value)
                 }
         ) {
             Text(

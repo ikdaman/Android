@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -57,10 +58,10 @@ import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.core.utils.oneClick
 import project.side.ikdaman.core.view.BookProgressBarWithText
-import project.side.ikdaman.core.view.DeleteDialog
+import project.side.ikdaman.core.view.DeleteBookDialog
 import project.side.ikdaman.core.view.GradientBox
 import project.side.ikdaman.domain.model.HomeBookItem
-import project.side.ikdaman.feature.add_notes.RecordType
+import project.side.ikdaman.domain.model.RecordType
 
 @Composable
 fun HomeTab(
@@ -81,6 +82,10 @@ fun HomeTab(
         }
     }
 
+    LaunchedEffect(Unit) {
+        viewModel.initialize()
+    }
+
     HomeTabUI(
         selectedColor = selectedColor,
         books = viewModel.books.collectAsState().value,
@@ -97,17 +102,22 @@ fun HomeTab(
             viewModel.saveSelectedColor(it)
         },
         onAddRecord = { bookId ->
-            navController.navigate("$ADD_BOOK_RECORD/${RecordType.MIDDLE.name}/$bookId")
+            navController.navigate("$ADD_BOOK_RECORD/${RecordType.THINK}/$bookId?isShowFirstLog=${true}")
         },
         onBookClicked = { bookId ->
-            navController.navigate("${BOOK_DETAIL_ROUTE}/$bookId")
+            navController.navigate("${BOOK_DETAIL_ROUTE}/$bookId/false")
+        },
+        onNavigateToFirstImpression = { bookId ->
+            navController.navigate("$ADD_BOOK_RECORD/${RecordType.IMPRESSION}/$bookId")
         }
     )
 
-    DeleteDialog(
+    DeleteBookDialog(
         dialogState = deleteDialogState,
         onDelete = {
-            viewModel.deleteItem(deleteItem.value!!)
+            viewModel.deleteItem(deleteItem.value!!.id) {
+                viewModel.getBooks()
+            }
             deleteDialogState.targetState = false
         }
     )
@@ -130,10 +140,15 @@ fun HomeTabUI(
     onDeleteClick: (HomeBookItem) -> Unit = {},
     onSelectColor: (Color) -> Unit = {},
     onAddRecord: (String) -> Unit = {},
-    onBookClicked: (String) -> Unit = {}
+    onBookClicked: (String) -> Unit = {},
+    onNavigateToFirstImpression: (String) -> Unit = {}
 ) {
-    val selectedBookIndex = remember { mutableStateOf(0) }
+    val selectedBookIndex = remember { mutableIntStateOf(0) }
     val deleteMode = remember { mutableStateOf(false) }
+
+    if (books.isNotEmpty() && selectedBookIndex.intValue >= books.size) {
+        selectedBookIndex.intValue = books.size - 1
+    }
 
     GradientBox(
         Modifier
@@ -197,7 +212,7 @@ fun HomeTabUI(
 
             if (books.isNotEmpty()) {
                 if (selectedViewMode.value == HomeTabViewMode.CAROUSEL) {
-                    CarouselBooks(deleteMode, selectedBookIndex, books, onDeleteClick, onAddRecord, onBookClicked)
+                    CarouselBooks(deleteMode, selectedBookIndex, books, onDeleteClick, onAddRecord, onBookClicked, onNavigateToFirstImpression)
                 } else {
                     ListBooks(
                         pinnedItems = pinnedItems,
@@ -263,7 +278,8 @@ private fun CarouselBooks(
     books: List<HomeBookItem>,
     onDeleteClick: (HomeBookItem) -> Unit = {},
     onAddRecord: (String) -> Unit = {},
-    onBookClicked: (String) -> Unit = {}
+    onBookClicked: (String) -> Unit = {},
+    onNavigateToFirstImpression: (String) -> Unit = {}
 ) {
     val state = rememberScrollState()
     Column(Modifier.verticalScroll(state, reverseScrolling = true), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -324,7 +340,10 @@ private fun CarouselBooks(
                     .clip(RoundedCornerShape(10.dp))
                     .fillMaxWidth()
                     .background(Color.White)
-                    .padding(vertical = 25.dp, horizontal = 20.dp),
+                    .padding(vertical = 25.dp, horizontal = 20.dp)
+                    .oneClick(500) {
+                        onNavigateToFirstImpression(books[selectedBookIndex.value].id)
+                    }
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,

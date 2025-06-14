@@ -11,11 +11,11 @@ data class HomeBook(
     val progress: String = "0",
     val coverImage: String = "",
     val firstImpression: String? = "",
-    val recentEdit: String // yyyy-MM-ddTHH:mm:ssZ format
+    val recentEdit: String
 ) {
     fun transformToDomain(): HomeBookItem {
         val lastEditedTime = try {
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.getDefault())
             dateFormat.parse(recentEdit)?.time ?: System.currentTimeMillis()
         } catch (_: Exception) {
             System.currentTimeMillis() // 변환 실패 시 현재 시간으로 설정

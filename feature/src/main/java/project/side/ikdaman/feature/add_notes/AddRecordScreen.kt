@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package project.side.ikdaman.feature.add_notes
 
 import android.annotation.SuppressLint
@@ -12,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,17 +27,22 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import project.side.ikdaman.app.feature.R
+import project.side.ikdaman.core.navigation.ADD_BOOK_RECORD
+import project.side.ikdaman.core.navigation.BOOK_DETAIL_ROUTE
 import project.side.ikdaman.core.ui.AppText
 import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.core.utils.oneClick
 import project.side.ikdaman.domain.model.ApiResult
 import project.side.ikdaman.domain.model.BookDetail
+import project.side.ikdaman.domain.model.BookInfo
+import project.side.ikdaman.domain.model.RecordType
 
 @Composable
 fun AddRecordScreen(
     navController: NavController,
     viewModel: AddRecordViewModel = hiltViewModel(),
-    recordType: RecordType,
+    isShowFirstLog: Boolean = false,
+    recordType: String,
     bookId: String,
 ) {
     val textState = remember { mutableStateOf("") }
@@ -70,7 +72,15 @@ fun AddRecordScreen(
             if (result is ApiResult.Success) {
                 val id = result.data.mybookId
                 viewModel.addMiddleRecord(id, text, page) {
-                    navController.popBackStack()
+                    if (isShowFirstLog) {
+                        navController.navigate("${BOOK_DETAIL_ROUTE}/$bookId/true") {
+                            popUpTo("$ADD_BOOK_RECORD/${RecordType.THINK}/$bookId?isShowFirstLog=${true}") {
+                                inclusive = true
+                            }
+                        }
+                    } else {
+                        navController.popBackStack()
+                    }
                 }
             }
         },
@@ -88,7 +98,7 @@ fun AddRecordScreen(
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun AddRecordScreenUI(
-    recordType: RecordType,
+    recordType: String,
     textState: MutableState<String> = remember { mutableStateOf("") },
     result: ApiResult<BookDetail> = ApiResult.Loading,
     onBack: () -> Unit = {},
@@ -111,12 +121,15 @@ fun AddRecordScreenUI(
                 Image(
                     imageVector = ImageVector.vectorResource(R.drawable.arrow_back),
                     contentDescription = null,
-                    modifier = Modifier.align(Alignment.CenterStart).oneClick { onBack() }
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .oneClick { onBack() }
                 )
                 val titleText = when (recordTypeState.value) {
-                    RecordType.FIRST -> "기록 추가하기"
-                    RecordType.MIDDLE -> "기록 추가하기"
-                    RecordType.FINAL -> "완독 기록하기"
+                    RecordType.IMPRESSION -> "기록 추가하기"
+                    RecordType.THINK -> "기록 추가하기"
+                    RecordType.COMPLETED -> "완독 기록하기"
+                    else -> ""
                 }
                 AppText(
                     titleText,
@@ -129,17 +142,18 @@ fun AddRecordScreenUI(
         Column(Modifier.fillMaxHeight()) {
             Spacer(Modifier.height(50.dp))
             when (recordTypeState.value) {
-                RecordType.FIRST -> {
+                RecordType.IMPRESSION -> {
                     FirstImpressionView(
                         textState = textState,
+                        result = result,
                         onConfirm = {
                             onConfirmFirstImpression(it)
                         }
                     )
                 }
 
-                RecordType.MIDDLE -> {
-                    AddMiddleRecordView(
+                RecordType.THINK -> {
+                    AddThinkView(
                         textState = textState,
                         pageState = pageState,
                         result = result,
@@ -147,12 +161,12 @@ fun AddRecordScreenUI(
                             onConfirmMiddleRecord(text, page)
                         },
                         onNavigateToCompleteView = {
-                            recordTypeState.value = RecordType.FINAL
+                            recordTypeState.value = RecordType.COMPLETED
                         }
                     )
                 }
 
-                RecordType.FINAL -> {
+                RecordType.COMPLETED -> {
                     ReadCompleteView(
                         textState = textState,
                         onConfirm = {
@@ -169,7 +183,18 @@ fun AddRecordScreenUI(
 @Composable
 fun AddRecordScreenFirstPreview() {
     AppTheme {
-        AddRecordScreenUI(recordType = RecordType.FIRST)
+        AddRecordScreenUI(
+            recordType = RecordType.IMPRESSION,
+            result = ApiResult.Success(
+                BookDetail(
+                    bookInfo = BookInfo(
+                        title = "책 제목",
+                        author = "저자 이름",
+                    )
+
+                )
+            )
+        )
     }
 }
 
@@ -177,7 +202,18 @@ fun AddRecordScreenFirstPreview() {
 @Composable
 fun AddRecordScreenMiddlePreview() {
     AppTheme {
-        AddRecordScreenUI(recordType = RecordType.MIDDLE)
+        AddRecordScreenUI(
+            recordType = RecordType.THINK,
+            result = ApiResult.Success(
+                BookDetail(
+                    bookInfo = BookInfo(
+                        title = "책 제목",
+                        author = "저자 이름",
+                    )
+
+                )
+            )
+        )
     }
 }
 
@@ -185,6 +221,17 @@ fun AddRecordScreenMiddlePreview() {
 @Composable
 fun AddRecordScreenFinalPreview() {
     AppTheme {
-        AddRecordScreenUI(recordType = RecordType.FINAL)
+        AddRecordScreenUI(
+            recordType = RecordType.COMPLETED,
+            result = ApiResult.Success(
+                BookDetail(
+                    bookInfo = BookInfo(
+                        title = "책 제목",
+                        author = "저자 이름",
+                    )
+
+                )
+            )
+        )
     }
 }

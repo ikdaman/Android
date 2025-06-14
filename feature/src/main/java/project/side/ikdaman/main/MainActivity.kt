@@ -28,7 +28,7 @@ import project.side.ikdaman.core.navigation.SEARCH_INFO_ROUTE
 import project.side.ikdaman.core.navigation.TUTORIAL_ROUTE
 import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.feature.add_notes.AddRecordScreen
-import project.side.ikdaman.feature.add_notes.RecordType
+import project.side.ikdaman.domain.model.RecordType
 import project.side.ikdaman.feature.barcode.BarcodeScreen
 import project.side.ikdaman.feature.bookedit.BookEditScreen
 import project.side.ikdaman.feature.detail.BookDetailScreen
@@ -71,27 +71,38 @@ class MainActivity : ComponentActivity() {
                         BookEditScreen(navController)
                     }
                     slideComposable(
-                        "$BOOK_DETAIL_ROUTE/{bookId}",
+                        "$BOOK_DETAIL_ROUTE/{bookId}/{isShowFirstLog}",
                         arguments = listOf(
-                            navArgument("bookId") { type = NavType.StringType }
+                            navArgument("bookId") { type = NavType.StringType },
+                            navArgument("isShowFirstLog") {
+                                type = NavType.BoolType
+                                defaultValue = false
+                            }
                         )
                     ) {
                         val bookId = it.arguments?.getString("bookId") ?: return@slideComposable
-                        BookDetailScreen(navController, bookId = bookId)
+                        val isShowFirstLog = it.arguments?.getBoolean("isShowFirstLog") ?: false
+                        BookDetailScreen(navController, bookId = bookId, isShowFirstLog)
                     }
                     slideComposable(
-                        "$ADD_BOOK_RECORD/{recordType}/{bookId}",
+                        "$ADD_BOOK_RECORD/{recordType}/{bookId}?isShowFirstLog={isShowFirstLog}",
                         arguments = listOf(
                             navArgument("recordType") { type = NavType.StringType },
-                            navArgument("bookId") { type = NavType.StringType }
+                            navArgument("bookId") { type = NavType.StringType },
+                            navArgument("isShowFirstLog") {
+                                type = NavType.BoolType
+                                defaultValue = false
+                            }
                         )
                     ) {
-                        val recordType = it.arguments?.getString("recordType") ?: RecordType.MIDDLE.name
+                        val recordType = it.arguments?.getString("recordType") ?: RecordType.THINK
                         val bookId = it.arguments?.getString("bookId") ?: return@slideComposable
+                        val isShowFirstLog = it.arguments?.getBoolean("isShowFirstLog") ?: false
 
                         AddRecordScreen(
                             navController,
-                            recordType = RecordType.from(recordType),
+                            isShowFirstLog = isShowFirstLog,
+                            recordType = recordType,
                             bookId = bookId
                         )
                     }

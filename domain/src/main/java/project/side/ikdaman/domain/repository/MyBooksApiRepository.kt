@@ -20,6 +20,6 @@ interface MyBooksApiRepository {
 
     // 완독 추가 삭제 수정
     fun addCompleted(bookId: String, content: String): Flow<ApiResult<Unit>>
-    fun deleteCompleted(bookId: String): Flow<ApiResult<Unit>>
+    fun deleteCompleted(bookId: String, logId: Int): Flow<ApiResult<Unit>>
     fun updateCompleted(bookId: String, logId: Int, content: String): Flow<ApiResult<Unit>>
 }

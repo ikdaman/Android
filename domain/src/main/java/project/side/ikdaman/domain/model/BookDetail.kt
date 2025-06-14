@@ -1,5 +1,6 @@
 package project.side.ikdaman.domain.model
 
+import java.text.SimpleDateFormat
 import java.util.Locale
 
 data class BookDetail(
@@ -19,7 +20,7 @@ data class BookDetail(
     fun progressText(): String {
         val now = System.currentTimeMillis()
         val startTime = try {
-            val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.getDefault())
             dateFormat.parse(startDate)?.time ?: now
         } catch (_: Exception) {
             now // 변환 실패 시 현재 시간으로 설정
@@ -35,4 +36,5 @@ data class BookInfo(
     val coverImage: String = "",
     val publisher: String = "",
     val totalPage: Int = 0,
+    val itemId: String? = "306367260", // TODO 서버에서 아직 작업 안됨
 )

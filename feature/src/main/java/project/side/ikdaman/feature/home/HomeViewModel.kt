@@ -13,7 +13,6 @@ import project.side.ikdaman.domain.model.HomeBookItem
 import project.side.ikdaman.domain.repository.PaletteRepository
 import project.side.ikdaman.domain.repository.PinningBookRepository
 import project.side.ikdaman.domain.usecase.DeleteBookUseCase
-import project.side.ikdaman.domain.usecase.GetBookDetailUseCase
 import project.side.ikdaman.domain.usecase.GetReadingBooksUseCase
 import javax.inject.Inject
 
@@ -23,7 +22,6 @@ class HomeViewModel @Inject constructor(
     private val getReadingBooksUseCase: GetReadingBooksUseCase,
     private val paletteRepository: PaletteRepository,
     private val deleteBookUseCase: DeleteBookUseCase,
-    private val getBookDetailUseCase: GetBookDetailUseCase
 ) : ViewModel() {
 
     val books = MutableStateFlow<List<HomeBookItem>>(emptyList())
@@ -34,7 +32,7 @@ class HomeViewModel @Inject constructor(
     val isLoading = MutableStateFlow(false)
     val errorMessage = MutableStateFlow("")
 
-    init {
+    fun initialize() {
         getBooks()
         getPalette()
     }
@@ -96,14 +94,14 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun deleteItem(item: HomeBookItem) {
+    fun deleteItem(bookId: String, onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
-            deleteBookUseCase(item.id).take(1).collect { result ->
+            deleteBookUseCase(bookId).take(1).collect { result ->
                 when (result) {
                     is ApiResult.Success -> {
                         // 성공적으로 삭제됨
                         isLoading.emit(false)
-                        getBooks() // 책 목록을 다시 가져와서 UI 업데이트
+                        onSuccess()
                     }
                     is ApiResult.Error -> {
                         isLoading.emit(false)

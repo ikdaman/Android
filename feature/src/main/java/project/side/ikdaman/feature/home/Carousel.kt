@@ -86,10 +86,10 @@ fun BookCarousel(
                     detectTapGestures(
                         onTap = {
                             coroutineScope.launch {
-                                pagerState.animateScrollToPage(page)
                                 if (!deleteMode.value && page == pagerState.currentPage) {
                                     onBookClicked(items[page].id)
                                 }
+                                pagerState.animateScrollToPage(page)
                             }
                         },
                         onLongPress = {

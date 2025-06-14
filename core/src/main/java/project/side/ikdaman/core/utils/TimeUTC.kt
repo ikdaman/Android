@@ -7,7 +7,7 @@ object TimeUTC {
     fun now(): String {
         val now = System.currentTimeMillis()
         // UTC format
-        return SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).format(java.util.Date(now))
+        return SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).format(java.util.Date(now))
     }
 
     fun nowToCustomFormat(): String {

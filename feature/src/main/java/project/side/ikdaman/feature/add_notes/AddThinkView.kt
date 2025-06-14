@@ -2,6 +2,7 @@ package project.side.ikdaman.feature.add_notes
 
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,23 +19,30 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import project.side.ikdaman.core.ui.AppText
 import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.core.utils.TimeUTC
@@ -45,7 +53,7 @@ import project.side.ikdaman.domain.model.BookDetail
 import project.side.ikdaman.domain.model.BookInfo
 
 @Composable
-fun AddMiddleRecordView(
+fun AddThinkView(
     result: ApiResult<BookDetail> = ApiResult.Loading,
     pageState: MutableState<Int?> = remember { mutableStateOf(null) },
     textState: MutableState<String> = remember { mutableStateOf("") },
@@ -53,6 +61,10 @@ fun AddMiddleRecordView(
     onNavigateToCompleteView: () -> Unit = {},
 ) {
     val focusManager = LocalFocusManager.current
+
+    val focusRequester1 = remember { FocusRequester() }
+    val focusRequester2 = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     when (result) {
         is ApiResult.Success -> {
@@ -88,6 +100,15 @@ fun AddMiddleRecordView(
                             style = AddRecordTextStyles.middleTitleStyle,
                             modifier = Modifier.align(Alignment.TopStart)
                         )
+
+
+                        // 화면 처음 진입 시 포커스 요청
+                        LaunchedEffect(Unit) {
+                            delay(300) // 키보드 UI 준비 시간 확보
+                            focusRequester1.requestFocus()
+                            keyboardController?.show()
+                        }
+
                         Row(modifier = Modifier.align(Alignment.BottomStart)) {
                             BasicTextField(
                                 value = pageState.value.toString().replace("null", "") + "p",
@@ -104,12 +125,22 @@ fun AddMiddleRecordView(
                                 modifier = Modifier
                                     .background(Color(0xFFF5F5F5), RoundedCornerShape(5.dp))
                                     .padding(vertical = 12.dp)
-                                    .width(80.dp),
+                                    .width(80.dp)
+                                    .focusRequester(focusRequester1)
+                                    .focusable(),
                                 textStyle = AddRecordTextStyles.textFieldTextStyle.copy(
                                     color = Color.Black,
                                     textAlign = TextAlign.Center
                                 ),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Number,
+                                    imeAction = ImeAction.Next
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onNext = {
+                                        focusRequester2.requestFocus()
+                                    }
+                                )
                             )
                             Spacer(Modifier.width(5.dp))
                             AppText(
@@ -185,6 +216,20 @@ fun AddMiddleRecordView(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .defaultMinSize(minHeight = 100.dp)
+                                    .focusRequester(focusRequester2)
+                                    .focusable(),
+                                keyboardOptions = KeyboardOptions(
+                                    imeAction = ImeAction.Done
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onDone = {
+                                        focusManager.clearFocus()
+                                        keyboardController?.hide()
+                                        if (pageState.value != null) {
+                                            onConfirm(textState.value, pageState.value!!)
+                                        }
+                                    }
+                                )
                             )
                             val currentTextLength = textState.value.length
                             Spacer(Modifier.height(15.dp))
@@ -204,7 +249,7 @@ fun AddMiddleRecordView(
                         .fillMaxWidth()
                         .height(50.dp)
                         .oneClick(500) {
-                            if (textState.value.isNotEmpty() && pageState.value != null) {
+                            if (pageState.value != null) {
                                 onConfirm(textState.value, pageState.value!!)
                             }
                         }
@@ -257,9 +302,9 @@ fun AddMiddleRecordView(
 
 @Preview(showBackground = true, widthDp = 393, heightDp = 800)
 @Composable
-fun AddMiddleRecordViewPreview() {
+fun AddThinkViewPreview() {
     AppTheme {
-        AddMiddleRecordView(
+        AddThinkView(
             result = ApiResult.Success(
                 BookDetail(
                     bookInfo = BookInfo(
