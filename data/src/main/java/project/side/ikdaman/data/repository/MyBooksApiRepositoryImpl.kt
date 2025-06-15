@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.flow
 import project.side.ikdaman.data.model.FirstImpression
 import project.side.ikdaman.data.model.book.BookCompleted
 import project.side.ikdaman.data.model.book.BookThink
+import project.side.ikdaman.data.model.book.UpdateBookCompleted
 import project.side.ikdaman.data.model.book.UpdateBookThink
 import project.side.ikdaman.data.service.MyBookApi
 import project.side.ikdaman.domain.model.ApiResult
@@ -87,7 +88,7 @@ class MyBooksApiRepositoryImpl(private val api: MyBookApi) : MyBooksApiRepositor
                 emit(ApiResult.Error("Books data is missing"))
             }
         } else {
-            emit(ApiResult.Error(""))
+            emit(ApiResult.Error("Failed to fetch books: ${response.message()}"))
         }
     }.catch {
         Log.e("BookApiRepository", "Error fetching books: ${it.message}", it)
@@ -103,7 +104,7 @@ class MyBooksApiRepositoryImpl(private val api: MyBookApi) : MyBooksApiRepositor
             emit(ApiResult.Error("오류 발생"))
         }
     }.catch {
-        Log.e("BookApiRepository", "Error adding think: ${it.message}", it)
+        Log.e("MyBooksApiRepositoryImpl", "Error adding think: ${it.message}", it)
         emit(ApiResult.Error("Network error: ${it.message}"))
     }
 
@@ -116,7 +117,7 @@ class MyBooksApiRepositoryImpl(private val api: MyBookApi) : MyBooksApiRepositor
             emit(ApiResult.Error("오류 발생"))
         }
     }.catch {
-        Log.e("BookApiRepository", "Error deleting think: ${it.message}", it)
+        Log.e("MyBooksApiRepositoryImpl", "Error deleting think: ${it.message}", it)
         emit(ApiResult.Error("Network error: ${it.message}"))
     }
 
@@ -129,7 +130,7 @@ class MyBooksApiRepositoryImpl(private val api: MyBookApi) : MyBooksApiRepositor
             emit(ApiResult.Error("오류 발생"))
         }
     }.catch {
-        Log.e("BookApiRepository", "Error updating think: ${it.message}", it)
+        Log.e("MyBooksApiRepositoryImpl", "Error updating think: ${it.message}", it)
         emit(ApiResult.Error("Network error: ${it.message}"))
     }
 
@@ -142,7 +143,7 @@ class MyBooksApiRepositoryImpl(private val api: MyBookApi) : MyBooksApiRepositor
             emit(ApiResult.Error("오류 발생"))
         }
     }.catch {
-        Log.e("BookApiRepository", "Error adding completed: ${it.message}", it)
+        Log.e("MyBooksApiRepositoryImpl", "Error adding completed: ${it.message}", it)
         emit(ApiResult.Error("Network error: ${it.message}"))
     }
 
@@ -155,7 +156,7 @@ class MyBooksApiRepositoryImpl(private val api: MyBookApi) : MyBooksApiRepositor
             emit(ApiResult.Error("오류 발생"))
         }
     }.catch {
-        Log.e("BookApiRepository", "Error deleting completed: ${it.message}", it)
+        Log.e("MyBooksApiRepositoryImpl", "Error deleting completed: ${it.message}", it)
         emit(ApiResult.Error("Network error: ${it.message}"))
     }
 
@@ -165,7 +166,7 @@ class MyBooksApiRepositoryImpl(private val api: MyBookApi) : MyBooksApiRepositor
         content: String
     ) = flow {
         emit(ApiResult.Loading)
-        val response = api.updateCompleted(bookId, logId, UpdateBookThink(content))
+        val response = api.updateCompleted(bookId, logId, UpdateBookCompleted(content))
         if (response.isSuccessful) {
             emit(ApiResult.Success(Unit))
         } else {

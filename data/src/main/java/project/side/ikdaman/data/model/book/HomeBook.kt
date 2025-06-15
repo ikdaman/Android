@@ -1,6 +1,7 @@
 package project.side.ikdaman.data.model.book
 
 import project.side.ikdaman.domain.model.HomeBookItem
+import project.side.ikdaman.domain.util.convertUtcToLocalLong
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -15,8 +16,7 @@ data class HomeBook(
 ) {
     fun transformToDomain(): HomeBookItem {
         val lastEditedTime = try {
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.getDefault())
-            dateFormat.parse(recentEdit)?.time ?: System.currentTimeMillis()
+            convertUtcToLocalLong(recentEdit)
         } catch (_: Exception) {
             System.currentTimeMillis() // 변환 실패 시 현재 시간으로 설정
         }

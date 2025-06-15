@@ -3,6 +3,7 @@ package project.side.ikdaman.data.service
 import project.side.ikdaman.data.model.FirstImpression
 import project.side.ikdaman.data.model.book.BookCompleted
 import project.side.ikdaman.data.model.book.BookThink
+import project.side.ikdaman.data.model.book.UpdateBookCompleted
 import project.side.ikdaman.data.model.book.UpdateBookThink
 import project.side.ikdaman.data.model.responses.BooksResponse
 import project.side.ikdaman.domain.model.BookDetail
@@ -86,6 +87,6 @@ interface MyBookApi {
     suspend fun updateCompleted(
         @Path("id") id: String,
         @Path("logId") logId: Int,
-        @Body body: UpdateBookThink
+        @Body body: UpdateBookCompleted
     ): Response<Unit>
 }

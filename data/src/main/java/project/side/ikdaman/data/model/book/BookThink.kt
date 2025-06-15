@@ -1,13 +1,14 @@
 package project.side.ikdaman.data.model.book
 
-import project.side.ikdaman.core.utils.TimeUTC
-
 data class BookThink(
     val content: String,
-    val page: Int,
-    val createdAt: String = TimeUTC.now()
+    val page: Int
 )
 
 data class UpdateBookThink(
+    val content: String
+)
+
+data class UpdateBookCompleted(
     val content: String
 )

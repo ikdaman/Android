@@ -58,7 +58,8 @@ import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.core.utils.oneClick
 import project.side.ikdaman.core.view.BookProgressBarWithText
-import project.side.ikdaman.core.view.DeleteBookDialog
+import project.side.ikdaman.core.view.CenterDialog
+import project.side.ikdaman.core.view.CenterDialogType
 import project.side.ikdaman.core.view.GradientBox
 import project.side.ikdaman.domain.model.HomeBookItem
 import project.side.ikdaman.domain.model.RecordType
@@ -112,7 +113,8 @@ fun HomeTab(
         }
     )
 
-    DeleteBookDialog(
+    CenterDialog(
+        type = CenterDialogType.DELETE_BOOK,
         dialogState = deleteDialogState,
         onDelete = {
             viewModel.deleteItem(deleteItem.value!!.id) {

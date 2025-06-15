@@ -1,5 +1,6 @@
 package project.side.ikdaman.domain.model
 
+import project.side.ikdaman.domain.util.convertUtcToLocalLong
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -21,14 +22,10 @@ data class BookLogItem(
     val content: String?,
     val type: String
 ) {
-    fun getDateByLong(): Long {
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.getDefault())
-        return dateFormat.parse(loggedDate)?.time ?: System.currentTimeMillis()
-    }
 
     fun getLogString(): String {
         // yy-MM-dd HH:mm 형식
-        val dateTime = getDateByLong()
+        val dateTime = convertUtcToLocalLong(loggedDate)
         val dateFormat = SimpleDateFormat("yy/MM/dd HH:mm", Locale.getDefault())
         return dateFormat.format(dateTime)
     }

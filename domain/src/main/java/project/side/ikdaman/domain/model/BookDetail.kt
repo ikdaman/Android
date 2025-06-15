@@ -1,5 +1,7 @@
 package project.side.ikdaman.domain.model
 
+import project.side.ikdaman.domain.util.convertUtcToLocalLong
+import project.side.ikdaman.domain.util.convertUtcToLocalString
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -19,12 +21,7 @@ data class BookDetail(
 
     fun progressText(): String {
         val now = System.currentTimeMillis()
-        val startTime = try {
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.getDefault())
-            dateFormat.parse(startDate)?.time ?: now
-        } catch (_: Exception) {
-            now // 변환 실패 시 현재 시간으로 설정
-        }
+        val startTime = convertUtcToLocalLong(startDate)
         val elapsedDays = (now - startTime) / (1000 * 60 * 60 * 24)
         return "${elapsedDays}일째, ${nowPage}p, ${progress}%"
     }

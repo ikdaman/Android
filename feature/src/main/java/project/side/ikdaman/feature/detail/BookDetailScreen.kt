@@ -73,8 +73,8 @@ import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.core.utils.noEffectClick
 import project.side.ikdaman.core.utils.oneClick
 import project.side.ikdaman.core.view.BookProgressBarWithText
-import project.side.ikdaman.core.view.DeleteBookDialog
-import project.side.ikdaman.core.view.DeleteLogDialog
+import project.side.ikdaman.core.view.CenterDialog
+import project.side.ikdaman.core.view.CenterDialogType
 import project.side.ikdaman.core.view.GradientBox
 import project.side.ikdaman.domain.model.ApiResult
 import project.side.ikdaman.domain.model.BookDetail
@@ -144,7 +144,8 @@ fun BookDetailScreen(
         }
     )
 
-    DeleteBookDialog(
+    CenterDialog(
+        type = CenterDialogType.DELETE_BOOK,
         dialogState = deleteBookDialogState,
         onDelete = {
             viewModel.deleteItem(bookId) {
@@ -154,7 +155,8 @@ fun BookDetailScreen(
         }
     )
 
-    DeleteLogDialog(
+    CenterDialog(
+        type = CenterDialogType.DELETE_LOG,
         dialogState = deleteLogDialogState,
         content = deleteLogItem.value.content,
         onDelete = {
