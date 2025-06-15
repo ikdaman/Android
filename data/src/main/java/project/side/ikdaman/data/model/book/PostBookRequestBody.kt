@@ -1,7 +1,5 @@
 package project.side.ikdaman.data.model.book
 
-import java.io.File
-
 data class PostBookRequestBody(
     val title: String,
     val writer: String,

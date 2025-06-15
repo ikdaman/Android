@@ -47,10 +47,10 @@ class BookApiRepositoryImpl(private val api: BookApiService) : BookApiRepository
             createdAt = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
         )
         val response = api.postBook(postBookRequestBody)
-        if (response.isSuccess()) {
+        if (response.code() == 201) {
             emit(ApiResult.Success(Unit))
         } else {
-            emit(ApiResult.Error(response.message ?: ""))
+            emit(ApiResult.Error(response.message() ?: ""))
         }
     }.catch {
         Log.e("BookApiRepository", "Error posting books: ${it.message}", it)

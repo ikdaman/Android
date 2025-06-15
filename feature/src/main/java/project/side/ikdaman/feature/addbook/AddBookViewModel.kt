@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.domain.model.AddBookItem
+import project.side.ikdaman.domain.model.ApiResult
 import project.side.ikdaman.domain.model.BookItem
 import project.side.ikdaman.domain.repository.PaletteRepository
 import project.side.ikdaman.domain.usecase.PostBookUseCase
@@ -28,6 +29,9 @@ class AddBookViewModel @Inject constructor(
 
     private val _initialImpression = MutableStateFlow("")
     val initialImpression = _initialImpression.asStateFlow()
+
+    private val _addBookSuccess = MutableStateFlow<ApiResult<Unit>?>(null)
+    val addBookSuccess = _addBookSuccess.asStateFlow()
 
     init {
         getPalette()
@@ -57,7 +61,7 @@ class AddBookViewModel @Inject constructor(
                 impression = initialImpression.value
             )
             postBookUseCase(addBookItem).collect { result ->
-                Log.d("hkhk", "addBook Result: $result")
+                _addBookSuccess.value = result
             }
         }
     }

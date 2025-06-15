@@ -1,6 +1,7 @@
 package project.side.ikdaman.feature.addbook
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,13 +27,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -45,10 +44,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import project.side.ikdaman.app.feature.R
+import project.side.ikdaman.core.navigation.MAIN_ROUTE
 import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.core.ui.PretendardFontFamily
 import project.side.ikdaman.core.view.GradientBox
+import project.side.ikdaman.domain.model.ApiResult
 import project.side.ikdaman.domain.model.BookItem
 
 @Composable
@@ -60,9 +61,24 @@ fun AddBookScreen(
     val searchResult by viewModel.searchResult.collectAsStateWithLifecycle()
     val selectedColor by viewModel.selectedColor.collectAsStateWithLifecycle()
     val initialImpression by viewModel.initialImpression.collectAsStateWithLifecycle()
+    val addBookSuccess by viewModel.addBookSuccess.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.searchBookWithIsbn(isbn)
+    }
+
+    LaunchedEffect(addBookSuccess) {
+        when (val result = addBookSuccess) {
+            is ApiResult.Error -> Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
+            is ApiResult.Success -> {
+                navController.navigate(MAIN_ROUTE)
+                Toast.makeText(context, "책이 추가되었습니다.", Toast.LENGTH_SHORT).show()
+            }
+
+            ApiResult.Loading -> Unit
+            null -> Unit
+        }
     }
 
     AddBookScreenUI(
