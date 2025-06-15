@@ -1,4 +1,4 @@
-package project.side.ikdaman.feature.searchinfo
+package project.side.ikdaman.feature.addbook
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
@@ -52,33 +52,36 @@ import project.side.ikdaman.core.view.GradientBox
 import project.side.ikdaman.domain.model.BookItem
 
 @Composable
-fun SearchInfoScreen(
+fun AddBookScreen(
     isbn: String,
-    viewModel: SearchInfoViewModel = hiltViewModel(),
+    viewModel: AddBookViewModel = hiltViewModel(),
     navController: NavController
 ) {
-    var initialImpression by remember { mutableStateOf("") }
-    val searchResult = viewModel.searchResult.collectAsStateWithLifecycle()
+    val searchResult by viewModel.searchResult.collectAsStateWithLifecycle()
     val selectedColor by viewModel.selectedColor.collectAsStateWithLifecycle()
+    val initialImpression by viewModel.initialImpression.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.searchBookWithIsbn(isbn)
     }
 
-    SearchInfoScreenUI(
+    AddBookScreenUI(
+        selectedColor = selectedColor,
         initialImpression = initialImpression,
-        onInitialImpressionChange = { initialImpression = it },
-        bookItem = searchResult.value
+        onInitialImpressionChange = { viewModel.updateInitialImpression(it) },
+        bookItem = searchResult,
+        addBook = { viewModel.addBook() }
     )
 }
 
 @SuppressLint("InvalidColorHexValue")
 @Composable
-private fun SearchInfoScreenUI(
+private fun AddBookScreenUI(
     selectedColor: Color = Palette.first,
     initialImpression: String = "",
     onInitialImpressionChange: (String) -> Unit = {},
-    bookItem: BookItem? = null
+    bookItem: BookItem? = null,
+    addBook: () -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -207,8 +210,7 @@ private fun SearchInfoScreenUI(
                             fontSize = 12.sp,
                             textDecoration = TextDecoration.Underline
                         ),
-
-                        )
+                    )
                 }
                 Spacer(Modifier.height(30.dp))
                 Text(
@@ -221,7 +223,7 @@ private fun SearchInfoScreenUI(
                     onInitialImpressionChange = onInitialImpressionChange
                 )
                 Spacer(modifier = Modifier.weight(1f))
-                SearchResultAddButton(modifier = Modifier.fillMaxWidth())
+                AddBookButton(modifier = Modifier.fillMaxWidth(), addBook = addBook)
             }
         }
     }
@@ -293,9 +295,9 @@ private fun InitialImpressionTextField(
 }
 
 @Composable
-private fun SearchResultAddButton(modifier: Modifier) {
+private fun AddBookButton(modifier: Modifier, addBook: () -> Unit) {
     Button(
-        onClick = {},
+        onClick = { addBook() },
         modifier = modifier.padding(bottom = 78.dp),
         shape = RoundedCornerShape(10.dp),
         colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
@@ -314,8 +316,8 @@ private fun SearchResultAddButton(modifier: Modifier) {
 
 @Composable
 @Preview
-private fun SearchInfoScreenUIPreview() {
+private fun AddBookScreenUIPreview() {
     AppTheme {
-        SearchInfoScreenUI()
+        AddBookScreenUI()
     }
 }

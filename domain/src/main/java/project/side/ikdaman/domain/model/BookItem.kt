@@ -11,9 +11,9 @@ data class BookItem(
     val cover: String,
     val isbn: String,
     val publisher: String,
-    val subInfo:BookSubInfo? = null
+    val subInfo: BookSubInfo? = null
 )
 
 data class BookSubInfo(
-    val itemPage:String
+    val itemPage: String
 )

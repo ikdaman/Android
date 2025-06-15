@@ -30,7 +30,7 @@ import project.side.ikdaman.feature.barcode.BarcodeScreen
 import project.side.ikdaman.feature.bookedit.BookEditScreen
 import project.side.ikdaman.feature.detail.BookDetailScreen
 import project.side.ikdaman.feature.login.LoginScreen
-import project.side.ikdaman.feature.searchinfo.SearchInfoScreen
+import project.side.ikdaman.feature.addbook.AddBookScreen
 import project.side.ikdaman.feature.tutorial.TutorialScreen
 
 @AndroidEntryPoint
@@ -61,7 +61,7 @@ class MainActivity : ComponentActivity() {
                         )
                     ) { backStackEntry ->
                         val isbn = backStackEntry.arguments?.getString("isbn") ?: return@slideComposable
-                        SearchInfoScreen(isbn = isbn, navController = navController)
+                        AddBookScreen(isbn = isbn, navController = navController)
                     }
                     slideComposable(BOOK_EDIT_ROUTE) {
                         BookEditScreen(navController)
