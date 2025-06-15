@@ -26,6 +26,7 @@ import project.side.ikdaman.core.navigation.LOGIN_ROUTE
 import project.side.ikdaman.core.navigation.MAIN_ROUTE
 import project.side.ikdaman.core.navigation.SEARCH_INFO_ROUTE
 import project.side.ikdaman.core.navigation.TUTORIAL_ROUTE
+import project.side.ikdaman.core.navigation.USERINFO_ROUTE
 import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.feature.add_notes.AddRecordScreen
 import project.side.ikdaman.domain.model.RecordType
@@ -33,6 +34,7 @@ import project.side.ikdaman.feature.barcode.BarcodeScreen
 import project.side.ikdaman.feature.bookedit.BookEditScreen
 import project.side.ikdaman.feature.detail.BookDetailScreen
 import project.side.ikdaman.feature.login.LoginScreen
+import project.side.ikdaman.feature.mypage.UserInfoScreen
 import project.side.ikdaman.feature.searchinfo.SearchInfoScreen
 import project.side.ikdaman.feature.tutorial.TutorialScreen
 
@@ -105,6 +107,9 @@ class MainActivity : ComponentActivity() {
                             recordType = recordType,
                             bookId = bookId
                         )
+                    }
+                    slideComposable(USERINFO_ROUTE) {
+                        UserInfoScreen(navController)
                     }
                 }
             }

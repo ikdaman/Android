@@ -15,3 +15,4 @@ const val BOOK_EDIT_ROUTE = "BookEdit"
 const val BOOK_DETAIL_ROUTE = "BookDetail"
 
 const val ADD_BOOK_RECORD = "ADD_BOOK_RECORD"
+const val USERINFO_ROUTE = "UserInfo"
