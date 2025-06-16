@@ -573,7 +573,7 @@ private fun LazyListScope.BookLogList(
                                                 }
                                                 .padding(horizontal = 12.dp, vertical = 6.dp)
                                         ) {
-                                            AppText("수정", style = DetailScreenTextStyle.bookLogButtonStyle)
+                                            AppText("저장", style = DetailScreenTextStyle.bookLogButtonStyle)
                                         }
                                         Spacer(Modifier.width(5.dp))
                                         Box(
