@@ -15,6 +15,8 @@ dependencies {
     implementation(libs.kakao.login)
     implementation(libs.naver.login)
 
+    implementation(libs.converter.gson)
+
     implementation(libs.coil.compose)
     implementation(libs.barcode.scanning)
     implementation(libs.androidx.camera.lifecycle)

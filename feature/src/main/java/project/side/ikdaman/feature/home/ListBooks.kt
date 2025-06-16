@@ -258,7 +258,7 @@ fun ListBooksPreview() {
                     HomeBookItem(
                         id = "0",
                         imageUrl = "https://picsum.photos/250/284?random=1",
-                        lastEditedTime = System.currentTimeMillis(),
+                        lastEditedDateTime = System.currentTimeMillis(),
                         title = "소년이 온다1",
                         author = "한강1",
                         firstImpression = "테스트 테스트"
@@ -266,7 +266,7 @@ fun ListBooksPreview() {
                     HomeBookItem(
                         id = "1",
                         imageUrl = "https://picsum.photos/250/284?random=2",
-                        lastEditedTime = System.currentTimeMillis() - (24 * 60 * 60 * 1000),
+                        lastEditedDateTime = System.currentTimeMillis() - (24 * 60 * 60 * 1000),
                         title = "소년이 온다2",
                         author = "한강2",
                         firstImpression = "네가 죽은 뒤 장례식을 치르지 못해, 내 삶이 장례식이 되었다.\n" +
@@ -277,7 +277,7 @@ fun ListBooksPreview() {
                     HomeBookItem(
                         id = "2",
                         imageUrl = "https://picsum.photos/250/284?random=3",
-                        lastEditedTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
+                        lastEditedDateTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
                         title = "소년이 온다3",
                         author = "한강1",
                         progress = 0.5f
@@ -285,7 +285,7 @@ fun ListBooksPreview() {
                     HomeBookItem(
                         id = "3",
                         imageUrl = "https://picsum.photos/250/284?random=4",
-                        lastEditedTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
+                        lastEditedDateTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
                         title = "소년이 온다4",
                         author = "한강1",
                         progress = 0.7f

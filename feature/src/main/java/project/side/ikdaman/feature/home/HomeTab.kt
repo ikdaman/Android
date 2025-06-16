@@ -28,8 +28,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -47,14 +49,20 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import project.side.ikdaman.app.feature.R
+import project.side.ikdaman.core.navigation.ADD_BOOK_RECORD
+import project.side.ikdaman.core.navigation.BOOK_DETAIL_ROUTE
+import project.side.ikdaman.core.navigation.HOME_ROUTE
 import project.side.ikdaman.core.navigation.MAIN_ROUTE
 import project.side.ikdaman.core.ui.AppText
 import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.core.ui.Palette
+import project.side.ikdaman.core.utils.oneClick
 import project.side.ikdaman.core.view.BookProgressBarWithText
-import project.side.ikdaman.core.view.DeleteDialog
+import project.side.ikdaman.core.view.CenterDialog
+import project.side.ikdaman.core.view.CenterDialogType
 import project.side.ikdaman.core.view.GradientBox
 import project.side.ikdaman.domain.model.HomeBookItem
+import project.side.ikdaman.domain.model.RecordType
 
 @Composable
 fun HomeTab(
@@ -66,6 +74,18 @@ fun HomeTab(
     val deleteDialogState = remember { MutableTransitionState(false) }
     val deleteItem = remember { mutableStateOf<HomeBookItem?>(null) }
     val selectedColor = viewModel.selectedColor.collectAsState().value
+
+    LaunchedEffect(navController) {
+        navController.currentBackStackEntryFlow.collect {
+            if (it.destination.route == HOME_ROUTE) {
+                viewModel.getBooks()
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.initialize()
+    }
 
     HomeTabUI(
         selectedColor = selectedColor,
@@ -82,12 +102,24 @@ fun HomeTab(
         onSelectColor = {
             viewModel.saveSelectedColor(it)
         },
+        onAddRecord = { bookId ->
+            navController.navigate("$ADD_BOOK_RECORD/${RecordType.THINK}/$bookId?isShowFirstLog=${true}")
+        },
+        onBookClicked = { bookId ->
+            navController.navigate("${BOOK_DETAIL_ROUTE}/$bookId/false")
+        },
+        onNavigateToFirstImpression = { bookId ->
+            navController.navigate("$ADD_BOOK_RECORD/${RecordType.IMPRESSION}/$bookId")
+        }
     )
 
-    DeleteDialog(
+    CenterDialog(
+        type = CenterDialogType.DELETE_BOOK,
         dialogState = deleteDialogState,
         onDelete = {
-            viewModel.deleteItem(deleteItem.value!!)
+            viewModel.deleteItem(deleteItem.value!!.id) {
+                viewModel.getBooks()
+            }
             deleteDialogState.targetState = false
         }
     )
@@ -109,9 +141,16 @@ fun HomeTabUI(
     onPinItem: (String) -> Unit = {},
     onDeleteClick: (HomeBookItem) -> Unit = {},
     onSelectColor: (Color) -> Unit = {},
+    onAddRecord: (String) -> Unit = {},
+    onBookClicked: (String) -> Unit = {},
+    onNavigateToFirstImpression: (String) -> Unit = {}
 ) {
-    val selectedBookIndex = remember { mutableStateOf(0) }
+    val selectedBookIndex = remember { mutableIntStateOf(0) }
     val deleteMode = remember { mutableStateOf(false) }
+
+    if (books.isNotEmpty() && selectedBookIndex.intValue >= books.size) {
+        selectedBookIndex.intValue = books.size - 1
+    }
 
     GradientBox(
         Modifier
@@ -175,7 +214,7 @@ fun HomeTabUI(
 
             if (books.isNotEmpty()) {
                 if (selectedViewMode.value == HomeTabViewMode.CAROUSEL) {
-                    CarouselBooks(deleteMode, selectedBookIndex, books, onDeleteClick)
+                    CarouselBooks(deleteMode, selectedBookIndex, books, onDeleteClick, onAddRecord, onBookClicked, onNavigateToFirstImpression)
                 } else {
                     ListBooks(
                         pinnedItems = pinnedItems,
@@ -239,7 +278,10 @@ private fun CarouselBooks(
     deleteMode: MutableState<Boolean>,
     selectedBookIndex: MutableState<Int>,
     books: List<HomeBookItem>,
-    onDeleteClick: (HomeBookItem) -> Unit = {}
+    onDeleteClick: (HomeBookItem) -> Unit = {},
+    onAddRecord: (String) -> Unit = {},
+    onBookClicked: (String) -> Unit = {},
+    onNavigateToFirstImpression: (String) -> Unit = {}
 ) {
     val state = rememberScrollState()
     Column(Modifier.verticalScroll(state, reverseScrolling = true), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -251,6 +293,7 @@ private fun CarouselBooks(
             selectedBookIndex = selectedBookIndex,
             items = books,
             onDeleteClick = onDeleteClick,
+            onBookClicked = onBookClicked
         )
         Spacer(Modifier.height(19.dp))
         Column(
@@ -274,7 +317,11 @@ private fun CarouselBooks(
             modifier = Modifier.padding(horizontal = 20.dp)
         )
         Spacer(Modifier.height(20.dp))
-        Box {
+        Box(
+            Modifier.oneClick(500) {
+                onAddRecord(books[selectedBookIndex.value].id)
+            }
+        ) {
             Column(modifier = Modifier.padding(8.dp)) {
                 AppText("이 책의 기록 추가 +", style = HomeTextStyles.buttonText)
                 Box(
@@ -295,7 +342,10 @@ private fun CarouselBooks(
                     .clip(RoundedCornerShape(10.dp))
                     .fillMaxWidth()
                     .background(Color.White)
-                    .padding(vertical = 25.dp, horizontal = 20.dp),
+                    .padding(vertical = 25.dp, horizontal = 20.dp)
+                    .oneClick(500) {
+                        onNavigateToFirstImpression(books[selectedBookIndex.value].id)
+                    }
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -360,9 +410,11 @@ private fun CarouselBooks(
                     text = firstImpressionText(books, selectedBookIndex),
                     isExpanded = isExpanded,
                     maxLines = 3,
-                    modifier = Modifier.fillMaxWidth().animateContentSize(
-                        animationSpec = tween(100)
-                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animateContentSize(
+                            animationSpec = tween(100)
+                        ),
                 )
             }
         }
@@ -512,7 +564,7 @@ fun CarouselHomeTabPreview() {
                 HomeBookItem(
                     id = "0",
                     imageUrl = "https://picsum.photos/250/284?random=1",
-                    lastEditedTime = System.currentTimeMillis(),
+                    lastEditedDateTime = System.currentTimeMillis(),
                     title = "소년이 온다1",
                     author = "한강1",
                     firstImpression = "네가 죽은 뒤 장례식을 치르지 못해, 내 삶이 장례식이 되었다.\n" +
@@ -523,7 +575,7 @@ fun CarouselHomeTabPreview() {
                 HomeBookItem(
                     id = "1",
                     imageUrl = "https://picsum.photos/250/284?random=2",
-                    lastEditedTime = System.currentTimeMillis() - (24 * 60 * 60 * 1000),
+                    lastEditedDateTime = System.currentTimeMillis() - (24 * 60 * 60 * 1000),
                     title = "소년이 온다2",
                     author = "한강2",
                     firstImpression = "",
@@ -532,14 +584,14 @@ fun CarouselHomeTabPreview() {
                 HomeBookItem(
                     id = "2",
                     imageUrl = "https://picsum.photos/250/284?random=3",
-                    lastEditedTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
+                    lastEditedDateTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
                     title = "소년이 온다3",
                     author = "한강1"
                 ),
                 HomeBookItem(
                     id = "3",
                     imageUrl = "https://picsum.photos/250/284?random=4",
-                    lastEditedTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
+                    lastEditedDateTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
                     title = "소년이 온다4",
                     author = "한강1"
                 ),
@@ -558,7 +610,7 @@ fun ListHomeTabPreview() {
                 HomeBookItem(
                     id = "0",
                     imageUrl = "https://picsum.photos/250/284?random=1",
-                    lastEditedTime = System.currentTimeMillis(),
+                    lastEditedDateTime = System.currentTimeMillis(),
                     title = "소년이 온다1",
                     author = "한강1",
                     firstImpression = ""
@@ -566,7 +618,7 @@ fun ListHomeTabPreview() {
                 HomeBookItem(
                     id = "1",
                     imageUrl = "https://picsum.photos/250/284?random=2",
-                    lastEditedTime = System.currentTimeMillis() - (12 * 60 * 60 * 1000),
+                    lastEditedDateTime = System.currentTimeMillis() - (12 * 60 * 60 * 1000),
                     title = "소년이 온다2",
                     author = "한강2",
                     firstImpression = "",
@@ -575,7 +627,7 @@ fun ListHomeTabPreview() {
                 HomeBookItem(
                     id = "2",
                     imageUrl = "https://picsum.photos/250/284?random=3",
-                    lastEditedTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
+                    lastEditedDateTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
                     title = "소년이 온다3",
                     author = "한강1",
                     progress = 0.5f
@@ -583,7 +635,7 @@ fun ListHomeTabPreview() {
                 HomeBookItem(
                     id = "3",
                     imageUrl = "https://picsum.photos/250/284?random=4",
-                    lastEditedTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
+                    lastEditedDateTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
                     title = "소년이 온다4",
                     author = "한강1",
                     progress = 0.7f
@@ -593,7 +645,7 @@ fun ListHomeTabPreview() {
                 HomeBookItem(
                     id = "0",
                     imageUrl = "https://picsum.photos/250/284?random=1",
-                    lastEditedTime = System.currentTimeMillis(),
+                    lastEditedDateTime = System.currentTimeMillis(),
                     title = "소년이 온다1",
                     author = "한강1",
                     firstImpression = ""
@@ -601,7 +653,7 @@ fun ListHomeTabPreview() {
                 HomeBookItem(
                     id = "1",
                     imageUrl = "https://picsum.photos/250/284?random=2",
-                    lastEditedTime = System.currentTimeMillis() - (12 * 60 * 60 * 1000),
+                    lastEditedDateTime = System.currentTimeMillis() - (12 * 60 * 60 * 1000),
                     title = "소년이 온다2",
                     author = "한강2",
                     firstImpression = "",
@@ -612,7 +664,7 @@ fun ListHomeTabPreview() {
                 HomeBookItem(
                     id = "2",
                     imageUrl = "https://picsum.photos/250/284?random=3",
-                    lastEditedTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
+                    lastEditedDateTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
                     title = "소년이 온다3",
                     author = "한강1",
                     progress = 0.5f
@@ -620,7 +672,7 @@ fun ListHomeTabPreview() {
                 HomeBookItem(
                     id = "3",
                     imageUrl = "https://picsum.photos/250/284?random=4",
-                    lastEditedTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
+                    lastEditedDateTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
                     title = "소년이 온다4",
                     author = "한강1",
                     progress = 0.7f

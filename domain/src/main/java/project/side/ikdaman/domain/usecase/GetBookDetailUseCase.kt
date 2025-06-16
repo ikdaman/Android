@@ -1,11 +1,10 @@
 package project.side.ikdaman.domain.usecase
 
-import project.side.ikdaman.domain.repository.BookApiRepository
 import project.side.ikdaman.domain.repository.MyBooksApiRepository
 import javax.inject.Inject
 
-class GetReadingBooksUseCase @Inject constructor(
+class GetBookDetailUseCase @Inject constructor(
     private val bookApiRepository: MyBooksApiRepository
 ) {
-    operator fun invoke() = bookApiRepository.getBooks()
+    operator fun invoke(bookId: String) = bookApiRepository.getBookInfo(bookId)
 }

@@ -12,16 +12,16 @@ import okhttp3.logging.HttpLoggingInterceptor
 import project.side.ikdaman.app.data.BuildConfig
 import project.side.ikdaman.data.data_source.AuthDataStore
 import project.side.ikdaman.data.repository.AuthRepositoryImpl
-import project.side.ikdaman.data.repository.BookApiRepositoryImpl
 import project.side.ikdaman.data.repository.BookRepositoryImpl
+import project.side.ikdaman.data.repository.MyBooksApiRepositoryImpl
 import project.side.ikdaman.data.repository.UserRepositoryImpl
 import project.side.ikdaman.data.service.AuthService
-import project.side.ikdaman.data.service.BookApiService
 import project.side.ikdaman.data.service.BookService
+import project.side.ikdaman.data.service.MyBookApi
 import project.side.ikdaman.data.service.UserService
 import project.side.ikdaman.domain.repository.AuthRepository
-import project.side.ikdaman.domain.repository.BookApiRepository
 import project.side.ikdaman.domain.repository.BookRepository
+import project.side.ikdaman.domain.repository.MyBooksApiRepository
 import project.side.ikdaman.domain.repository.UserRepository
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
@@ -47,8 +47,6 @@ annotation class AuthOkHttpClient
 @Module
 @InstallIn(SingletonComponent::class)
 object ApiModule {
-    private const val API_URL = "https://403f085d-bd13-42ee-a481-11de8752476f.mock.pstmn.io/"
-
     private val moshi = Moshi.Builder()
         .add(KotlinJsonAdapterFactory())
         .build()
@@ -121,21 +119,17 @@ object ApiModule {
         return BookRepositoryImpl(aladinService)
     }
 
+
     @Provides
     @Singleton
-    fun provideBookApiService(@DefaultOkHttpClient okHttpClient: OkHttpClient): BookApiService {
-        return Retrofit.Builder()
-            .baseUrl(API_URL) // Replace with your actual base URL
-            .client(okHttpClient)
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
-            .build()
-            .create(BookApiService::class.java)
+    fun provideMyBookApi(@AuthRetrofit authRetrofit: Retrofit): MyBookApi {
+        return authRetrofit.create(MyBookApi::class.java)
     }
 
     @Provides
     @Singleton
-    fun provideBookApiRepository(bookApiService: BookApiService): BookApiRepository {
-        return BookApiRepositoryImpl(bookApiService)
+    fun provideMyBooksApiRepository(myBookApi: MyBookApi): MyBooksApiRepository {
+        return MyBooksApiRepositoryImpl(myBookApi)
     }
 
     @Provides

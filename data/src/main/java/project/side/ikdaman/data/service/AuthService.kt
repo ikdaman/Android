@@ -8,7 +8,7 @@ import retrofit2.http.POST
 interface AuthService {
     @POST("/auth/login")
     suspend fun login(
-        @Header("social-access-token") accessToken: String,
+        @Header("social-token") accessToken: String,
         @Body loginRequest: LoginRequest
     ): Response<LoginResponse>
 }

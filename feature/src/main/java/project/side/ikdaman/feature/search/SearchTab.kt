@@ -29,7 +29,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -50,8 +52,6 @@ import project.side.ikdaman.core.view.GradientBox
 import project.side.ikdaman.domain.model.BookItem
 import project.side.ikdaman.domain.model.BookSearch
 import project.side.ikdaman.domain.model.BookSubInfo
-
-private const val TAG = "SearchScreen"
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -101,7 +101,7 @@ fun SearchTabUI(
                     modifier = Modifier.align(Alignment.CenterStart)
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.arrow_back),
+                        imageVector = ImageVector.vectorResource(R.drawable.arrow_back),
                         contentDescription = "Back",
                         Modifier.size(26.dp)
                     )
