@@ -71,9 +71,7 @@ fun LoginScreen(
     LoginScreenUI(
         isLoading = loginState.value == LoginState.Loading,
         onGoogleLogin = {
-            viewModel.googleLogin {
-                navigateToTutorialScreen(navController)
-            }
+            viewModel.googleLogin(context)
         },
         onNaverLogin = {
             viewModel.naverLogin(context)

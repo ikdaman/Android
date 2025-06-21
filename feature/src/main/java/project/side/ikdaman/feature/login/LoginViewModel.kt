@@ -19,8 +19,10 @@ class LoginViewModel @Inject constructor(
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Init)
     val loginState = _loginState.asStateFlow()
 
-    fun googleLogin(callback: () -> Unit) {
-        callback()
+    fun googleLogin(context: Context) {
+        handleLogin {
+            GoogleAuth.login(context)
+        }
     }
 
     fun naverLogin(context: Context) {
