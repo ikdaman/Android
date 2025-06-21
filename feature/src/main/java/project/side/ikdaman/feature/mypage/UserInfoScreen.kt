@@ -1,6 +1,5 @@
 package project.side.ikdaman.feature.mypage
 
-import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -56,6 +55,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.navigation.LOGIN_ROUTE
+import project.side.ikdaman.core.view.AppDialog
+import project.side.ikdaman.core.view.WithdrawDialog
 import project.side.ikdaman.domain.model.UserInfo
 
 @Composable
@@ -67,6 +68,9 @@ fun UserInfoScreen(
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
     val accountUiState = accountViewModel.uiState.collectAsStateWithLifecycle().value
     val context = LocalContext.current
+    val showLogoutDialog = remember { mutableStateOf(false) }
+    val showWithdrawDialog = remember { mutableStateOf(false) }
+    val showRealWithdrawDialog = remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { message ->
@@ -94,8 +98,36 @@ fun UserInfoScreen(
         }
     }
 
+    if (showLogoutDialog.value) {
+        AppDialog(
+            title = "읽다만에서\n로그아웃하시겠어요?",
+            visible = showLogoutDialog.value,
+            onDismissRequest = { showLogoutDialog.value = false },
+            onConfirmClicked = { accountViewModel.logout(context) },
+        )
+    }
+
+    if (showWithdrawDialog.value) {
+        AppDialog(
+            title = "읽다만에서\n탈퇴하시겠어요?",
+            visible = showWithdrawDialog.value,
+            onDismissRequest = { showWithdrawDialog.value = false },
+            onConfirmClicked = {
+                showRealWithdrawDialog.value = true
+                showWithdrawDialog.value = false
+            },
+        )
+    }
+
+    if (showRealWithdrawDialog.value) {
+        WithdrawDialog(
+            showDialog = showRealWithdrawDialog.value,
+            onConfirmClicked = accountViewModel::withdraw,
+            onDismissRequest = { showRealWithdrawDialog.value = false }
+        )
+    }
+
     UserInfoScreenUI(
-        context = context,
         isLoading = uiState.isLoading || accountUiState == AccountState.Loading,
         userInfo = uiState.userInfo,
         nicknameIsValid = uiState.nicknameIsValid,
@@ -103,8 +135,8 @@ fun UserInfoScreen(
         updateNicknameIsValid = viewModel::updateNicknameIsValid,
         updateBirthdateIsValid = viewModel::updateBirthdateIsValid,
         updateUserInfo = viewModel::updateUserInfo,
-        logout = accountViewModel::logout,
-        withdraw = accountViewModel::withdraw,
+        onLogoutClicked = { showLogoutDialog.value = true },
+        onWithdrawClicked = { showWithdrawDialog.value = true },
         checkNickname = viewModel::checkNickname
     ) {
         navController.popBackStack()
@@ -121,7 +153,6 @@ private fun navigateToLoginScreen(navController: NavController) {
 
 @Composable
 fun UserInfoScreenUI(
-    context: Context = LocalContext.current,
     isLoading: Boolean = false,
     userInfo: UserInfo,
     nicknameIsValid: Boolean = true,
@@ -130,8 +161,8 @@ fun UserInfoScreenUI(
     updateBirthdateIsValid: (String) -> Unit = {},
     checkNickname: (String) -> Unit = {},
     updateUserInfo: (String, String, String) -> Unit = { _, _, _ -> },
-    logout: (Context) -> Unit = {},
-    withdraw: () -> Unit = {},
+    onLogoutClicked: () -> Unit = {},
+    onWithdrawClicked: () -> Unit = {},
     navigateBack: () -> Unit = {}
 ) {
     val nickname = remember { mutableStateOf(TextFieldValue()) }
@@ -264,7 +295,7 @@ fun UserInfoScreenUI(
             Box(
                 modifier = Modifier
                     .height(26.dp)
-                    .clickable { logout(context) },
+                    .clickable { onLogoutClicked() },
                 contentAlignment = Alignment.CenterStart
             ) {
                 Text("로그아웃", style = MyPageTextStyle.SubMenuText)
@@ -273,7 +304,7 @@ fun UserInfoScreenUI(
             Box(
                 modifier = Modifier
                     .height(26.dp)
-                    .clickable { withdraw() },
+                    .clickable { onWithdrawClicked() },
                 contentAlignment = Alignment.CenterStart
             ) {
                 Text("회원탈퇴", style = MyPageTextStyle.SubMenuText)
