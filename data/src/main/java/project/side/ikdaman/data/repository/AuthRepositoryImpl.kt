@@ -26,7 +26,12 @@ class AuthRepositoryImpl @Inject constructor(
 
                 response.body()?.let {
                     if (!authorization.isNullOrBlank() && !refreshToken.isNullOrBlank()) {
-                        authDataStore.saveAuthInfo(authorization, refreshToken, it.nickname ?: "")
+                        authDataStore.saveAuthInfo(
+                            provider,
+                            authorization,
+                            refreshToken,
+                            it.nickname ?: ""
+                        )
                         ApiResult.Success(Unit)
                     } else ApiResult.Error("토큰이 비어있습니다.")
                 } ?: ApiResult.Error("응답이 비어있습니다.")

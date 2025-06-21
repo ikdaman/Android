@@ -15,6 +15,10 @@ class UserRepositoryImpl @Inject constructor(
 ) : UserRepository {
     override suspend fun getNickName(): Flow<String?> = authDataStore.nickname
 
+    override suspend fun getProvider(): String? = authDataStore.getProvider()
+
+    override suspend fun clearToken() = authDataStore.clear()
+
     override suspend fun checkNickname(nickname: String): ApiResult<Boolean> {
         return try {
             val response = userService.checkNickName(nickname)
@@ -53,6 +57,28 @@ class UserRepositoryImpl @Inject constructor(
                     authDataStore.saveNickname(it.nickname)
                     ApiResult.Success(Unit)
                 } ?: ApiResult.Error("응답이 비어있습니다.")
+            } else ApiResult.Error("서버 오류: ${response.code()}, ${response.message()}")
+        } catch (e: Exception) {
+            ApiResult.Error("서버 오류: ${e.message}")
+        }
+    }
+
+    override suspend fun logout(): ApiResult<Unit> {
+        return try {
+            val response = userService.logout()
+            if (response.isSuccessful) {
+                ApiResult.Success(Unit)
+            } else ApiResult.Error("서버 오류: ${response.code()}, ${response.message()}")
+        } catch (e: Exception) {
+            ApiResult.Error("서버 오류: ${e.message}")
+        }
+    }
+
+    override suspend fun withdraw(): ApiResult<Unit> {
+        return try {
+            val response = userService.withdraw()
+            if (response.isSuccessful) {
+                ApiResult.Success(Unit)
             } else ApiResult.Error("서버 오류: ${response.code()}, ${response.message()}")
         } catch (e: Exception) {
             ApiResult.Error("서버 오류: ${e.message}")

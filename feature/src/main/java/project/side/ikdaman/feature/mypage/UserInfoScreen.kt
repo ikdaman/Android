@@ -54,11 +54,17 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import project.side.ikdaman.app.feature.R
+import project.side.ikdaman.core.navigation.LOGIN_ROUTE
 import project.side.ikdaman.domain.model.UserInfo
 
 @Composable
-fun UserInfoScreen(navController: NavController, viewModel: UserInfoViewModel = hiltViewModel()) {
+fun UserInfoScreen(
+    navController: NavController,
+    viewModel: UserInfoViewModel = hiltViewModel(),
+    accountViewModel: AccountViewModel = hiltViewModel()
+) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
+    val accountUiState = accountViewModel.uiState.collectAsStateWithLifecycle().value
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
@@ -67,17 +73,47 @@ fun UserInfoScreen(navController: NavController, viewModel: UserInfoViewModel = 
         }
     }
 
+    LaunchedEffect(accountUiState) {
+        val message = getMessage(accountUiState)
+        if (message != null) {
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+
+        when (accountUiState) {
+            is AccountState.Success -> navigateToLoginScreen(navController)
+            is AccountState.NeedToLogin -> accountViewModel.reAuth(context)
+            is AccountState.Error -> {
+                if (accountUiState.navigateToLogin) {
+                    navigateToLoginScreen(navController)
+                }
+                accountViewModel.initAccountState()
+            }
+
+            else -> Unit
+        }
+    }
+
     UserInfoScreenUI(
-        isLoading = uiState.isLoading,
+        isLoading = uiState.isLoading || accountUiState == AccountState.Loading,
         userInfo = uiState.userInfo,
         nicknameIsValid = uiState.nicknameIsValid,
         birthdateIsValid = uiState.birthdateIsValid,
         updateNicknameIsValid = viewModel::updateNicknameIsValid,
         updateBirthdateIsValid = viewModel::updateBirthdateIsValid,
         updateUserInfo = viewModel::updateUserInfo,
+        logout = accountViewModel::logout,
+        withdraw = accountViewModel::withdraw,
         checkNickname = viewModel::checkNickname
     ) {
         navController.popBackStack()
+    }
+}
+
+private fun navigateToLoginScreen(navController: NavController) {
+    navController.navigate(LOGIN_ROUTE) {
+        popUpTo(0) {
+            inclusive = true
+        }
     }
 }
 
@@ -91,6 +127,8 @@ fun UserInfoScreenUI(
     updateBirthdateIsValid: (String) -> Unit = {},
     checkNickname: (String) -> Unit = {},
     updateUserInfo: (String, String, String) -> Unit = { _, _, _ -> },
+    logout: () -> Unit = {},
+    withdraw: () -> Unit = {},
     navigateBack: () -> Unit = {}
 ) {
     val nickname = remember { mutableStateOf(TextFieldValue()) }
@@ -223,7 +261,7 @@ fun UserInfoScreenUI(
             Box(
                 modifier = Modifier
                     .height(26.dp)
-                    .clickable { },
+                    .clickable { logout() },
                 contentAlignment = Alignment.CenterStart
             ) {
                 Text("로그아웃", style = MyPageTextStyle.SubMenuText)
@@ -232,7 +270,7 @@ fun UserInfoScreenUI(
             Box(
                 modifier = Modifier
                     .height(26.dp)
-                    .clickable { },
+                    .clickable { withdraw() },
                 contentAlignment = Alignment.CenterStart
             ) {
                 Text("회원탈퇴", style = MyPageTextStyle.SubMenuText)
@@ -321,6 +359,29 @@ fun UserInfoTextField(
             ),
             textStyle = MyPageTextStyle.TextFieldText
         )
+    }
+}
+
+private fun getMessage(accountUiState: AccountState): String? {
+    return when (accountUiState) {
+        is AccountState.Success -> when (accountUiState.type) {
+            SuccessType.LOGOUT -> "로그아웃 되었습니다."
+            SuccessType.WITHDRAW -> "회원탈퇴 되었습니다."
+        }
+
+        is AccountState.NeedToLogin -> when (accountUiState.type) {
+            WarningType.NEED_RE_AUTH -> "인증 문제로 다시 로그인이 필요합니다."
+        }
+
+        is AccountState.Error -> when (accountUiState.type) {
+            ErrorType.LOGOUT_FAILED -> "로그아웃에 실패했습니다."
+            ErrorType.WITHDRAW_FAILED -> "회원 탈퇴에 실패했습니다."
+            ErrorType.UNLINK_FAILED -> "회원 탈퇴는 완료되었으나 소셜 연결 해제에 실패했습니다."
+            ErrorType.RE_AUTH_FAILED -> "소셜로그인에 실패했습니다."
+            ErrorType.UNKNOWN -> "오류가 발생했습니다. 잠시 후 다시 시도해 주세요."
+        }
+
+        else -> null
     }
 }
 

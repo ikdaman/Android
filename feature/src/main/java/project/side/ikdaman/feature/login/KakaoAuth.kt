@@ -98,4 +98,14 @@ object KakaoAuth {
                 UserApiClient.instance.loginWithKakaoAccount(context, callback = callback)
             }
         }
+
+    fun logout() {
+        UserApiClient.instance.logout {}
+    }
+
+    suspend fun unlink(): Boolean = suspendCancellableCoroutine { continuation ->
+        UserApiClient.instance.unlink { error ->
+            continuation.resume(error == null)
+        }
+    }
 }

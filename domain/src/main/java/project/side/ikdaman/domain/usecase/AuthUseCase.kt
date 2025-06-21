@@ -1,13 +1,26 @@
 package project.side.ikdaman.domain.usecase
 
-import project.side.ikdaman.domain.model.ApiResult
 import project.side.ikdaman.domain.repository.AuthRepository
+import project.side.ikdaman.domain.repository.UserRepository
 import javax.inject.Inject
 
-class AuthUseCase @Inject constructor(
-    private val authRepository: AuthRepository
-) {
-    suspend fun login(token: String, provider: String, providerId: String): ApiResult<Unit> {
-        return authRepository.login(token, provider, providerId)
-    }
+class LoginUseCase @Inject constructor(private val authRepository: AuthRepository) {
+    suspend operator fun invoke(token: String, provider: String, providerId: String) =
+        authRepository.login(token, provider, providerId)
+}
+
+class LogoutUseCase @Inject constructor(private val userRepository: UserRepository) {
+    suspend operator fun invoke() = userRepository.logout()
+}
+
+class WithdrawUseCase @Inject constructor(private val userRepository: UserRepository) {
+    suspend operator fun invoke() = userRepository.withdraw()
+}
+
+class GetProviderUseCase @Inject constructor(private val userRepository: UserRepository) {
+    suspend operator fun invoke() = userRepository.getProvider()
+}
+
+class ClearTokenUseCase @Inject constructor(private val userRepository: UserRepository) {
+    suspend operator fun invoke() = userRepository.clearToken()
 }

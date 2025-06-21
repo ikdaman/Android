@@ -9,12 +9,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import project.side.ikdaman.domain.model.ApiResult
-import project.side.ikdaman.domain.usecase.AuthUseCase
+import project.side.ikdaman.domain.usecase.LoginUseCase
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val authUseCase: AuthUseCase
+    private val loginUseCase: LoginUseCase
 ) : ViewModel() {
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Init)
     val loginState = _loginState.asStateFlow()
@@ -43,7 +43,7 @@ class LoginViewModel @Inject constructor(
                 val socialLoginResult = loginAction()
                 if (socialLoginResult.isSuccess) {
                     // 서버로 토큰 전송 및 저장
-                    val result = authUseCase.login(
+                    val result = loginUseCase(
                         socialLoginResult.socialAccessToken ?: "",
                         socialLoginResult.provider ?: "",
                         socialLoginResult.providerId ?: ""

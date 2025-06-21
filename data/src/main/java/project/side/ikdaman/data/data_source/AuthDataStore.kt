@@ -14,6 +14,7 @@ private val Context.AuthDatStore: DataStore<Preferences> by preferencesDataStore
 
 class AuthDataStore(private val context: Context) {
     companion object {
+        val PROVIDER_KEY = stringPreferencesKey("provider")
         val AUTHORIZATION_KEY = stringPreferencesKey("Authorization")
         val REFRESH_TOKEN_KEY = stringPreferencesKey("refresh-token")
         val NICKNAME_KEY = stringPreferencesKey("nickname")
@@ -23,12 +24,20 @@ class AuthDataStore(private val context: Context) {
         prefs[NICKNAME_KEY]
     }
 
+    suspend fun getProvider(): String? = context.AuthDatStore.data.first()[PROVIDER_KEY]
+
     suspend fun getAuthorization(): String? = context.AuthDatStore.data.first()[AUTHORIZATION_KEY]
 
     suspend fun getRefreshToken(): String? = context.AuthDatStore.data.first()[REFRESH_TOKEN_KEY]
 
-    suspend fun saveAuthInfo(authorization: String, refreshToken: String, nickname: String) {
+    suspend fun saveAuthInfo(
+        provider: String,
+        authorization: String,
+        refreshToken: String,
+        nickname: String
+    ) {
         context.AuthDatStore.edit { prefs ->
+            prefs[PROVIDER_KEY] = provider
             prefs[AUTHORIZATION_KEY] = authorization
             prefs[REFRESH_TOKEN_KEY] = refreshToken
             prefs[NICKNAME_KEY] = nickname
