@@ -1,5 +1,6 @@
 package project.side.ikdaman.feature.mypage
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -94,6 +95,7 @@ fun UserInfoScreen(
     }
 
     UserInfoScreenUI(
+        context = context,
         isLoading = uiState.isLoading || accountUiState == AccountState.Loading,
         userInfo = uiState.userInfo,
         nicknameIsValid = uiState.nicknameIsValid,
@@ -119,6 +121,7 @@ private fun navigateToLoginScreen(navController: NavController) {
 
 @Composable
 fun UserInfoScreenUI(
+    context: Context = LocalContext.current,
     isLoading: Boolean = false,
     userInfo: UserInfo,
     nicknameIsValid: Boolean = true,
@@ -127,7 +130,7 @@ fun UserInfoScreenUI(
     updateBirthdateIsValid: (String) -> Unit = {},
     checkNickname: (String) -> Unit = {},
     updateUserInfo: (String, String, String) -> Unit = { _, _, _ -> },
-    logout: () -> Unit = {},
+    logout: (Context) -> Unit = {},
     withdraw: () -> Unit = {},
     navigateBack: () -> Unit = {}
 ) {
@@ -261,7 +264,7 @@ fun UserInfoScreenUI(
             Box(
                 modifier = Modifier
                     .height(26.dp)
-                    .clickable { logout() },
+                    .clickable { logout(context) },
                 contentAlignment = Alignment.CenterStart
             ) {
                 Text("로그아웃", style = MyPageTextStyle.SubMenuText)

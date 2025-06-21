@@ -13,7 +13,9 @@ import project.side.ikdaman.domain.usecase.ClearTokenUseCase
 import project.side.ikdaman.domain.usecase.GetProviderUseCase
 import project.side.ikdaman.domain.usecase.LogoutUseCase
 import project.side.ikdaman.domain.usecase.WithdrawUseCase
+import project.side.ikdaman.feature.login.GoogleAuth
 import project.side.ikdaman.feature.login.KakaoAuth
+import project.side.ikdaman.feature.login.NaverAuth
 import project.side.ikdaman.feature.login.SocialLoginResult
 import javax.inject.Inject
 
@@ -44,11 +46,11 @@ class AccountViewModel @Inject constructor(
         _uiState.value = AccountState.Init
     }
 
-    fun logout() {
+    fun logout(context: Context) {
         when (provider.value) {
             "KAKAO" -> handleLogout { KakaoAuth.logout() }
-            "NAVER" -> {}
-            "GOOGLE" -> {}
+            "NAVER" -> handleLogout { NaverAuth.logout() }
+            "GOOGLE" -> handleLogout { GoogleAuth.logout(context) }
             else -> Unit
         }
     }
@@ -56,8 +58,8 @@ class AccountViewModel @Inject constructor(
     fun withdraw() {
         when (provider.value) {
             "KAKAO" -> handleWithdraw { KakaoAuth.unlink() }
-            "NAVER" -> {}
-            "GOOGLE" -> {}
+            "NAVER" -> handleWithdraw { NaverAuth.unlink() }
+            "GOOGLE" -> handleWithdraw { true }
             else -> Unit
         }
     }
@@ -69,9 +71,10 @@ class AccountViewModel @Inject constructor(
                 unlinkAction = { KakaoAuth.unlink() }
             )
 
-            "NAVER" -> Unit
-
-            "GOOGLE" -> Unit
+            "NAVER" -> reAuthAndUnlink(
+                loginAction = { NaverAuth.login(context) },
+                unlinkAction = { NaverAuth.unlink() }
+            )
 
             else -> Unit
         }
