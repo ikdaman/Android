@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,8 +15,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -42,10 +39,11 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.navigation.MAIN_ROUTE
-import project.side.ikdaman.core.navigation.SEARCH_INFO_ROUTE
+import project.side.ikdaman.core.navigation.ADD_BOOK_ROUTE
 import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.core.ui.PretendardFontFamily
+import project.side.ikdaman.core.view.AddBookButton
 import project.side.ikdaman.core.view.GradientBox
 import project.side.ikdaman.domain.model.BookItem
 import project.side.ikdaman.domain.model.BookSearchResult
@@ -67,7 +65,7 @@ fun SearchTab(
 
     LaunchedEffect(Unit) {
         viewModel.selectedBookIsbn.collect {
-            appNavController.navigate("$SEARCH_INFO_ROUTE/$it")
+            appNavController.navigate("$ADD_BOOK_ROUTE/$it")
         }
     }
 
@@ -291,22 +289,10 @@ private fun SearchResultAddButton(
     index: Int,
     onClick: (Int) -> Unit = {},
 ) {
-    Button(
-        onClick = { onClick(index) },
-        modifier = modifier,
-        shape = RoundedCornerShape(5.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
-        contentPadding = PaddingValues(vertical = 5.dp, horizontal = 12.dp)
-    ) {
-        Text(
-            text = "이 책 추가 +",
-            style = TextStyle(
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Bold,
-                fontSize = 12.sp
-            )
-        )
-    }
+    AddBookButton(
+        onClick = {onClick(index)},
+        modifier = modifier
+    )
 }
 
 @Composable

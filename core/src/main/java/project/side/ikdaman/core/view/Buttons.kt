@@ -3,9 +3,13 @@ package project.side.ikdaman.core.view
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import project.side.ikdaman.core.ui.AppText
 import project.side.ikdaman.core.ui.AppTheme
+import project.side.ikdaman.core.ui.PretendardFontFamily
 import project.side.ikdaman.core.utils.oneClick
 
 @Composable
@@ -44,6 +49,29 @@ fun DialogButton(
                 letterSpacing = (-0.4).sp
             ),
             modifier = Modifier.align(Alignment.Center),
+        )
+    }
+}
+
+@Composable
+fun AddBookButton(
+    onClick:()-> Unit,
+    modifier: Modifier = Modifier
+){
+    Button(
+        onClick = { onClick() },
+        modifier = modifier,
+        shape = RoundedCornerShape(5.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
+        contentPadding = PaddingValues(vertical = 5.dp, horizontal = 12.dp)
+    ) {
+        Text(
+            text = "이 책 추가 +",
+            style = TextStyle(
+                fontFamily = PretendardFontFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 12.sp
+            )
         )
     }
 }
