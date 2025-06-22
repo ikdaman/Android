@@ -3,10 +3,14 @@ package project.side.ikdaman.feature.barcode
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager.PERMISSION_GRANTED
+import android.graphics.Rect
+import android.hardware.camera2.CaptureRequest
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
+import androidx.camera.camera2.interop.Camera2Interop
+import androidx.camera.camera2.interop.ExperimentalCamera2Interop
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.Preview
@@ -47,7 +51,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
@@ -68,15 +71,18 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import project.side.ikdaman.core.navigation.BOOK_EDIT_ROUTE
 import project.side.ikdaman.core.navigation.MAIN_ROUTE
 import project.side.ikdaman.core.ui.PretendardFontFamily
 import project.side.ikdaman.domain.model.BookItem
+import kotlin.math.roundToInt
 
 private val TAG = "BarcodeScreen"
 private const val CAMERA_PERMISSION = Manifest.permission.CAMERA
 
-@OptIn(ExperimentalGetImage::class)
+@OptIn(ExperimentalCamera2Interop::class)
 @Composable
 fun BarcodeScreen(
     navController: NavController,
@@ -89,8 +95,8 @@ fun BarcodeScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     var cameraProvider by remember { mutableStateOf<ProcessCameraProvider?>(null) }
     var isPermissionGranted by remember { mutableStateOf(false) }
-    val isbn = viewModel.isbn.collectAsStateWithLifecycle()
-    val searchResult = viewModel.searchResult.collectAsStateWithLifecycle()
+    val isbn by viewModel.isbn.collectAsStateWithLifecycle()
+    val searchResult by viewModel.searchResult.collectAsStateWithLifecycle()
 
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -104,8 +110,9 @@ fun BarcodeScreen(
         isPermissionGranted = checkPermission(context = context)
     }
 
-    LaunchedEffect(isbn.value) {
-        viewModel.searchBookWithIsbn(isbn.value)
+    LaunchedEffect(isbn) {
+        Log.d(TAG, "isbn: ${isbn}")
+        viewModel.searchBookWithIsbn(isbn)
     }
 
     LaunchedEffect(isPermissionGranted) {
@@ -119,10 +126,16 @@ fun BarcodeScreen(
         }
     }
 
+    LaunchedEffect(searchResult) {
+        Log.d(TAG, "searchResult: ${searchResult}")
+    }
+
     LaunchedEffect(Unit) {
-        barcodeScanner.isbnFlow.collect { value ->
-            if (value != null) {
-                viewModel.updateIsbn(value)
+        withContext(Dispatchers.Default) {
+            barcodeScanner.isbnFlow.collect { value ->
+                if (value != null) {
+                    viewModel.updateIsbn(value)
+                }
             }
         }
     }
@@ -137,9 +150,10 @@ fun BarcodeScreen(
         isPermissionGranted = isPermissionGranted,
         lifecycleOwner = lifecycleOwner,
         cameraProvider = cameraProvider,
-        bookItem = searchResult.value,
+        bookItem = searchResult,
         onDismissDialog = {
             viewModel.resetIsbn()
+            viewModel.resetSearchResult()
         },
         barcodeScanner = barcodeScanner
     )
@@ -157,7 +171,7 @@ private fun initCameraProvider(
     )
 }
 
-@OptIn(ExperimentalGetImage::class)
+@OptIn(ExperimentalCamera2Interop::class)
 @Composable
 fun BarcodeScreenUI(
     onBack: () -> Unit = {},
@@ -211,17 +225,33 @@ fun BarcodeScreenUI(
     }
 }
 
-@OptIn(ExperimentalGetImage::class)
+@OptIn(ExperimentalCamera2Interop::class)
 @Composable
 private fun CameraScreen(
     modifier: Modifier = Modifier,
     cameraProvider: ProcessCameraProvider? = null,
     lifecycleOwner: LifecycleOwner,
-    barcodeScanner: BarcodeScanner
+    barcodeScanner: BarcodeScanner,
 ) {
     if (cameraProvider == null) return
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+
+        val canvasWidth = constraints.maxWidth
+        val canvasHeight = constraints.maxHeight
+
+        val focusWidthPx = with(LocalDensity.current) { 362.dp.toPx() }
+        val focusHeightPx = with(LocalDensity.current) { 245.dp.toPx() }
+
+        val leftPx = (canvasWidth - focusWidthPx) / 2
+        val topPx = (canvasHeight - focusHeightPx) / 2
+
+        val focusRect = androidx.compose.ui.geometry.Rect(
+            leftPx,
+            topPx,
+            (leftPx + focusWidthPx),
+            (topPx + focusHeightPx)
+        )
 
         AndroidView(
             factory = { ctx ->
@@ -240,7 +270,12 @@ private fun CameraScreen(
                         lifecycleOwner,
                         cameraSelector,
                         preview,
-                        barcodeScanner.imageAnalysis
+                        barcodeScanner.imageAnalysisBuilder.build()
+                            .also { analysis ->
+                                analysis.setAnalyzer(barcodeScanner.executor, { imageProxy ->
+                                    barcodeScanner.processImageProxy(imageProxy)
+                                })
+                            }
                     )
                 } catch (e: Exception) {
                     Log.e("BarcodeScreen", "bindToLifecycle failed: ${e.message}", e)
@@ -250,22 +285,6 @@ private fun CameraScreen(
                 previewView
             },
             modifier = Modifier.fillMaxSize()
-        )
-
-        val canvasWidth = constraints.maxWidth
-        val canvasHeight = constraints.maxHeight
-
-        val focusWidthPx = with(LocalDensity.current) { 362.dp.toPx() }
-        val focusHeightPx = with(LocalDensity.current) { 245.dp.toPx() }
-
-        val leftPx = (canvasWidth - focusWidthPx) / 2
-        val topPx = (canvasHeight - focusHeightPx) / 2
-
-        val focusRect = Rect(
-            left = leftPx,
-            top = topPx,
-            right = (leftPx + focusWidthPx),
-            bottom = (topPx + focusHeightPx)
         )
 
         BarcodeOverlay(
@@ -287,7 +306,7 @@ private fun NoCameraScreen(modifier: Modifier = Modifier) {
 @Composable
 fun BarcodeOverlay(
     modifier: Modifier = Modifier,
-    focusRect: Rect
+    focusRect: androidx.compose.ui.geometry.Rect
 ) {
     Box(
         modifier = modifier
@@ -305,7 +324,7 @@ fun BarcodeOverlay(
                 color = Color.Transparent,
                 topLeft = Offset(focusRect.left, focusRect.top),
                 size = Size(focusRect.width, focusRect.height),
-                blendMode = BlendMode.Clear // <<< 이게 핵심
+                blendMode = BlendMode.Clear
             )
 
             // 테두리
@@ -409,32 +428,3 @@ fun BookBottomSheetDialog(
         }
     }
 }
-//@OptIn(ExperimentalGetImage::class)
-//@Composable
-//@Preview(showBackground = true)
-//fun BarcodeScreenUIPreview() {
-//    AppTheme {
-//        BarcodeScreenUI(
-//            onBack = {},
-//            onNavigateToEditScreen = {},
-//            isPermissionGranted = true,
-//            lifecycleOwner = LocalLifecycleOwner.current,
-//            barcodeScanner = BarcodeScanner()
-//        )
-//    }
-//}
-
-//@Composable
-//@Preview(showBackground = true, apiLevel = 31)
-//fun BarcodeOverlayPreview() {
-//    AppTheme {
-//        Box(modifier = Modifier.fillMaxSize()) {
-//            Image(
-//                painter = painterResource(R.drawable.sample_book_cover2),
-//                contentDescription = null,
-//                modifier = Modifier.fillMaxSize()
-//            )
-//            BarcodeOverlay(Modifier.fillMaxSize())
-//        }
-//    }
-//}
