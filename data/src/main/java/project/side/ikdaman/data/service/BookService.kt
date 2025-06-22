@@ -12,7 +12,7 @@ interface BookService {
         @Query("QueryType") queryType: String = "Title",
         @Query("output") output: String = "js",
         @Query("Version") version: String = "20131101"
-    ): BookSearchWithTitleResponse
+    ): BookSearchResponse
 
     @GET("ttb/api/ItemLookUp.aspx")
     suspend fun searchBookWithIsbn(
@@ -21,40 +21,26 @@ interface BookService {
         @Query("itemIdType") itemIdType: String = "ISBN13",
         @Query("output") output: String = "js",
         @Query("Version") version: String = "20131101"
-    ): BookSearchWithIsbnResponse
+    ): BookSearchResponse
 }
 
-data class BookSearchWithTitleResponse(
+data class BookSearchResponse(
     val totalResults: Int,
-    val item: List<BookSearchWithTitleItemResponse>
+    val item: List<BookSearchItem>
 )
 
-data class BookSearchWithTitleItemResponse(
+data class BookSearchItem(
     val title: String,
-    val author: String,
-    val cover: String,
-    val publisher: String,
-    val isbn: String?,
-    val isbn13: String?,
-    val itemId: Long
-)
-
-data class BookSearchWithIsbnResponse(
-    val totalResults: Int,
-    val item: List<BookSearchWithIsbnItemResponse>
-)
-
-data class BookSearchWithIsbnItemResponse(
-    val title: String,
+    val link: String,
     val author: String,
     val cover: String,
     val publisher: String,
     val isbn: String?,
     val isbn13: String?,
     val itemId: Long,
-    val subInfo: BookSubInfoResponse
+    val subInfo: BookSubInfoResponse? = null
 )
 
 data class BookSubInfoResponse(
-    val itemPage: String
+    val itemPage: String? = null
 )

@@ -48,7 +48,7 @@ import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.core.ui.PretendardFontFamily
 import project.side.ikdaman.core.view.GradientBox
 import project.side.ikdaman.domain.model.BookItem
-import project.side.ikdaman.domain.model.BookSearch
+import project.side.ikdaman.domain.model.BookSearchResult
 import project.side.ikdaman.domain.model.BookSubInfo
 
 private const val TAG = "SearchScreen"
@@ -78,7 +78,7 @@ fun SearchTab(
             viewModel.updateSearchKeyword(it)
         },
         searchKeyword = searchKeyword,
-        bookSearch = bookSearch,
+        bookSearchResult = bookSearch,
         onClickAddBookButton = { viewModel.emitSelectedBookIsbn(it) }
     )
 }
@@ -90,7 +90,7 @@ fun SearchTabUI(
     onSearchKeywordChange: (String) -> Unit = {},
     searchKeyword: String = "",
     onBack: () -> Unit = {},
-    bookSearch: BookSearch? = BookSearch(),
+    bookSearchResult: BookSearchResult? = BookSearchResult(),
     onClickAddBookButton: (Int) -> Unit = {}
 ) {
     Scaffold(
@@ -143,7 +143,7 @@ fun SearchTabUI(
                 )
                 SearchResultScreen(
                     searchKeyword = searchKeyword,
-                    bookSearch = bookSearch,
+                    bookSearchResult = bookSearchResult,
                     onClickAddBookButton = onClickAddBookButton,
                 )
             }
@@ -154,14 +154,14 @@ fun SearchTabUI(
 @Composable
 private fun SearchResultScreen(
     searchKeyword: String,
-    bookSearch: BookSearch?,
+    bookSearchResult: BookSearchResult?,
     onClickAddBookButton: (Int) -> Unit
 ) {
-    if (bookSearch == null || bookSearch.totalBookCount == 0) {
+    if (bookSearchResult == null || bookSearchResult.totalBookCount == 0) {
         NoSearchResultScreen(searchKeyword)
     } else {
         LazyColumn(modifier = Modifier.padding(top = 24.dp)) {
-            items(bookSearch.books.withIndex().toList()) { (index, item) ->
+            items(bookSearchResult.books.withIndex().toList()) { (index, item) ->
                 SearchResultItem(
                     bookItem = item,
                     index = index,
@@ -345,7 +345,7 @@ private fun SearchTabUIPreview() {
     AppTheme {
         SearchTabUI(
             searchKeyword = "소년",
-            bookSearch = BookSearch(
+            bookSearchResult = BookSearchResult(
                 totalBookCount = 5,
                 books = List(5) {
                     BookItem(
@@ -355,7 +355,8 @@ private fun SearchTabUIPreview() {
                         isbn = "",
                         publisher = "창비",
                         subInfo = BookSubInfo("279"),
-                        itemId = 0
+                        itemId = 0,
+                        link = ""
                     )
                 }
             )
@@ -369,7 +370,7 @@ private fun SearchTabUIPreview_No_Result() {
     AppTheme {
         SearchTabUI(
             searchKeyword = "소년ㅇㄴㅇ",
-            bookSearch = BookSearch(
+            bookSearchResult = BookSearchResult(
                 totalBookCount = 0,
                 books = emptyList(),
             )

@@ -1,29 +1,31 @@
 package project.side.ikdaman.data.repository
 
-import project.side.ikdaman.data.data_source.BookItemModelMapper
+import android.util.Log
+import project.side.ikdaman.data.data_source.BookItemModelMapper.toDomain
 import project.side.ikdaman.data.service.BookService
-import project.side.ikdaman.domain.model.BookSearch
+import project.side.ikdaman.domain.model.BookSearchResult
 import project.side.ikdaman.domain.repository.BookRepository
 import javax.inject.Inject
 
 val TAG = "BookRepositoryImpl"
 
 class BookRepositoryImpl @Inject constructor(private val bookService: BookService): BookRepository {
-    override suspend fun searchBookWithTitle(title: String): BookSearch {
+    override suspend fun searchBookWithTitle(title: String): BookSearchResult {
         try {
             val response = bookService.searchBookWithTitle(query = title)
-            return BookItemModelMapper.mapFromTitleResponse(response)
+            return response.toDomain()
         } catch (e: Exception) {
-            return BookSearch()
+            Log.e(TAG, "searchBookWithTitle: $e")
+            return BookSearchResult()
         }
     }
 
-    override suspend fun searchBookWithIsbn(isbn: String): BookSearch {
+    override suspend fun searchBookWithIsbn(isbn: String): BookSearchResult {
         try {
             val response = bookService.searchBookWithIsbn(itemId = isbn)
-            return BookItemModelMapper.mapFromIsbnResponse(response)
+            return response.toDomain()
         } catch (e: Exception) {
-            return BookSearch()
+            return BookSearchResult()
         }
     }
 }

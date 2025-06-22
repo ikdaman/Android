@@ -183,7 +183,6 @@ class MyBooksApiRepositoryImpl(private val api: MyBookApi) : MyBooksApiRepositor
         emit(ApiResult.Error("Network error: ${it.message}"))
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun postBook(addBookItem: AddBookItem) = flow {
         Log.d("hkhk", "postBook 호출")
         emit(ApiResult.Loading)

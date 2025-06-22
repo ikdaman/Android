@@ -1,8 +1,12 @@
 package project.side.ikdaman.feature.addbook
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -86,7 +90,8 @@ fun AddBookScreen(
         initialImpression = initialImpression,
         onInitialImpressionChange = { viewModel.updateInitialImpression(it) },
         bookItem = searchResult,
-        addBook = { viewModel.addBook() }
+        addBook = { viewModel.addBook() },
+        context = context
     )
 }
 
@@ -97,7 +102,8 @@ private fun AddBookScreenUI(
     initialImpression: String = "",
     onInitialImpressionChange: (String) -> Unit = {},
     bookItem: BookItem? = null,
-    addBook: () -> Unit = {}
+    addBook: () -> Unit = {},
+    context: Context = LocalContext.current
 ) {
     Scaffold(
         topBar = {
@@ -226,6 +232,11 @@ private fun AddBookScreenUI(
                             fontSize = 12.sp,
                             textDecoration = TextDecoration.Underline
                         ),
+                        modifier = Modifier.clickable {
+                            context.startActivity(
+                                Intent(Intent.ACTION_VIEW, Uri.parse(bookItem.link))
+                            )
+                        }
                     )
                 }
                 Spacer(Modifier.height(30.dp))
