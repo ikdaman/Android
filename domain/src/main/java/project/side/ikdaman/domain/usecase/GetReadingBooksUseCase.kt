@@ -1,6 +1,5 @@
 package project.side.ikdaman.domain.usecase
 
-import project.side.ikdaman.domain.repository.BookApiRepository
 import project.side.ikdaman.domain.repository.MyBooksApiRepository
 import javax.inject.Inject
 
