@@ -2,6 +2,7 @@ package project.side.ikdaman.feature.login
 
 import android.content.Context
 import android.util.Base64
+import androidx.credentials.ClearCredentialStateRequest
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
@@ -44,6 +45,11 @@ object GoogleAuth {
                 }
             }
         }
+
+    suspend fun logout(context: Context) {
+        val credentialManager = CredentialManager.create(context)
+        credentialManager.clearCredentialState(ClearCredentialStateRequest())
+    }
 
     private fun handleSignIn(result: GetCredentialResponse): SocialLoginResult {
         val credential = result.credential

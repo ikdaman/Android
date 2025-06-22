@@ -7,9 +7,17 @@ import project.side.ikdaman.domain.model.UserInfo
 interface UserRepository {
     suspend fun getNickName(): Flow<String?>
 
+    suspend fun getProvider(): String?
+
+    suspend fun clearToken()
+
     suspend fun checkNickname(nickname: String): ApiResult<Boolean>
 
     suspend fun getUserInfo(): ApiResult<UserInfo>
 
     suspend fun updateUserInfo(userInfo: UserInfo): ApiResult<Unit>
+
+    suspend fun logout(): ApiResult<Unit>
+
+    suspend fun withdraw(): ApiResult<Unit>
 }
