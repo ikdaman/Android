@@ -354,7 +354,8 @@ private fun SearchTabUIPreview() {
                         cover = "https://contents.kyobobook.co.kr/sih/fit-in/458x0/pdt/4808936434120.jpg",
                         isbn = "",
                         publisher = "창비",
-                        subInfo = BookSubInfo("279")
+                        subInfo = BookSubInfo("279"),
+                        itemId = 0
                     )
                 }
             )

@@ -7,6 +7,7 @@ data class PostBookRequestBody(
     val isbn: String,
     val page: Int,
     val coverImage: String,
+    val itemId: Long,
     val impression: String,
     val createdAt: String
 )

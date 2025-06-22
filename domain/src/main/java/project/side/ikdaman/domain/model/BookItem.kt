@@ -10,6 +10,7 @@ data class BookItem(
     val author: String,
     val cover: String,
     val isbn: String,
+    val itemId: Long,
     val publisher: String,
     val subInfo: BookSubInfo? = null
 )

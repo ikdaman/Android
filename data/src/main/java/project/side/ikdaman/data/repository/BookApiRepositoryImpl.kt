@@ -44,6 +44,7 @@ class BookApiRepositoryImpl(private val api: BookApiService) : BookApiRepository
             page = addBookItem.bookItem.subInfo?.itemPage?.toIntOrNull() ?: 0,
             coverImage = addBookItem.bookItem.cover,
             impression = addBookItem.impression,
+            itemId = addBookItem.bookItem.itemId,
             createdAt = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
         )
         val response = api.postBook(postBookRequestBody)

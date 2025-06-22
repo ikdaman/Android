@@ -36,6 +36,7 @@ data class BookSearchWithTitleItemResponse(
     val publisher: String,
     val isbn: String?,
     val isbn13: String?,
+    val itemId: Long
 )
 
 data class BookSearchWithIsbnResponse(
@@ -50,6 +51,7 @@ data class BookSearchWithIsbnItemResponse(
     val publisher: String,
     val isbn: String?,
     val isbn13: String?,
+    val itemId: Long,
     val subInfo: BookSubInfoResponse
 )
 

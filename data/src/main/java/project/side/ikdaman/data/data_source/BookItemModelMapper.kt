@@ -17,6 +17,7 @@ object BookItemModelMapper {
                     cover = it.cover,
                     publisher = it.publisher,
                     isbn = it.isbn13 ?: it.isbn ?: "",
+                    itemId = it.itemId
                 )
             }
         )
@@ -32,6 +33,7 @@ object BookItemModelMapper {
                     cover = it.cover,
                     publisher = it.publisher,
                     isbn = it.isbn13 ?: it.isbn ?: "",
+                    itemId = it.itemId,
                     subInfo = BookSubInfo(it.subInfo.itemPage)
                 )
             }
