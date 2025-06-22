@@ -34,6 +34,26 @@ object NaverAuth {
             providerId = providerId
         )
     }
+
+    fun logout() {
+        NaverIdLoginSDK.logout()
+    }
+
+    suspend fun unlink() = suspendCancellableCoroutine { continuation ->
+        NidOAuthLogin().callDeleteTokenApi(object : OAuthLoginCallback {
+            override fun onSuccess() {
+                continuation.resume(true)
+            }
+
+            override fun onFailure(httpStatus: Int, message: String) {
+                continuation.resume(false)
+            }
+
+            override fun onError(errorCode: Int, message: String) {
+                continuation.resume(false)
+            }
+        })
+    }
 }
 
 private suspend fun getAccessToken(context: Context): Pair<String?, String?> =
