@@ -35,6 +35,12 @@ class AuthDataStore(private val context: Context) {
         }
     }
 
+    suspend fun saveNickname(nickname: String) {
+        context.AuthDatStore.edit { prefs ->
+            prefs[NICKNAME_KEY] = nickname
+        }
+    }
+
     suspend fun clear() {
         context.AuthDatStore.edit { it.clear() }
     }

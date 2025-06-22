@@ -51,7 +51,8 @@ fun BookCarousel(
     deleteMode: MutableState<Boolean> = remember { mutableStateOf(false) },
     selectedBookIndex: MutableState<Int> = mutableStateOf(0),
     items: List<HomeBookItem> = emptyList(),
-    onDeleteClick: (HomeBookItem) -> Unit = {}
+    onDeleteClick: (HomeBookItem) -> Unit = {},
+    onBookClicked: (String) -> Unit = {},
 ) {
     // Carousel
     val pagerState = rememberPagerState(pageCount = { items.size }, initialPage = 0)
@@ -85,6 +86,9 @@ fun BookCarousel(
                     detectTapGestures(
                         onTap = {
                             coroutineScope.launch {
+                                if (!deleteMode.value && page == pagerState.currentPage) {
+                                    onBookClicked(items[page].id)
+                                }
                                 pagerState.animateScrollToPage(page)
                             }
                         },
@@ -153,7 +157,7 @@ fun CarouselItemView(
             contentScale = ContentScale.Fit
         )
         // item.addedDateTime (Long Type) 값과 현재 시간을 비교해서 24시간 이내인지 확인
-        val isNew = (System.currentTimeMillis() - item.lastEditedTime) < 24 * 60 * 60 * 1000
+        val isNew = (System.currentTimeMillis() - item.lastEditedDateTime) < 24 * 60 * 60 * 1000
         if (isNew) {
             Box(
                 modifier = Modifier
@@ -212,7 +216,7 @@ fun CarouselItemPreView() {
                 item = HomeBookItem(
                     id = "0",
                     imageUrl = "https://picsum.photos/250/284?random=1",
-                    lastEditedTime = System.currentTimeMillis(),
+                    lastEditedDateTime = System.currentTimeMillis(),
                     title = "소년이 온다",
                     author = "한강"
                 ),
@@ -232,28 +236,28 @@ fun CarouselPreview() {
             HomeBookItem(
                 id = "0",
                 imageUrl = "https://picsum.photos/250/284?random=1",
-                lastEditedTime = System.currentTimeMillis(),
+                lastEditedDateTime = System.currentTimeMillis(),
                 title = "소년이 온다1",
                 author = "한강1"
             ),
             HomeBookItem(
                 id = "1",
                 imageUrl = "https://picsum.photos/250/284?random=2",
-                lastEditedTime = System.currentTimeMillis() - (24 * 60 * 60 * 1000),
+                lastEditedDateTime = System.currentTimeMillis() - (24 * 60 * 60 * 1000),
                 title = "소년이 온다1",
                 author = "한강1"
             ),
             HomeBookItem(
                 id = "2",
                 imageUrl = "https://picsum.photos/250/284?random=3",
-                lastEditedTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
+                lastEditedDateTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
                 title = "소년이 온다1",
                 author = "한강1"
             ),
             HomeBookItem(
                 id = "3",
                 imageUrl = "https://picsum.photos/250/284?random=4",
-                lastEditedTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
+                lastEditedDateTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
                 title = "소년이 온다1",
                 author = "한강1"
             ),

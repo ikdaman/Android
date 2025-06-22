@@ -31,7 +31,7 @@ fun BookShelfTabUI(
             Text(text = "BookShelf")
             Button(
                 onClick = {
-                    onNavigateTo(BOOK_DETAIL_ROUTE)
+                    onNavigateTo("${BOOK_DETAIL_ROUTE}/bookId")
                 }
             ) {
                 Text("상세화면으로 이동")

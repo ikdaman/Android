@@ -13,6 +13,8 @@ import project.side.ikdaman.domain.repository.BookApiRepository
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
+// todo MyBooksApiRepositoryImpl로 코드 옮기기
+
 class BookApiRepositoryImpl(private val api: BookApiService) : BookApiRepository {
     override fun getBooks() = flow {
         emit(ApiResult.Loading)

@@ -23,6 +23,7 @@ android {
 }
 
 dependencies{
+    implementation(projects.core)
     implementation(projects.domain)
 
     implementation(libs.androidx.datastore.preferences)

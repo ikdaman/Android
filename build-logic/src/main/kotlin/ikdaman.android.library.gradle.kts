@@ -6,6 +6,7 @@ import project.side.ikdaman.app.configureKotlinAndroid
 plugins {
     id("com.android.library")
     id("ikdaman.verify.detekt")
+    id("kotlin-parcelize")
 }
 
 configureKotlinAndroid()

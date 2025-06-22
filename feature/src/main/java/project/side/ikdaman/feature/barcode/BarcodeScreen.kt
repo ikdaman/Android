@@ -172,29 +172,12 @@ fun BarcodeScreenUI(
 ) {
     Scaffold(
         topBar = {
-            Box(modifier = Modifier.fillMaxWidth()) {
-                IconButton(
-                    onClick = onBack,
-                    modifier = Modifier.align(Alignment.CenterStart)
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.arrow_back),
-                        contentDescription = "Back",
-                        modifier = Modifier.size(26.dp),
-                        tint = Color.White
-                    )
-                }
-                Text(
-                    text = "바코드 스캔하기",
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(vertical = 15.dp),
-                    style = TextStyle(
-                        fontFamily = PretendardFontFamily,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 18.sp,
-                        color = Color.White
-                    )
+            IconButton(
+                onClick = onBack
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                    contentDescription = "Back"
                 )
             }
         }

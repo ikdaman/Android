@@ -8,6 +8,8 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 
+// todo MyBookApi 로 코드 옮기기
+
 interface BookApiService {
 
     @GET("mybooks/in-progress")
