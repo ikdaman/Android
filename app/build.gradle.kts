@@ -8,13 +8,13 @@ plugins {
 android {
     namespace = "project.side.ikdaman"
 
+    val properties = Properties()
+    properties.load(project.rootProject.file("key.properties").inputStream())
+
     defaultConfig {
         applicationId = "project.side.ikdaman"
         versionCode = 1
         versionName = "1.0"
-
-        val properties = Properties()
-        properties.load(project.rootProject.file("key.properties").inputStream())
 
         val kakaoAppKey = properties.getProperty("KAKAO_APP_KEY")
         buildConfigField("String", "KAKAO_APP_KEY", "\"$kakaoAppKey\"")
@@ -34,9 +34,18 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = project.rootProject.file("release.keystore")
+            storePassword = properties.getProperty("KEYSTORE_PASSWORD")
+            keyAlias = properties.getProperty("KEY_ALIAS")
+            keyPassword = properties.getProperty("KEY_PASSWORD")
+        }
+    }
+
     buildTypes {
         getByName("release") {
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }
