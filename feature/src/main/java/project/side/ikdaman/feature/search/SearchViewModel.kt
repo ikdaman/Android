@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import project.side.ikdaman.core.ui.Palette
-import project.side.ikdaman.domain.model.BookSearch
+import project.side.ikdaman.domain.model.BookSearchResult
 import project.side.ikdaman.domain.repository.PaletteRepository
 import project.side.ikdaman.domain.usecase.SearchBookWithTitleUseCase
 import javax.inject.Inject
@@ -35,7 +35,7 @@ class SearchViewModel @Inject constructor(
     private val _searchKeyword = MutableStateFlow("")
     val searchKeyword = _searchKeyword.asStateFlow()
 
-    val searchResult: StateFlow<BookSearch?> = _searchKeyword
+    val searchResult: StateFlow<BookSearchResult?> = _searchKeyword
         .debounce(200L)
         .flatMapLatest { keyword ->
             flow {

@@ -1,6 +1,7 @@
 package project.side.ikdaman.domain.repository
 
 import kotlinx.coroutines.flow.Flow
+import project.side.ikdaman.domain.model.AddBookItem
 import project.side.ikdaman.domain.model.ApiResult
 import project.side.ikdaman.domain.model.BookDetail
 import project.side.ikdaman.domain.model.BookLog
@@ -22,4 +23,6 @@ interface MyBooksApiRepository {
     fun addCompleted(bookId: String, content: String): Flow<ApiResult<Unit>>
     fun deleteCompleted(bookId: String, logId: Int): Flow<ApiResult<Unit>>
     fun updateCompleted(bookId: String, logId: Int, content: String): Flow<ApiResult<Unit>>
+
+    fun postBook(addBookItem: AddBookItem): Flow<ApiResult<Unit>>
 }

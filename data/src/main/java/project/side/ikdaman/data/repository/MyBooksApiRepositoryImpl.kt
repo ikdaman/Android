@@ -1,17 +1,23 @@
 package project.side.ikdaman.data.repository
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import project.side.ikdaman.data.model.FirstImpression
 import project.side.ikdaman.data.model.book.BookCompleted
 import project.side.ikdaman.data.model.book.BookThink
+import project.side.ikdaman.data.model.book.PostBookRequestBody
 import project.side.ikdaman.data.model.book.UpdateBookCompleted
 import project.side.ikdaman.data.model.book.UpdateBookThink
 import project.side.ikdaman.data.service.MyBookApi
+import project.side.ikdaman.domain.model.AddBookItem
 import project.side.ikdaman.domain.model.ApiResult
 import project.side.ikdaman.domain.repository.MyBooksApiRepository
+import java.time.Instant
+import java.time.format.DateTimeFormatter
 
 class MyBooksApiRepositoryImpl(private val api: MyBookApi) : MyBooksApiRepository {
     override fun getBookLog(bookId: String, page: Int, limit: Int) = flow {
@@ -174,6 +180,31 @@ class MyBooksApiRepositoryImpl(private val api: MyBookApi) : MyBooksApiRepositor
         }
     }.catch {
         Log.e("BookApiRepository", "Error updating completed: ${it.message}", it)
+        emit(ApiResult.Error("Network error: ${it.message}"))
+    }
+
+    override fun postBook(addBookItem: AddBookItem) = flow {
+        Log.d("hkhk", "postBook 호출")
+        emit(ApiResult.Loading)
+        val postBookRequestBody = PostBookRequestBody(
+            title = addBookItem.bookItem.title,
+            writer = addBookItem.bookItem.author,
+            publisher = addBookItem.bookItem.publisher,
+            isbn = addBookItem.bookItem.isbn,
+            page = addBookItem.bookItem.subInfo?.itemPage?.toIntOrNull() ?: 0,
+            coverImage = addBookItem.bookItem.cover,
+            impression = addBookItem.impression,
+            itemId = addBookItem.bookItem.itemId,
+            createdAt = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+        )
+        val response = api.postBook(postBookRequestBody)
+        if (response.code() == 201) {
+            emit(ApiResult.Success(Unit))
+        } else {
+            emit(ApiResult.Error(response.message() ?: ""))
+        }
+    }.catch {
+        Log.e("BookApiRepository", "Error posting books: ${it.message}", it)
         emit(ApiResult.Error("Network error: ${it.message}"))
     }
 }
