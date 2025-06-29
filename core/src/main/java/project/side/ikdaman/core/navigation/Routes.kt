@@ -1,5 +1,6 @@
 package project.side.ikdaman.core.navigation
 
+const val SPLASH_ROUTE = "Splash"
 const val LOGIN_ROUTE = "Login"
 const val TUTORIAL_ROUTE = "Tutorial"
 
