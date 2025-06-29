@@ -43,6 +43,7 @@ import coil.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.launch
 import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.ui.AppText
+import project.side.ikdaman.core.ui.circleRed
 import project.side.ikdaman.domain.model.HomeBookItem
 import kotlin.math.absoluteValue
 
@@ -116,7 +117,7 @@ fun CarouselItemView(
     modifier: Modifier = Modifier,
     onDeleteClick: (HomeBookItem) -> Unit = {}
 ) {
-    val circleRed = Color(0xFFFF1818)
+
     val circleTextStyle = TextStyle(
         color = Color.White,
         fontWeight = FontWeight.Bold,

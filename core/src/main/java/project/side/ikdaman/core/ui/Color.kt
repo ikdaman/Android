@@ -39,3 +39,5 @@ object Palette {
         fifth
     )
 }
+
+val circleRed = Color(0xFFFF1818)
