@@ -112,10 +112,7 @@ fun UserInfoScreen(
             title = "읽다만에서\n탈퇴하시겠어요?",
             visible = showWithdrawDialog.value,
             onDismissRequest = { showWithdrawDialog.value = false },
-            onConfirmClicked = {
-                showRealWithdrawDialog.value = true
-                showWithdrawDialog.value = false
-            },
+            onConfirmClicked = { showRealWithdrawDialog.value = true }
         )
     }
 

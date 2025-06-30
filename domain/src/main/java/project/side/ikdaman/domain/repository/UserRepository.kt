@@ -20,4 +20,8 @@ interface UserRepository {
     suspend fun logout(): ApiResult<Unit>
 
     suspend fun withdraw(): ApiResult<Unit>
+
+    suspend fun autoLogin(): ApiResult<Unit>
+
+    suspend fun reissueToken(): ApiResult<Unit>
 }

@@ -30,6 +30,16 @@ class AuthDataStore(private val context: Context) {
 
     suspend fun getRefreshToken(): String? = context.AuthDatStore.data.first()[REFRESH_TOKEN_KEY]
 
+    suspend fun saveToken(
+        authorization: String,
+        refreshToken: String
+    ) {
+        context.AuthDatStore.edit { prefs ->
+            prefs[AUTHORIZATION_KEY] = authorization
+            prefs[REFRESH_TOKEN_KEY] = refreshToken
+        }
+    }
+
     suspend fun saveAuthInfo(
         provider: String,
         authorization: String,

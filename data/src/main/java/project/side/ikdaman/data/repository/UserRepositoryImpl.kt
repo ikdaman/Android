@@ -84,4 +84,37 @@ class UserRepositoryImpl @Inject constructor(
             ApiResult.Error("서버 오류: ${e.message}")
         }
     }
+
+    override suspend fun autoLogin(): ApiResult<Unit> {
+        return try {
+            val response = userService.getUserInfo()
+            if (response.isSuccessful) {
+                ApiResult.Success(Unit)
+            } else ApiResult.Error("서버 오류: ${response.code()}, ${response.message()}")
+        } catch (e: Exception) {
+            ApiResult.Error("서버 오류: ${e.message}")
+        }
+    }
+
+    override suspend fun reissueToken(): ApiResult<Unit> {
+        return try {
+            val prevRefreshToken =
+                authDataStore.getRefreshToken() ?: return ApiResult.Error("refresh token is empty")
+            val response = userService.reissueToken(prevRefreshToken)
+            if (response.isSuccessful) {
+                val header = response.headers()
+                val authorization = header["Authorization"]
+                val refreshToken = header["refresh-token"]
+
+                if (authorization.isNullOrBlank() || refreshToken.isNullOrEmpty()) {
+                    return ApiResult.Error("token is empty")
+                } else {
+                    authDataStore.saveToken(authorization, refreshToken)
+                }
+                ApiResult.Success(Unit)
+            } else ApiResult.Error("서버 오류: ${response.code()}, ${response.message()}")
+        } catch (e: Exception) {
+            ApiResult.Error("서버 오류: ${e.message}")
+        }
+    }
 }

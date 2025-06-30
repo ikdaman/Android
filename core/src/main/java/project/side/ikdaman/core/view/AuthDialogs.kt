@@ -77,7 +77,10 @@ fun AppDialog(
                         enabled = enabled,
                         text = confirmButtonText,
                         backgroundColor = Color(0xFF858585),
-                        onClick = onConfirmClicked
+                        onClick = {
+                            onDismissRequest()
+                            onConfirmClicked()
+                        }
                     )
                 }
             }

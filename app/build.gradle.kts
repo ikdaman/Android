@@ -11,6 +11,8 @@ android {
     val properties = Properties()
     properties.load(project.rootProject.file("key.properties").inputStream())
 
+    compileSdk = 36
+
     defaultConfig {
         applicationId = "project.side.ikdaman"
         versionCode = 1
@@ -22,6 +24,8 @@ android {
 
         buildConfigField("String", "NAVER_CLIENT_ID", "\"${properties.getProperty("NAVER_CLIENT_ID")}\"")
         buildConfigField("String", "NAVER_CLIENT_SECRET", "\"${properties.getProperty("NAVER_CLIENT_SECRET")}\"")
+
+        targetSdk = 36
     }
 
     buildFeatures {
