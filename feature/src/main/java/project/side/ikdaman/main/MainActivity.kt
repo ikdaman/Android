@@ -15,6 +15,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import dagger.hilt.android.AndroidEntryPoint
 import project.side.ikdaman.core.navigation.ADD_BOOK_RECORD
+import project.side.ikdaman.core.navigation.ADD_BOOK_ROUTE
 import project.side.ikdaman.core.navigation.BARCODE_ROUTE
 import project.side.ikdaman.core.navigation.BOOK_DETAIL_ROUTE
 import project.side.ikdaman.core.navigation.EnterToLeftTransition

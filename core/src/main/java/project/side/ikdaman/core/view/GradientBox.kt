@@ -12,11 +12,12 @@ import androidx.compose.ui.graphics.Brush
 fun GradientBox(
     modifier: Modifier = Modifier,
     gradient: Brush,
-    content: @Composable BoxScope.() -> Unit = {}
+    contentAlignment: Alignment = Alignment.Center,
+    content: @Composable BoxScope.() -> Unit = {},
 ) {
     Box(
         modifier = modifier.background(brush = gradient),
-        contentAlignment = Alignment.Center
+        contentAlignment = contentAlignment
     ) {
         content()
     }

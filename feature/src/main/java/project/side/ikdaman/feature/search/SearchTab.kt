@@ -126,11 +126,11 @@ fun SearchTabUI(
                     selectedColor,
                     selectedColor.copy(alpha = 0.2f),
                 )
-            )
+            ),
+            contentAlignment = Alignment.TopStart
         ) {
             Column(
                 modifier = Modifier.padding(horizontal = 20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 SearchTextField(
                     modifier = Modifier
@@ -290,7 +290,7 @@ private fun SearchResultAddButton(
     onClick: (Int) -> Unit = {},
 ) {
     AddBookButton(
-        onClick = {onClick(index)},
+        onClick = { onClick(index) },
         modifier = modifier
     )
 }
