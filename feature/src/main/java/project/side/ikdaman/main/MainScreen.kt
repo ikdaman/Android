@@ -91,16 +91,13 @@ fun MainScreen(appNavController: NavHostController) {
                 BottomTabs(
                     mainNavController = mainNavController,
                     currentDestination = currentDestination,
-                    showAddBookDialog = {
-                        addBookDialogState.value = true
-                    }
                 )
             }
         ) {
             NavHost(navController = mainNavController, startDestination = HOME_ROUTE) {
                 composable(HOME_ROUTE) {
                     currentDestination.value = HOME_ROUTE
-                    HomeTab(appNavController)
+                    HomeTab(appNavController, mainNavController)
                 }
                 composable(SEARCH_ROUTE) {
                     currentDestination.value = SEARCH_ROUTE
@@ -192,7 +189,6 @@ fun MainScreen(appNavController: NavHostController) {
 private fun BottomTabs(
     mainNavController: NavHostController,
     currentDestination: MutableState<String>,
-    showAddBookDialog: () -> Unit = {}
 ) {
     val currentRoute = currentDestination.value
     Column {
@@ -231,7 +227,7 @@ private fun BottomTabs(
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                 elevation = null,
                 onClick = {
-                    showAddBookDialog()
+                    mainNavController.navigate(SEARCH_ROUTE)
                 }
             ) {
                 if (currentRoute == SEARCH_ROUTE) {
