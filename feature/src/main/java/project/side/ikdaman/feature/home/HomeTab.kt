@@ -182,7 +182,7 @@ fun HomeTabUI(
             ) {
                 ColorPaletteButton(paletteViewState, selectedColor)
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (!deleteMode.value && selectedViewMode.value == HomeTabViewMode.CAROUSEL) {
+                    if (!deleteMode.value) {
                         Image(
                             imageVector = ImageVector.vectorResource(R.drawable.bin),
                             contentDescription = null,
@@ -219,7 +219,9 @@ fun HomeTabUI(
                     ListBooks(
                         pinnedItems = pinnedItems,
                         unpinnedItems = unpinnedItems,
-                        onPinItem = onPinItem
+                        deleteMode = deleteMode,
+                        onPinItem = onPinItem,
+                        onDeleteClick = onDeleteClick
                     )
                 }
             } else {
