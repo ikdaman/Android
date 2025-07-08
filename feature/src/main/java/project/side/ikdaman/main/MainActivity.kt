@@ -3,6 +3,7 @@ package project.side.ikdaman.main
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.runtime.Composable
 import androidx.navigation.NamedNavArgument
@@ -26,7 +27,6 @@ import project.side.ikdaman.core.navigation.LOGIN_ROUTE
 import project.side.ikdaman.core.navigation.MAIN_ROUTE
 import project.side.ikdaman.core.navigation.SEARCH_INFO_ROUTE
 import project.side.ikdaman.core.navigation.SPLASH_ROUTE
-import project.side.ikdaman.core.navigation.TUTORIAL_ROUTE
 import project.side.ikdaman.core.navigation.USERINFO_ROUTE
 import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.domain.model.RecordType
@@ -38,12 +38,13 @@ import project.side.ikdaman.feature.detail.BookDetailScreen
 import project.side.ikdaman.feature.login.LoginScreen
 import project.side.ikdaman.feature.mypage.UserInfoScreen
 import project.side.ikdaman.feature.splash.SplashScreen
-import project.side.ikdaman.feature.tutorial.TutorialScreen
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        enableEdgeToEdge()
 
         setContent {
             AppTheme {
@@ -54,9 +55,6 @@ class MainActivity : ComponentActivity() {
                     }
                     slideComposable(LOGIN_ROUTE) {
                         LoginScreen(navController)
-                    }
-                    slideComposable(TUTORIAL_ROUTE) {
-                        TutorialScreen(navController)
                     }
                     slideComposable(MAIN_ROUTE) {
                         MainScreen(navController)

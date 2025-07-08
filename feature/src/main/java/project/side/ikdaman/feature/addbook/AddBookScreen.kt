@@ -3,7 +3,6 @@ package project.side.ikdaman.feature.addbook
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -134,8 +133,7 @@ private fun AddBookScreenUI(
         },
     ) { paddingValues ->
         GradientBox(
-            Modifier
-                .fillMaxSize(),
+            Modifier.fillMaxSize(),
             gradient = Brush.verticalGradient(
                 colors = listOf(
                     selectedColor,

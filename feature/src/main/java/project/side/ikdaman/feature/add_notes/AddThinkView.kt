@@ -1,7 +1,10 @@
 package project.side.ikdaman.feature.add_notes
 
 import android.util.Log
+import androidx.compose.foundation.MarqueeAnimationMode
+import androidx.compose.foundation.MarqueeSpacing
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -56,6 +59,7 @@ import project.side.ikdaman.domain.model.BookInfo
 
 @Composable
 fun AddThinkView(
+    modifier: Modifier = Modifier,
     result: ApiResult<BookDetail> = ApiResult.Loading,
     pageState: MutableState<Int?> = remember { mutableStateOf(null) },
     textState: MutableState<String> = remember { mutableStateOf("") },
@@ -73,7 +77,7 @@ fun AddThinkView(
             val bookInfo = result.data.bookInfo
             Column(
                 verticalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
+                modifier = modifier
                     .fillMaxHeight()
                     .background(Color.White)
                     .imePadding()
@@ -85,12 +89,14 @@ fun AddThinkView(
                 ) {
                     AppText(
                         "${TimeUTC.nowToCustomFormat()}의 기록 ✏\uFE0F",
-                        style = AddRecordTextStyles.titleTextStyle
+                        style = AddRecordTextStyles.titleTextStyle,
+                        modifier = Modifier.basicMarquee()
                     )
                     Spacer(Modifier.height(10.dp))
                     AppText(
                         "${bookInfo.title} / ${bookInfo.author}",
-                        style = AddRecordTextStyles.subtitleTextStyle
+                        style = AddRecordTextStyles.subtitleTextStyle,
+                        modifier = Modifier.basicMarquee()
                     )
                     Spacer(Modifier.height(40.dp))
                     Box(
