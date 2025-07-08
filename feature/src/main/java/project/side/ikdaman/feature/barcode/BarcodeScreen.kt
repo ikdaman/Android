@@ -14,11 +14,8 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,6 +32,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetState
@@ -49,14 +47,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -76,8 +69,8 @@ import project.side.ikdaman.core.navigation.ADD_BOOK_ROUTE
 import project.side.ikdaman.core.navigation.MAIN_ROUTE
 import project.side.ikdaman.core.ui.PretendardFontFamily
 import project.side.ikdaman.core.view.AddBookButton
-import project.side.ikdaman.domain.model.BookItem
 import project.side.ikdaman.core.view.CustomModalBottomSheet
+import project.side.ikdaman.domain.model.BookItem
 
 private val TAG = "BarcodeScreen"
 private const val CAMERA_PERMISSION = Manifest.permission.CAMERA
@@ -184,13 +177,39 @@ fun BarcodeScreenUI(
 ) {
     Scaffold(
         topBar = {
-            IconButton(
-                onClick = onBack
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                    contentDescription = "Back"
+            Box(modifier = Modifier.fillMaxWidth()) {
+                IconButton(
+                    onClick = onBack,
+                    modifier = Modifier.align(Alignment.CenterStart)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color.White
+                    )
+                }
+                Text(
+                    text = "바코드 스캔하기",
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(vertical = 15.dp),
+                    style = TextStyle(
+                        fontFamily = PretendardFontFamily,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 18.sp,
+                        color = Color.White
+                    )
                 )
+                IconButton(
+                    onClick = onBack,
+                    modifier = Modifier.align(Alignment.CenterEnd)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Back",
+                        tint = Color.White
+                    )
+                }
             }
         }
     ) { innerPadding ->
@@ -233,24 +252,7 @@ private fun CameraScreen(
 ) {
     if (cameraProvider == null) return
 
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-
-        val canvasWidth = constraints.maxWidth
-        val canvasHeight = constraints.maxHeight
-
-        val focusWidthPx = with(LocalDensity.current) { 362.dp.toPx() }
-        val focusHeightPx = with(LocalDensity.current) { 245.dp.toPx() }
-
-        val leftPx = (canvasWidth - focusWidthPx) / 2
-        val topPx = (canvasHeight - focusHeightPx) / 2
-
-        val focusRect = androidx.compose.ui.geometry.Rect(
-            leftPx,
-            topPx,
-            (leftPx + focusWidthPx),
-            (topPx + focusHeightPx)
-        )
-
+    Box(modifier = Modifier.fillMaxSize()) {
         AndroidView(
             factory = { ctx ->
                 val previewView = PreviewView(ctx)
@@ -284,11 +286,6 @@ private fun CameraScreen(
             },
             modifier = Modifier.fillMaxSize()
         )
-
-        BarcodeOverlay(
-            modifier = Modifier.fillMaxSize(),
-            focusRect = focusRect
-        )
     }
 
 }
@@ -299,69 +296,6 @@ private fun NoCameraScreen(modifier: Modifier = Modifier) {
         text = "바코드 스캔을 위해 카메라 권한을 허용해 주세요",
         modifier = modifier
     )
-}
-
-@Composable
-fun BarcodeOverlay(
-    modifier: Modifier = Modifier,
-    focusRect: androidx.compose.ui.geometry.Rect
-) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.7f))
-    ) {
-
-        // 중앙 포커스 영역만 투명하게
-        Canvas(
-            modifier = modifier
-                .matchParentSize()
-        ) {
-            //중앙 부분을 지우기
-            drawRect(
-                color = Color.Transparent,
-                topLeft = Offset(focusRect.left, focusRect.top),
-                size = Size(focusRect.width, focusRect.height),
-                blendMode = BlendMode.Clear
-            )
-
-            // 테두리
-            drawRect(
-                color = Color(0xFFFFD900),
-                topLeft = Offset(focusRect.left, focusRect.top),
-                size = Size(focusRect.width, focusRect.height),
-                style = Stroke(width = 2f)
-            )
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 190.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "바코드를 영역에 맞춰 보세요",
-                color = Color.White,
-                style = TextStyle(
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 22.sp
-                )
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "원하는 책을 빠르게 찾을 수 있어요",
-                color = Color.White,
-                style = TextStyle(
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 14.sp
-                )
-            )
-        }
-    }
-
 }
 
 @kotlin.OptIn(ExperimentalMaterial3Api::class)
