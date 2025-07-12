@@ -114,7 +114,7 @@ fun MainScreen(appNavController: NavHostController) {
             }
         }
 
-        val onDismissDialog = remember { { addBookDialogState.value = false} }
+        val onDismissDialog = remember { { addBookDialogState.value = false } }
         if (addBookDialogState.value) {
             CustomModalBottomSheet(
                 onDismiss = onDismissDialog,
@@ -227,6 +227,7 @@ private fun BottomTabs(
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                 elevation = null,
                 onClick = {
+                    mainNavController.popBackStack()
                     mainNavController.navigate(SEARCH_ROUTE)
                 }
             ) {

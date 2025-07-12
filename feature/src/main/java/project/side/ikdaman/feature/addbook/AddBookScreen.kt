@@ -3,7 +3,6 @@ package project.side.ikdaman.feature.addbook
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -77,6 +76,7 @@ fun AddBookScreen(
         when (val result = addBookSuccess) {
             is ApiResult.Error -> Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
             is ApiResult.Success -> {
+                navController.popBackStack()
                 navController.navigate(MAIN_ROUTE)
                 Toast.makeText(context, "책이 추가되었습니다.", Toast.LENGTH_SHORT).show()
             }
