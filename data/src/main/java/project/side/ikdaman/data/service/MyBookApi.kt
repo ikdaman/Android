@@ -6,9 +6,11 @@ import project.side.ikdaman.data.model.book.BookThink
 import project.side.ikdaman.data.model.book.PostBookRequestBody
 import project.side.ikdaman.data.model.book.UpdateBookCompleted
 import project.side.ikdaman.data.model.book.UpdateBookThink
+import project.side.ikdaman.data.model.responses.BookShelfResponse
 import project.side.ikdaman.data.model.responses.BooksResponse
 import project.side.ikdaman.domain.model.BookDetail
 import project.side.ikdaman.domain.model.BookLog
+import project.side.ikdaman.domain.model.BookShelfItem
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -93,4 +95,13 @@ interface MyBookApi {
 
     @POST("mybooks")
     suspend fun postBook(@Body postBookRequestBody: PostBookRequestBody): Response<Unit>
+
+    // 나의 책 목록 조회
+    @GET("/mybooks")
+    suspend fun getBookList(
+        @Query("status") status: String?,
+        @Query("keyword") keyword: String?,
+        @Query("page") page: Int,
+        @Query("limit") limit: Int
+    ): Response<BookShelfResponse>
 }
