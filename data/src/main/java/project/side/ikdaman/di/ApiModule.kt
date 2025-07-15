@@ -1,5 +1,7 @@
 package project.side.ikdaman.di
 
+import android.app.AlarmManager
+import android.content.Context
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
@@ -10,7 +12,9 @@ import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import project.side.ikdaman.app.data.BuildConfig
+import project.side.ikdaman.data.data_source.AlarmDataStore
 import project.side.ikdaman.data.data_source.AuthDataStore
+import project.side.ikdaman.data.repository.AlarmRepositoryImpl
 import project.side.ikdaman.data.repository.AuthRepositoryImpl
 import project.side.ikdaman.data.repository.BookRepositoryImpl
 import project.side.ikdaman.data.repository.MyBooksApiRepositoryImpl
@@ -19,6 +23,7 @@ import project.side.ikdaman.data.service.AuthService
 import project.side.ikdaman.data.service.BookService
 import project.side.ikdaman.data.service.MyBookApi
 import project.side.ikdaman.data.service.UserService
+import project.side.ikdaman.domain.repository.AlarmRepository
 import project.side.ikdaman.domain.repository.AuthRepository
 import project.side.ikdaman.domain.repository.BookRepository
 import project.side.ikdaman.domain.repository.MyBooksApiRepository
@@ -157,5 +162,11 @@ object ApiModule {
     @Singleton
     fun provideUserService(@AuthRetrofit retrofit: Retrofit): UserService {
         return retrofit.create(UserService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAlarmRepository(applicationContext: Context, alarmDataStore: AlarmDataStore, @AlarmManagerQualifier alarmManager: AlarmManager): AlarmRepository {
+        return AlarmRepositoryImpl(applicationContext, alarmDataStore, alarmManager)
     }
 }

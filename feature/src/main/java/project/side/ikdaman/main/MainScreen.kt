@@ -7,13 +7,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -51,7 +49,7 @@ import project.side.ikdaman.feature.search.SearchTab
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun MainScreen(appNavController: NavHostController) {
+fun MainScreen(appNavController: NavHostController, onNotificationPermissionCheck: () -> Unit = {}) {
     val mainNavController = rememberNavController()
     val currentDestination = remember { mutableStateOf(HOME_ROUTE) }
     val addBookDialogState = remember { mutableStateOf(false) }
@@ -105,7 +103,7 @@ fun MainScreen(appNavController: NavHostController) {
                 }
                 composable(MY_PAGE_ROUTE) {
                     currentDestination.value = MY_PAGE_ROUTE
-                    MyPageTab(appNavController)
+                    MyPageTab(appNavController, onNotificationPermissionCheck)
                 }
             }
         }
@@ -229,7 +227,6 @@ private fun BottomTabs(
 @Preview(showBackground = true)
 @Composable
 fun BottomTabsPreView() {
-    val appNavController = rememberNavController()
     val mainNavController = rememberNavController()
     AppTheme {
         BottomTabs(

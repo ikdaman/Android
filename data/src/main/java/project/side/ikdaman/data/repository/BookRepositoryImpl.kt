@@ -13,6 +13,7 @@ class BookRepositoryImpl @Inject constructor(private val bookService: BookServic
     override suspend fun searchBookWithTitle(title: String): BookSearchResult {
         try {
             val response = bookService.searchBookWithTitle(query = title)
+            Log.d(TAG, "searchBookWithTitle: $response")
             return response.toDomain()
         } catch (e: Exception) {
             Log.e(TAG, "searchBookWithTitle: $e")
