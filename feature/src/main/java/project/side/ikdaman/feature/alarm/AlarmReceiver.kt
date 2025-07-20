@@ -9,6 +9,7 @@ import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import project.side.ikdaman.app.feature.R
+import project.side.ikdaman.domain.util.ALARM_ACTION
 import project.side.ikdaman.main.MainActivity
 import java.util.Calendar
 
@@ -16,7 +17,9 @@ class AlarmReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         Log.d("AlarmReceiver", "알람 수신됨: ${intent.action}")
-        showNotification(context)
+        if (intent.action == ALARM_ACTION) {
+            showNotification(context)
+        }
     }
 
     private fun showNotification(context: Context) {
@@ -76,10 +79,14 @@ class AlarmReceiver : BroadcastReceiver() {
         val day = when (dayOfWeek) {
             Calendar.MONDAY -> Day.MONDAY
             Calendar.FRIDAY -> Day.FRIDAY
-            else -> Day.MONDAY // 기본값
+            else -> null // 다른 요일은 null로 처리
         }
 
-        return getMessageForDayAndTime(day, timeSlot)
+        return if (day != null) {
+            getMessageForDayAndTime(day, timeSlot)
+        } else {
+            "" // 다른 요일은 빈 메시지 반환
+        }
     }
 
     private fun getMessageForDayAndTime(day: Day, timeSlot: TimeSlot): String {

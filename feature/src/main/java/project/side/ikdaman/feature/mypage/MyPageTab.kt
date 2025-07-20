@@ -37,6 +37,7 @@ import androidx.navigation.NavController
 import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.navigation.USERINFO_ROUTE
 import project.side.ikdaman.core.ui.AppTheme
+import java.util.Locale
 
 @Composable
 fun MyPageTab(
@@ -62,7 +63,7 @@ fun MyPageTab(
 fun MyPageTabUI(
     nickname: String,
     isChecked: Boolean,
-    selectedTime: String = "09:00",
+    selectedTime: String = "21:00",
     navigateToEditProfile: () -> Unit = {},
     onCheckedChanged: (Boolean) -> Unit = {},
     onTimeSelected: (String) -> Unit = {}
@@ -172,13 +173,7 @@ fun MyPageTabUI(
                         onDismissRequest = { isDropdownExpanded.value = false }
                     ) {
                         // 24 hours dropdown items
-                        listOf(
-                            "01:08", "01:09", "00:00", "01:00", "02:00", "03:00", "04:00",
-                            "05:00", "06:00", "07:00", "08:00", "09:00",
-                            "10:00", "11:00", "12:00", "13:00", "14:00",
-                            "15:00", "16:00", "17:00", "18:00", "19:00",
-                            "20:00", "21:00", "22:00", "23:00"
-                        ).forEach { time ->
+                        (0..23).map { hour -> String.format(Locale.KOREA, "%02d:00", hour) }.forEach { time ->
                             DropdownMenuItem(
                                 modifier = Modifier.background(Color.White),
                                 colors = MenuDefaults.itemColors(textColor = Color.Black),

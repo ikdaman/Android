@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import project.side.ikdaman.data.data_source.AlarmDataStore
 import project.side.ikdaman.domain.repository.AlarmRepository
+import project.side.ikdaman.domain.util.ALARM_ACTION
 import java.util.Calendar
 import javax.inject.Inject
 
@@ -19,19 +20,17 @@ class AlarmRepositoryImpl @Inject constructor(
     private val alarmManager: AlarmManager
 ): AlarmRepository {
 
-    override fun scheduleAlarms(timeString: String) {
+    override suspend fun scheduleAlarms(timeString: String) {
         val (hour, minute) = timeString.split(":").map { it.toInt() }
 
         scheduleAlarmForDay(Calendar.MONDAY, hour, minute, 1)
         scheduleAlarmForDay(Calendar.FRIDAY, hour, minute, 2)
 
-        CoroutineScope(Dispatchers.IO).launch {
-            alarmDataStore.saveAlarmTime(timeString)
-        }
+        alarmDataStore.saveAlarmTime(timeString)
     }
 
     private fun scheduleAlarmForDay(dayOfWeek: Int, hour: Int, minute: Int, requestCode: Int) {
-        val intent = Intent("project.side.ikdaman.alarm")
+        val intent = Intent(ALARM_ACTION)
         intent.setPackage(context.packageName)
         val pendingIntent = PendingIntent.getBroadcast(
             context,
@@ -78,7 +77,7 @@ class AlarmRepositoryImpl @Inject constructor(
     }
 
     private fun cancelAlarmForDay(requestCode: Int) {
-        val intent = Intent("project.side.ikdaman.alarm")
+        val intent = Intent(ALARM_ACTION)
         val pendingIntent = PendingIntent.getBroadcast(
             context,
             requestCode,
