@@ -21,12 +21,31 @@ class AlarmRepositoryImpl @Inject constructor(
 ): AlarmRepository {
 
     override suspend fun scheduleAlarms(timeString: String) {
-        val (hour, minute) = timeString.split(":").map { it.toInt() }
+        val (hour, minute) = parseTimeString(timeString)
 
         scheduleAlarmForDay(Calendar.MONDAY, hour, minute, 1)
         scheduleAlarmForDay(Calendar.FRIDAY, hour, minute, 2)
 
         alarmDataStore.saveAlarmTime(timeString)
+    }
+
+    private fun parseTimeString(timeString: String): Pair<Int, Int> {
+        val trimmed = timeString.trim().uppercase()
+        return if (trimmed.contains("AM") || trimmed.contains("PM")) {
+            // 12시간 형식 처리
+            val amPm = if (trimmed.contains("PM")) "PM" else "AM"
+            val timePart = trimmed.replace("AM", "").replace("PM", "").trim()
+            val (hourStr, minuteStr) = timePart.split(":")
+            var hour = hourStr.toInt()
+            val minute = minuteStr.toInt()
+            if (amPm == "PM" && hour != 12) hour += 12
+            if (amPm == "AM" && hour == 12) hour = 0
+            hour to minute
+        } else {
+            // 24시간 형식 처리
+            val (hour, minute) = trimmed.split(":").map { it.toInt() }
+            hour to minute
+        }
     }
 
     private fun scheduleAlarmForDay(dayOfWeek: Int, hour: Int, minute: Int, requestCode: Int) {

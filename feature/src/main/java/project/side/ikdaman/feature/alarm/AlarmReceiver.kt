@@ -1,11 +1,13 @@
 package project.side.ikdaman.feature.alarm
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.PowerManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import project.side.ikdaman.app.feature.R
@@ -13,6 +15,7 @@ import project.side.ikdaman.domain.util.ALARM_ACTION
 import project.side.ikdaman.main.MainActivity
 import java.util.Calendar
 
+@Suppress("DEPRECATION")
 class AlarmReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -60,6 +63,18 @@ class AlarmReceiver : BroadcastReceiver() {
             .build()
 
         notificationManager.notify(NOTIFICATION_ID, notification)
+        wakeUpScreen(context)
+    }
+
+    @SuppressLint("Wakelock")
+    private fun wakeUpScreen(context: Context) {
+        val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+        val wakeLock = powerManager.newWakeLock(
+            PowerManager.FULL_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP or PowerManager.ON_AFTER_RELEASE,
+            "MyApp::AlarmWakeLock"
+        )
+
+        wakeLock.acquire(3000L) // 3초 동안 화면 유지
     }
 
     private fun getNotificationMessage(): String {
