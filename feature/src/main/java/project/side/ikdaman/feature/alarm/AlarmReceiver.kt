@@ -10,7 +10,10 @@ import android.content.Intent
 import android.os.PowerManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import dagger.hilt.android.EntryPointAccessors
 import project.side.ikdaman.app.feature.R
+import project.side.ikdaman.domain.usecase.AlarmReceiverEntryPoint
+import project.side.ikdaman.domain.usecase.ReScheduleAlarmUseCase
 import project.side.ikdaman.domain.util.ALARM_ACTION
 import project.side.ikdaman.main.MainActivity
 import java.util.Calendar
@@ -20,9 +23,30 @@ class AlarmReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         Log.d("AlarmReceiver", "알람 수신됨: ${intent.action}")
+
         if (intent.action == ALARM_ACTION) {
+            reSchedule(context)
             showNotification(context)
         }
+    }
+
+    private fun reSchedule(context: Context) {
+        val reScheduleAlarmUseCase = getReScheduleUseCase(context)
+        val calendar = Calendar.getInstance()
+        // HH:mm 형식으로 시간 문자열 생성
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+        val minute = calendar.get(Calendar.MINUTE)
+
+        reScheduleAlarmUseCase(hour, minute)
+    }
+
+    // Hilt를 사용한 수동 의존성 주입
+    private fun getReScheduleUseCase(context: Context): ReScheduleAlarmUseCase {
+        val reScheduleAlarmUseCase = EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            AlarmReceiverEntryPoint::class.java
+        ).reScheduleAlarmUseCase()
+        return reScheduleAlarmUseCase
     }
 
     private fun showNotification(context: Context) {

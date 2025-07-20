@@ -4,4 +4,5 @@ interface AlarmRepository {
     suspend fun scheduleAlarms(timeString: String)
     fun cancelAlarms()
     suspend fun getAlarmTime(): String?
+    fun rescheduleAlarm(hour: Int, minute: Int)
 }

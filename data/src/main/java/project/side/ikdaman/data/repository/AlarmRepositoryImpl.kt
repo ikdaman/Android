@@ -29,6 +29,11 @@ class AlarmRepositoryImpl @Inject constructor(
         alarmDataStore.saveAlarmTime(timeString)
     }
 
+    override fun rescheduleAlarm(hour: Int, minute: Int) {
+        scheduleAlarmForDay(Calendar.MONDAY, hour, minute, 1)
+        scheduleAlarmForDay(Calendar.FRIDAY, hour, minute, 2)
+    }
+
     private fun parseTimeString(timeString: String): Pair<Int, Int> {
         val trimmed = timeString.trim().uppercase()
         return if (trimmed.contains("AM") || trimmed.contains("PM")) {
