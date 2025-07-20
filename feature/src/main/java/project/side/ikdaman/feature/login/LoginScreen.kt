@@ -1,6 +1,5 @@
 package project.side.ikdaman.feature.login
 
-import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -40,7 +39,6 @@ import androidx.navigation.NavController
 import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.navigation.LOGIN_ROUTE
 import project.side.ikdaman.core.navigation.MAIN_ROUTE
-import project.side.ikdaman.core.navigation.TUTORIAL_ROUTE
 import project.side.ikdaman.core.ui.AppTheme
 
 @Composable
@@ -82,9 +80,6 @@ fun LoginScreen(
     )
 }
 
-private fun navigateToTutorialScreen(navController: NavController) {
-    navController.navigate(TUTORIAL_ROUTE)
-}
 
 private fun navigateToHomeScreen(navController: NavController) {
     navController.navigate(MAIN_ROUTE) {
@@ -94,7 +89,7 @@ private fun navigateToHomeScreen(navController: NavController) {
     }
 }
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+
 @Composable
 fun LoginScreenUI(
     isLoading: Boolean = false,
@@ -103,7 +98,7 @@ fun LoginScreenUI(
     onKakaoLogin: () -> Unit = {}
 ) {
     Scaffold {
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize().padding(it)) {
             if (isLoading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }

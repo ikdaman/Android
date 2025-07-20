@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -61,7 +62,7 @@ import project.side.ikdaman.feature.search.SearchTab
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun MainScreen(appNavController: NavHostController) {
+fun MainScreen(appNavController: NavHostController, onNotificationPermissionCheck: () -> Unit = {}) {
     val mainNavController = rememberNavController()
     val currentDestination = remember { mutableStateOf(HOME_ROUTE) }
     val addBookDialogState = remember { mutableStateOf(false) }
@@ -94,7 +95,10 @@ fun MainScreen(appNavController: NavHostController) {
                 )
             }
         ) {
-            NavHost(navController = mainNavController, startDestination = HOME_ROUTE) {
+            NavHost(
+                navController = mainNavController,
+                startDestination = HOME_ROUTE,
+            ) {
                 composable(HOME_ROUTE) {
                     currentDestination.value = HOME_ROUTE
                     HomeTab(appNavController, mainNavController)
@@ -109,7 +113,7 @@ fun MainScreen(appNavController: NavHostController) {
                 }
                 composable(MY_PAGE_ROUTE) {
                     currentDestination.value = MY_PAGE_ROUTE
-                    MyPageTab(appNavController)
+                    MyPageTab(appNavController, onNotificationPermissionCheck)
                 }
             }
         }
@@ -197,7 +201,8 @@ private fun BottomTabs(
             Modifier
                 .background(Color.White)
                 .fillMaxWidth()
-                .padding(8.dp),
+                .padding(8.dp)
+                .navigationBarsPadding(),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -293,7 +298,6 @@ private fun BottomTabs(
 @Preview(showBackground = true)
 @Composable
 fun BottomTabsPreView() {
-    val appNavController = rememberNavController()
     val mainNavController = rememberNavController()
     AppTheme {
         BottomTabs(

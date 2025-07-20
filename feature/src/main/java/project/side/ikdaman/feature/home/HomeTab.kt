@@ -7,6 +7,7 @@ import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -177,7 +179,7 @@ fun HomeTabUI(
         Column(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize().statusBarsPadding()
         ) {
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -320,15 +322,17 @@ private fun CarouselBooks(
         Column(
             verticalArrangement = Arrangement.SpaceAround,
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.height(42.dp)
+            modifier = Modifier.height(42.dp).padding(horizontal = 20.dp)
         ) {
             AppText(
                 books[selectedBookIndex.value].title,
-                style = HomeTextStyles.bookTitleText
+                style = HomeTextStyles.bookTitleText,
+                modifier = Modifier.basicMarquee()
             )
             AppText(
                 books[selectedBookIndex.value].author,
-                style = HomeTextStyles.bookAuthorText
+                style = HomeTextStyles.bookAuthorText,
+                modifier = Modifier.basicMarquee()
             )
         }
         Spacer(Modifier.height(10.dp))

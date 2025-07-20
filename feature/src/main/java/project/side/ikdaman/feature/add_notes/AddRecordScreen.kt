@@ -6,10 +6,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -108,15 +111,15 @@ fun AddRecordScreenUI(
 ) {
     val pageState: MutableState<Int?> = remember { mutableStateOf(null) }
     val recordTypeState = remember { mutableStateOf(recordType) }
-    Scaffold(
-        topBar = {
+    Scaffold {
+        Column(Modifier.background(Color.White).fillMaxHeight()) {
             Box(
                 Modifier
                     .fillMaxWidth()
                     .background(Color.White)
                     .padding(vertical = 12.dp)
                     .padding(start = 13.dp)
-                    .height(50.dp)
+                    .statusBarsPadding()
             ) {
                 Image(
                     imageVector = ImageVector.vectorResource(R.drawable.arrow_back),
@@ -137,13 +140,11 @@ fun AddRecordScreenUI(
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
-        }
-    ) {
-        Column(Modifier.fillMaxHeight()) {
-            Spacer(Modifier.height(50.dp))
+            Spacer(Modifier.height(10.dp))
             when (recordTypeState.value) {
                 RecordType.IMPRESSION -> {
                     FirstImpressionView(
+                        modifier = Modifier.navigationBarsPadding(),
                         textState = textState,
                         result = result,
                         onConfirm = {
@@ -154,6 +155,7 @@ fun AddRecordScreenUI(
 
                 RecordType.THINK -> {
                     AddThinkView(
+                        modifier = Modifier.navigationBarsPadding(),
                         textState = textState,
                         pageState = pageState,
                         result = result,
@@ -168,6 +170,7 @@ fun AddRecordScreenUI(
 
                 RecordType.COMPLETED -> {
                     ReadCompleteView(
+                        modifier = Modifier.navigationBarsPadding(),
                         textState = textState,
                         onConfirm = {
                             onConfirmCompletedRecord(it)

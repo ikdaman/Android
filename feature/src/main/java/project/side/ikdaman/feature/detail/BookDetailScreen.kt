@@ -13,7 +13,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -180,7 +179,7 @@ fun BookDetailScreen(
     }
 }
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "ConfigurationScreenWidthHeight")
+@SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun BookDetailScreenUI(
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
@@ -236,6 +235,10 @@ fun BookDetailScreenUI(
             when (bookInfoApiResult) {
                 is ApiResult.Success -> {
                     MainBody(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(it)
+                            .align(Alignment.TopCenter),
                         isShowFirstLog,
                         bookInfoApiResult,
                         bookLogApiResult,
@@ -271,7 +274,8 @@ fun BookDetailScreenUI(
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
-private fun BoxScope.MainBody(
+private fun MainBody(
+    modifier: Modifier,
     isShowFirstLog: Boolean,
     bookInfoApiResult: ApiResult.Success<BookDetail>,
     bookLogApiResult: ApiResult<BookLog>,
@@ -285,9 +289,7 @@ private fun BoxScope.MainBody(
     onDeleteLog: (BookLogItem) -> Unit
 ) {
     LazyColumn(
-        modifier = Modifier
-            .fillMaxWidth()
-            .align(Alignment.TopCenter)
+        modifier = modifier
     ) {
         item {
             Row(

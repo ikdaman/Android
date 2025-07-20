@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -71,7 +72,6 @@ fun SearchTab(
 
     SearchTabUI(
         selectedColor = selectedColor,
-        onBack = { appNavController.popBackStack() },
         onSearchKeywordChange = {
             viewModel.updateSearchKeyword(it)
         },
@@ -87,23 +87,16 @@ fun SearchTabUI(
     selectedColor: Color = Palette.first,
     onSearchKeywordChange: (String) -> Unit = {},
     searchKeyword: String = "",
-    onBack: () -> Unit = {},
     bookSearchResult: BookSearchResult? = BookSearchResult(),
     onClickAddBookButton: (Int) -> Unit = {}
 ) {
     Scaffold(
         topBar = {
-            Box(modifier = Modifier.fillMaxWidth()) {
-                IconButton(
-                    onClick = onBack,
-                    modifier = Modifier.align(Alignment.CenterStart)
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.arrow_back),
-                        contentDescription = "Back",
-                        Modifier.size(26.dp)
-                    )
-                }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+            ) {
                 Text(
                     text = "책 제목으로 검색하기",
                     modifier = Modifier
