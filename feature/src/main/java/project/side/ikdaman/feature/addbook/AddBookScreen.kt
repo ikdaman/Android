@@ -110,7 +110,7 @@ private fun AddBookScreenUI(
         topBar = {
             Box(modifier = Modifier.fillMaxWidth()) {
                 IconButton(
-                    onClick = {},
+                    onClick = { navController.popBackStack() },
                     modifier = Modifier.align(Alignment.CenterStart)
                 ) {
                     Icon(
