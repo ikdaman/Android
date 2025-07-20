@@ -15,16 +15,15 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import dagger.hilt.android.AndroidEntryPoint
 import project.side.ikdaman.core.navigation.ADD_BOOK_RECORD
+import project.side.ikdaman.core.navigation.ADD_BOOK_ROUTE
 import project.side.ikdaman.core.navigation.BARCODE_ROUTE
 import project.side.ikdaman.core.navigation.BOOK_DETAIL_ROUTE
-import project.side.ikdaman.core.navigation.BOOK_EDIT_ROUTE
 import project.side.ikdaman.core.navigation.EnterToLeftTransition
 import project.side.ikdaman.core.navigation.EnterToRightTransition
 import project.side.ikdaman.core.navigation.ExitToLeftTransition
 import project.side.ikdaman.core.navigation.ExitToRightTransition
 import project.side.ikdaman.core.navigation.LOGIN_ROUTE
 import project.side.ikdaman.core.navigation.MAIN_ROUTE
-import project.side.ikdaman.core.navigation.SEARCH_INFO_ROUTE
 import project.side.ikdaman.core.navigation.SPLASH_ROUTE
 import project.side.ikdaman.core.navigation.TUTORIAL_ROUTE
 import project.side.ikdaman.core.navigation.USERINFO_ROUTE
@@ -33,7 +32,6 @@ import project.side.ikdaman.domain.model.RecordType
 import project.side.ikdaman.feature.add_notes.AddRecordScreen
 import project.side.ikdaman.feature.addbook.AddBookScreen
 import project.side.ikdaman.feature.barcode.BarcodeScreen
-import project.side.ikdaman.feature.bookedit.BookEditScreen
 import project.side.ikdaman.feature.detail.BookDetailScreen
 import project.side.ikdaman.feature.login.LoginScreen
 import project.side.ikdaman.feature.mypage.UserInfoScreen
@@ -65,16 +63,13 @@ class MainActivity : ComponentActivity() {
                         BarcodeScreen(navController)
                     }
                     slideComposable(
-                        route = "$SEARCH_INFO_ROUTE/{isbn}",
+                        route = "$ADD_BOOK_ROUTE/{isbn}",
                         arguments = listOf(
                             navArgument("isbn") { type = NavType.StringType }
                         )
                     ) { backStackEntry ->
                         val isbn = backStackEntry.arguments?.getString("isbn") ?: return@slideComposable
                         AddBookScreen(isbn = isbn, navController = navController)
-                    }
-                    slideComposable(BOOK_EDIT_ROUTE) {
-                        BookEditScreen(navController)
                     }
                     slideComposable(
                         "$BOOK_DETAIL_ROUTE/{bookId}/{isShowFirstLog}",

@@ -28,7 +28,7 @@ class BarcodeViewModel @Inject constructor(
         viewModelScope.launch {
             if (isbn != null) {
                 val result = searchBookWithIsbnUseCase(isbn)
-                if (result.books.isNotEmpty()){
+                if (result.books.isNotEmpty()) {
                     _searchResult.value = result.books[0]
                 }
 
@@ -40,7 +40,11 @@ class BarcodeViewModel @Inject constructor(
         _isbn.update { newIsbn }
     }
 
-    fun resetIsbn(){
+    fun resetIsbn() {
         _isbn.update { null }
+    }
+
+    fun resetSearchResult() {
+        _searchResult.update { null }
     }
 }
