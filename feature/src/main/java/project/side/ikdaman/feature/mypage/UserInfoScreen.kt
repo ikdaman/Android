@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
@@ -180,6 +181,7 @@ fun UserInfoScreenUI(
                 painterResource(R.drawable.arrow_left),
                 contentDescription = null,
                 modifier = Modifier
+                    .statusBarsPadding()
                     .padding(top = 22.dp, start = 12.dp)
                     .size(26.dp)
                     .clickable { navigateBack() }
@@ -206,7 +208,7 @@ fun UserInfoScreenUI(
             Text(
                 "내 정보 관리",
                 style = MyPageTextStyle.TitleText,
-                modifier = Modifier.padding(top = 25.dp, start = 3.dp, bottom = 37.dp)
+                modifier = Modifier.padding(top = 37.dp, start = 3.dp, bottom = 37.dp)
             )
             UserInfoLabel("* 닉네임")
             Row(modifier = Modifier.padding(top = 10.dp)) {
