@@ -55,6 +55,7 @@ import project.side.ikdaman.core.navigation.ADD_BOOK_RECORD
 import project.side.ikdaman.core.navigation.BOOK_DETAIL_ROUTE
 import project.side.ikdaman.core.navigation.HOME_ROUTE
 import project.side.ikdaman.core.navigation.MAIN_ROUTE
+import project.side.ikdaman.core.navigation.SEARCH_ROUTE
 import project.side.ikdaman.core.ui.AppText
 import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.core.ui.Palette
@@ -69,6 +70,7 @@ import project.side.ikdaman.domain.model.RecordType
 @Composable
 fun HomeTab(
     navController: NavHostController,
+    mainNavController: NavHostController,
     viewModel: HomeViewModel = hiltViewModel(
         navController.getBackStackEntry(MAIN_ROUTE)
     )
@@ -112,6 +114,9 @@ fun HomeTab(
         },
         onNavigateToFirstImpression = { bookId ->
             navController.navigate("$ADD_BOOK_RECORD/${RecordType.IMPRESSION}/$bookId")
+        },
+        onNavigateToAddBook = {
+            mainNavController.navigate(SEARCH_ROUTE)
         }
     )
 
@@ -145,7 +150,8 @@ fun HomeTabUI(
     onSelectColor: (Color) -> Unit = {},
     onAddRecord: (String) -> Unit = {},
     onBookClicked: (String) -> Unit = {},
-    onNavigateToFirstImpression: (String) -> Unit = {}
+    onNavigateToFirstImpression: (String) -> Unit = {},
+    onNavigateToAddBook: () -> Unit = {}
 ) {
     val selectedBookIndex = remember { mutableIntStateOf(0) }
     val deleteMode = remember { mutableStateOf(false) }
@@ -216,7 +222,15 @@ fun HomeTabUI(
 
             if (books.isNotEmpty()) {
                 if (selectedViewMode.value == HomeTabViewMode.CAROUSEL) {
-                    CarouselBooks(deleteMode, selectedBookIndex, books, onDeleteClick, onAddRecord, onBookClicked, onNavigateToFirstImpression)
+                    CarouselBooks(
+                        deleteMode,
+                        selectedBookIndex,
+                        books,
+                        onDeleteClick,
+                        onAddRecord,
+                        onBookClicked,
+                        onNavigateToFirstImpression
+                    )
                 } else {
                     ListBooks(
                         pinnedItems = pinnedItems,
@@ -227,7 +241,9 @@ fun HomeTabUI(
                     )
                 }
             } else {
-                EmptyBookView()
+                EmptyBookView(
+                    onNavigateToAddBook = onNavigateToAddBook
+                )
             }
         }
 
@@ -288,7 +304,10 @@ private fun CarouselBooks(
     onNavigateToFirstImpression: (String) -> Unit = {}
 ) {
     val state = rememberScrollState()
-    Column(Modifier.verticalScroll(state, reverseScrolling = true), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        Modifier.verticalScroll(state, reverseScrolling = true),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Spacer(Modifier.height(20.dp))
         LeftDayBubble(books[selectedBookIndex.value])
         Spacer(Modifier.height(17.dp))
@@ -429,7 +448,9 @@ private fun CarouselBooks(
 }
 
 @Composable
-private fun EmptyBookView() {
+private fun EmptyBookView(
+    onNavigateToAddBook: () -> Unit
+) {
     Spacer(Modifier.height(35.dp))
     Box(
         Modifier
@@ -438,6 +459,9 @@ private fun EmptyBookView() {
             .fillMaxWidth()
             .height(175.dp)
             .background(Color.White.copy(alpha = 0.6f))
+            .clickable {
+                onNavigateToAddBook()
+            }
     ) {
         Text(
             "+\n" +

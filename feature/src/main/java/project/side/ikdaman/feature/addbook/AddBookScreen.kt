@@ -76,6 +76,7 @@ fun AddBookScreen(
         when (val result = addBookSuccess) {
             is ApiResult.Error -> Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
             is ApiResult.Success -> {
+                navController.popBackStack()
                 navController.navigate(MAIN_ROUTE)
                 Toast.makeText(context, "책이 추가되었습니다.", Toast.LENGTH_SHORT).show()
             }
@@ -109,7 +110,7 @@ private fun AddBookScreenUI(
         topBar = {
             Box(modifier = Modifier.fillMaxWidth()) {
                 IconButton(
-                    onClick = {},
+                    onClick = { navController.popBackStack() },
                     modifier = Modifier.align(Alignment.CenterStart)
                 ) {
                     Icon(
