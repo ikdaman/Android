@@ -92,7 +92,8 @@ fun AddBookScreen(
         onInitialImpressionChange = { viewModel.updateInitialImpression(it) },
         bookItem = searchResult,
         addBook = { viewModel.addBook() },
-        context = context
+        context = context,
+        popBackStack = { navController.popBackStack() },
     )
 }
 
@@ -104,13 +105,14 @@ private fun AddBookScreenUI(
     onInitialImpressionChange: (String) -> Unit = {},
     bookItem: BookItem? = null,
     addBook: () -> Unit = {},
-    context: Context = LocalContext.current
+    context: Context = LocalContext.current,
+    popBackStack: () -> Unit = {}
 ) {
     Scaffold(
         topBar = {
             Box(modifier = Modifier.fillMaxWidth()) {
                 IconButton(
-                    onClick = { navController.popBackStack() },
+                    onClick = { popBackStack() },
                     modifier = Modifier.align(Alignment.CenterStart)
                 ) {
                     Icon(
