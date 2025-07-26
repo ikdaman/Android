@@ -2,41 +2,38 @@ package project.side.ikdaman.feature.barcode
 
 import android.graphics.Rect
 import android.util.Log
+import androidx.camera.camera2.interop.ExperimentalCamera2Interop
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode.TYPE_ISBN
 import com.google.mlkit.vision.common.InputImage
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 private val TAG = "BarcodeScanner"
 
+@ExperimentalCamera2Interop
 @ExperimentalGetImage
 class BarcodeScanner {
+    private val _isbnFlow = MutableSharedFlow<String?>(1)
+    val isbnFlow = _isbnFlow.asSharedFlow()
+
     private val barcodeScanner = BarcodeScanning.getClient()
-    private val executor = Executors.newSingleThreadExecutor()
-//    private val executor = Dispatchers.Default.asExecutor()
+    val executor: ExecutorService = Executors.newSingleThreadExecutor()
 
-    val imageAnalysis = ImageAnalysis.Builder()
+    val imageAnalysisBuilder = ImageAnalysis.Builder()
         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-        .build()
-        .also { analysis ->
-            analysis.setAnalyzer(executor, { imageProxy ->
-                processImageProxy(imageProxy)
-            })
-        }
 
-    private val _isbnFlow = MutableStateFlow<String?>(null)
-    val isbnFlow = _isbnFlow.asStateFlow()
-
-    private fun processImageProxy(imageProxy: ImageProxy) {
+    fun processImageProxy(imageProxy: ImageProxy) {
         val mediaImage = imageProxy.image
         if (mediaImage != null) {
             val inputImage = InputImage.fromMediaImage(
-                mediaImage, imageProxy.imageInfo.rotationDegrees
+                mediaImage,
+                imageProxy.imageInfo.rotationDegrees
             )
 
             barcodeScanner.process(inputImage)

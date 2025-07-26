@@ -158,4 +158,5 @@ object ApiModule {
     fun provideUserService(@AuthRetrofit retrofit: Retrofit): UserService {
         return retrofit.create(UserService::class.java)
     }
+
 }

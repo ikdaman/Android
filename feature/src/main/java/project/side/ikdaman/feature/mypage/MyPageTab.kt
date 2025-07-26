@@ -14,6 +14,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -27,39 +30,51 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.PopupProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.navigation.USERINFO_ROUTE
 import project.side.ikdaman.core.ui.AppTheme
+import java.util.Locale
 
 @Composable
 fun MyPageTab(
     navController: NavController,
+    onPermissionCheck: () -> Unit = {},
     viewModel: MyPageViewModel = hiltViewModel()
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
-    val isChecked = remember { mutableStateOf(false) }
     MyPageTabUI(
         nickname = uiState.nickname,
-        isChecked = isChecked.value,
-        navigateToEditProfile = { navController.navigate(USERINFO_ROUTE) }
-    ) {
-        isChecked.value = !isChecked.value
-    }
+        isChecked = uiState.isChecked,
+        selectedTime = uiState.selectedTime,
+        navigateToEditProfile = { navController.navigate(USERINFO_ROUTE) },
+        onCheckedChanged = {
+            viewModel.toggleAlarm()
+            onPermissionCheck()
+        },
+        onTimeSelected = { viewModel.updateSelectedTime(it) }
+    )
 }
 
 @Composable
 fun MyPageTabUI(
     nickname: String,
     isChecked: Boolean,
+    selectedTime: String = "21:00",
     navigateToEditProfile: () -> Unit = {},
-    onCheckedChanged: (Boolean) -> Unit = {}
+    onCheckedChanged: (Boolean) -> Unit = {},
+    onTimeSelected: (String) -> Unit = {}
 ) {
     val interactionSource = remember { MutableInteractionSource() }
 
-    Column(Modifier.fillMaxSize()) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) {
         Text(
             "${nickname}님,\n안녕하세요!",
             style = MyPageTextStyle.TitleText,
@@ -111,15 +126,67 @@ fun MyPageTabUI(
                 ),
             )
         }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .padding(bottom = 30.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("시간", style = MyPageTextStyle.MenuText)
-            Spacer(modifier = Modifier.weight(1f))
+
+        val isDropdownExpanded = remember { mutableStateOf(false) }
+
+        if (isChecked) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 30.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("시간", style = MyPageTextStyle.MenuText)
+                Spacer(modifier = Modifier.weight(1f))
+                Box {
+                    Row(
+                        modifier = Modifier
+                            .clickable { isDropdownExpanded.value = true }
+                            .padding(vertical = 8.dp, horizontal = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = selectedTime,
+                            style = MyPageTextStyle.MenuText
+                        )
+                        Spacer(modifier = Modifier.size(4.dp))
+                        Image(
+                            painter = painterResource(id = R.drawable.arrow_right), // Replace with dropdown icon
+                            contentDescription = "Select time",
+                            modifier = Modifier
+                                .size(14.dp)
+                                .padding(start = 4.dp)
+                        )
+                    }
+
+                    DropdownMenu(
+                        expanded = isDropdownExpanded.value,
+                        modifier = Modifier
+                            .background(Color.White)
+                            .height(300.dp),
+                        properties = PopupProperties(
+                            focusable = true,
+                            dismissOnBackPress = true,
+                            dismissOnClickOutside = true,
+                        ),
+                        onDismissRequest = { isDropdownExpanded.value = false }
+                    ) {
+                        // 24 hours dropdown items
+                        (0..23).map { hour -> String.format(Locale.KOREA, "%02d:00", hour) }.forEach { time ->
+                            DropdownMenuItem(
+                                modifier = Modifier.background(Color.White),
+                                colors = MenuDefaults.itemColors(textColor = Color.Black),
+                                text = { Text(time) },
+                                onClick = {
+                                    onTimeSelected(time)
+                                    isDropdownExpanded.value = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
         }
         Spacer(
             modifier = Modifier
@@ -160,5 +227,5 @@ fun MyPageMenuItem(
 @Composable
 @Preview(showBackground = true)
 fun MyPageTabUIPreview() {
-    AppTheme { MyPageTabUI("닉네임", false) }
+    AppTheme { MyPageTabUI("닉네임", true) }
 }

@@ -34,6 +34,7 @@ import project.side.ikdaman.core.utils.oneClick
 
 @Composable
 fun ReadCompleteView(
+    modifier: Modifier = Modifier,
     textState: MutableState<String> = remember { mutableStateOf("") },
     onConfirm: (String) -> Unit = {},
 ) {
@@ -41,7 +42,7 @@ fun ReadCompleteView(
 
     Column(
         verticalArrangement = Arrangement.SpaceBetween,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxHeight()
             .background(Color.White)
             .imePadding()

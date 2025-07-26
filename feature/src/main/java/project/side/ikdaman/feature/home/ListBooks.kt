@@ -21,10 +21,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,6 +50,7 @@ import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.ui.AppText
 import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.core.ui.Palette
+import project.side.ikdaman.core.ui.circleRed
 import project.side.ikdaman.core.view.BookProgressBar
 import project.side.ikdaman.core.view.GradientBox
 import project.side.ikdaman.domain.model.HomeBookItem
@@ -56,6 +59,8 @@ import project.side.ikdaman.domain.model.HomeBookItem
 fun ListBooks(
     pinnedItems: List<HomeBookItem> = emptyList(),
     unpinnedItems: List<HomeBookItem> = emptyList(),
+    deleteMode: MutableState<Boolean> = remember { mutableStateOf(true) },
+    onDeleteClick: (HomeBookItem) -> Unit = {},
     onPinItem: (String) -> Unit = {}
 ) {
     Spacer(Modifier.height(20.dp))
@@ -96,18 +101,52 @@ fun ListBooks(
                     animationSpec = tween(durationMillis = 200)
                 ) { fullHeight -> fullHeight },
             ) {
-                ListBooksDetail(item, index < pinnedItems.size, onPinItem = {
-                    visibleMap[item.id] = false
-                    coroutineScope.launch {
-                        delay(300)
-                        onPinItem(item.id)
-                        delay(300)
-                        listState.animateScrollToItem(0)
+                Box {
+                    ListBooksDetail(
+                        item = item,
+                        isPinned = index < pinnedItems.size,
+                        deleteMode = deleteMode.value,
+                        onPinItem = {
+                            visibleMap[item.id] = false
+                            coroutineScope.launch {
+                                delay(300)
+                                onPinItem(item.id)
+                                delay(300)
+                                listState.animateScrollToItem(0)
+                            }
+                        },
+                    )
+
+                    if (deleteMode.value) {
+                        Box(
+                            modifier = Modifier
+                                .padding(start = 10.dp)
+                                .clip(CircleShape)
+                                .background(circleRed)
+                                .size(32.dp)
+                                .align(Alignment.TopStart)
+                                .clickable {
+                                    onDeleteClick(item)
+                                }
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(14.dp))
+                                    .width(14.dp)
+                                    .height(2.dp)
+                                    .background(Color.White)
+                                    .align(Alignment.Center)
+                            )
+                        }
                     }
-                })
+                }
             }
             if (index != pinnedItems.size + unpinnedItems.size - 1) {
-                Spacer(Modifier.height(10.dp))
+                if (deleteMode.value) {
+                    Spacer(Modifier.height(5.dp))
+                } else {
+                    Spacer(Modifier.height(10.dp))
+                }
             } else {
                 Spacer(Modifier.height((101 + 56).dp))
             }
@@ -119,7 +158,8 @@ fun ListBooks(
 private fun AnimatedVisibilityScope.ListBooksDetail(
     item: HomeBookItem,
     isPinned: Boolean,
-    onPinItem: () -> Unit
+    deleteMode: Boolean,
+    onPinItem: () -> Unit,
 ) {
     val clipColor = if (isPinned) Color(0xFF222221) else Color(0xFFCECECE)
 
@@ -130,7 +170,7 @@ private fun AnimatedVisibilityScope.ListBooksDetail(
                     animationSpec = tween(durationMillis = 300)
                 ) { fullHeight -> fullHeight },
             )
-            .padding(horizontal = 20.dp)
+            .padding(start = 20.dp, end = 20.dp, top = if (deleteMode) 5.dp else 0.dp)
             .clip(RoundedCornerShape(5.dp))
             .fillMaxWidth()
             .height(105.dp)

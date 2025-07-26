@@ -3,7 +3,6 @@ package project.side.ikdaman.feature.addbook
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -77,6 +77,7 @@ fun AddBookScreen(
         when (val result = addBookSuccess) {
             is ApiResult.Error -> Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
             is ApiResult.Success -> {
+                navController.popBackStack()
                 navController.navigate(MAIN_ROUTE)
                 Toast.makeText(context, "책이 추가되었습니다.", Toast.LENGTH_SHORT).show()
             }
@@ -92,7 +93,8 @@ fun AddBookScreen(
         onInitialImpressionChange = { viewModel.updateInitialImpression(it) },
         bookItem = searchResult,
         addBook = { viewModel.addBook() },
-        context = context
+        context = context,
+        popBackStack = { navController.popBackStack() },
     )
 }
 
@@ -104,13 +106,18 @@ private fun AddBookScreenUI(
     onInitialImpressionChange: (String) -> Unit = {},
     bookItem: BookItem? = null,
     addBook: () -> Unit = {},
-    context: Context = LocalContext.current
+    context: Context = LocalContext.current,
+    popBackStack: () -> Unit = {}
 ) {
     Scaffold(
         topBar = {
-            Box(modifier = Modifier.fillMaxWidth()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+            ) {
                 IconButton(
-                    onClick = {},
+                    onClick = { popBackStack() },
                     modifier = Modifier.align(Alignment.CenterStart)
                 ) {
                     Icon(
@@ -134,8 +141,7 @@ private fun AddBookScreenUI(
         },
     ) { paddingValues ->
         GradientBox(
-            Modifier
-                .fillMaxSize(),
+            Modifier.fillMaxSize(),
             gradient = Brush.verticalGradient(
                 colors = listOf(
                     selectedColor,

@@ -39,6 +39,7 @@ import project.side.ikdaman.domain.model.BookInfo
 
 @Composable
 fun FirstImpressionView(
+    modifier: Modifier = Modifier,
     result: ApiResult<BookDetail>,
     textState: MutableState<String> = remember { mutableStateOf("") },
     onConfirm: (String) -> Unit = {},
@@ -77,7 +78,7 @@ fun FirstImpressionView(
 
     Column(
         verticalArrangement = Arrangement.SpaceBetween,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxHeight()
             .background(Color.White)
             .imePadding()

@@ -7,6 +7,7 @@ import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -53,6 +55,7 @@ import project.side.ikdaman.core.navigation.ADD_BOOK_RECORD
 import project.side.ikdaman.core.navigation.BOOK_DETAIL_ROUTE
 import project.side.ikdaman.core.navigation.HOME_ROUTE
 import project.side.ikdaman.core.navigation.MAIN_ROUTE
+import project.side.ikdaman.core.navigation.SEARCH_ROUTE
 import project.side.ikdaman.core.ui.AppText
 import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.core.ui.Palette
@@ -67,6 +70,7 @@ import project.side.ikdaman.domain.model.RecordType
 @Composable
 fun HomeTab(
     navController: NavHostController,
+    mainNavController: NavHostController,
     viewModel: HomeViewModel = hiltViewModel(
         navController.getBackStackEntry(MAIN_ROUTE)
     )
@@ -110,6 +114,9 @@ fun HomeTab(
         },
         onNavigateToFirstImpression = { bookId ->
             navController.navigate("$ADD_BOOK_RECORD/${RecordType.IMPRESSION}/$bookId")
+        },
+        onNavigateToAddBook = {
+            mainNavController.navigate(SEARCH_ROUTE)
         }
     )
 
@@ -143,7 +150,8 @@ fun HomeTabUI(
     onSelectColor: (Color) -> Unit = {},
     onAddRecord: (String) -> Unit = {},
     onBookClicked: (String) -> Unit = {},
-    onNavigateToFirstImpression: (String) -> Unit = {}
+    onNavigateToFirstImpression: (String) -> Unit = {},
+    onNavigateToAddBook: () -> Unit = {}
 ) {
     val selectedBookIndex = remember { mutableIntStateOf(0) }
     val deleteMode = remember { mutableStateOf(false) }
@@ -171,7 +179,7 @@ fun HomeTabUI(
         Column(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize().statusBarsPadding()
         ) {
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -182,7 +190,7 @@ fun HomeTabUI(
             ) {
                 ColorPaletteButton(paletteViewState, selectedColor)
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (!deleteMode.value && selectedViewMode.value == HomeTabViewMode.CAROUSEL) {
+                    if (!deleteMode.value) {
                         Image(
                             imageVector = ImageVector.vectorResource(R.drawable.bin),
                             contentDescription = null,
@@ -214,16 +222,28 @@ fun HomeTabUI(
 
             if (books.isNotEmpty()) {
                 if (selectedViewMode.value == HomeTabViewMode.CAROUSEL) {
-                    CarouselBooks(deleteMode, selectedBookIndex, books, onDeleteClick, onAddRecord, onBookClicked, onNavigateToFirstImpression)
+                    CarouselBooks(
+                        deleteMode,
+                        selectedBookIndex,
+                        books,
+                        onDeleteClick,
+                        onAddRecord,
+                        onBookClicked,
+                        onNavigateToFirstImpression
+                    )
                 } else {
                     ListBooks(
                         pinnedItems = pinnedItems,
                         unpinnedItems = unpinnedItems,
-                        onPinItem = onPinItem
+                        deleteMode = deleteMode,
+                        onPinItem = onPinItem,
+                        onDeleteClick = onDeleteClick
                     )
                 }
             } else {
-                EmptyBookView()
+                EmptyBookView(
+                    onNavigateToAddBook = onNavigateToAddBook
+                )
             }
         }
 
@@ -284,7 +304,10 @@ private fun CarouselBooks(
     onNavigateToFirstImpression: (String) -> Unit = {}
 ) {
     val state = rememberScrollState()
-    Column(Modifier.verticalScroll(state, reverseScrolling = true), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        Modifier.verticalScroll(state, reverseScrolling = true),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Spacer(Modifier.height(20.dp))
         LeftDayBubble(books[selectedBookIndex.value])
         Spacer(Modifier.height(17.dp))
@@ -299,15 +322,17 @@ private fun CarouselBooks(
         Column(
             verticalArrangement = Arrangement.SpaceAround,
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.height(42.dp)
+            modifier = Modifier.height(42.dp).padding(horizontal = 20.dp)
         ) {
             AppText(
                 books[selectedBookIndex.value].title,
-                style = HomeTextStyles.bookTitleText
+                style = HomeTextStyles.bookTitleText,
+                modifier = Modifier.basicMarquee()
             )
             AppText(
                 books[selectedBookIndex.value].author,
-                style = HomeTextStyles.bookAuthorText
+                style = HomeTextStyles.bookAuthorText,
+                modifier = Modifier.basicMarquee()
             )
         }
         Spacer(Modifier.height(10.dp))
@@ -423,7 +448,9 @@ private fun CarouselBooks(
 }
 
 @Composable
-private fun EmptyBookView() {
+private fun EmptyBookView(
+    onNavigateToAddBook: () -> Unit
+) {
     Spacer(Modifier.height(35.dp))
     Box(
         Modifier
@@ -432,6 +459,9 @@ private fun EmptyBookView() {
             .fillMaxWidth()
             .height(175.dp)
             .background(Color.White.copy(alpha = 0.6f))
+            .clickable {
+                onNavigateToAddBook()
+            }
     ) {
         Text(
             "+\n" +

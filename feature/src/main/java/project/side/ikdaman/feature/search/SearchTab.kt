@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,12 +11,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -42,10 +40,11 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.navigation.MAIN_ROUTE
-import project.side.ikdaman.core.navigation.SEARCH_INFO_ROUTE
+import project.side.ikdaman.core.navigation.ADD_BOOK_ROUTE
 import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.core.ui.PretendardFontFamily
+import project.side.ikdaman.core.view.AddBookButton
 import project.side.ikdaman.core.view.GradientBox
 import project.side.ikdaman.domain.model.BookItem
 import project.side.ikdaman.domain.model.BookSearchResult
@@ -67,13 +66,12 @@ fun SearchTab(
 
     LaunchedEffect(Unit) {
         viewModel.selectedBookIsbn.collect {
-            appNavController.navigate("$SEARCH_INFO_ROUTE/$it")
+            appNavController.navigate("$ADD_BOOK_ROUTE/$it")
         }
     }
 
     SearchTabUI(
         selectedColor = selectedColor,
-        onBack = { appNavController.popBackStack() },
         onSearchKeywordChange = {
             viewModel.updateSearchKeyword(it)
         },
@@ -89,23 +87,16 @@ fun SearchTabUI(
     selectedColor: Color = Palette.first,
     onSearchKeywordChange: (String) -> Unit = {},
     searchKeyword: String = "",
-    onBack: () -> Unit = {},
     bookSearchResult: BookSearchResult? = BookSearchResult(),
     onClickAddBookButton: (Int) -> Unit = {}
 ) {
     Scaffold(
         topBar = {
-            Box(modifier = Modifier.fillMaxWidth()) {
-                IconButton(
-                    onClick = onBack,
-                    modifier = Modifier.align(Alignment.CenterStart)
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.arrow_back),
-                        contentDescription = "Back",
-                        Modifier.size(26.dp)
-                    )
-                }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+            ) {
                 Text(
                     text = "책 제목으로 검색하기",
                     modifier = Modifier
@@ -128,11 +119,11 @@ fun SearchTabUI(
                     selectedColor,
                     selectedColor.copy(alpha = 0.2f),
                 )
-            )
+            ),
+            contentAlignment = Alignment.TopStart
         ) {
             Column(
                 modifier = Modifier.padding(horizontal = 20.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 SearchTextField(
                     modifier = Modifier
@@ -291,22 +282,10 @@ private fun SearchResultAddButton(
     index: Int,
     onClick: (Int) -> Unit = {},
 ) {
-    Button(
+    AddBookButton(
         onClick = { onClick(index) },
-        modifier = modifier,
-        shape = RoundedCornerShape(5.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Black),
-        contentPadding = PaddingValues(vertical = 5.dp, horizontal = 12.dp)
-    ) {
-        Text(
-            text = "이 책 추가 +",
-            style = TextStyle(
-                fontFamily = PretendardFontFamily,
-                fontWeight = FontWeight.Bold,
-                fontSize = 12.sp
-            )
-        )
-    }
+        modifier = modifier
+    )
 }
 
 @Composable

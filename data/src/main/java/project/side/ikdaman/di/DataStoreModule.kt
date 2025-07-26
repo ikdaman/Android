@@ -5,6 +5,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import project.side.ikdaman.data.data_source.AlarmDataStore
 import project.side.ikdaman.data.repository.PaletteRepositoryImpl
 import project.side.ikdaman.data.repository.PinningBookRepositoryImpl
 import project.side.ikdaman.data.service.PaletteService
@@ -39,4 +40,8 @@ object DataStoreModule {
 	@Provides
 	@Singleton
     fun provideAuthDataStore(application: Application) = AuthDataStore(application)
+
+    @Provides
+    @Singleton
+    fun provideAlarmDataStore(application: Application) = AlarmDataStore(application)
 }

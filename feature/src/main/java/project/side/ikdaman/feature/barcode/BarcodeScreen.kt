@@ -1,3 +1,5 @@
+@file:kotlin.OptIn(ExperimentalMaterial3Api::class)
+
 package project.side.ikdaman.feature.barcode
 
 import android.Manifest
@@ -7,17 +9,14 @@ import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
+import androidx.camera.camera2.interop.ExperimentalCamera2Interop
 import androidx.camera.core.CameraSelector
-import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,18 +24,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -46,15 +47,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -68,15 +63,19 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import project.side.ikdaman.core.navigation.BOOK_EDIT_ROUTE
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import project.side.ikdaman.core.navigation.ADD_BOOK_ROUTE
 import project.side.ikdaman.core.navigation.MAIN_ROUTE
 import project.side.ikdaman.core.ui.PretendardFontFamily
+import project.side.ikdaman.core.view.AddBookButton
+import project.side.ikdaman.core.view.CustomModalBottomSheet
 import project.side.ikdaman.domain.model.BookItem
 
 private val TAG = "BarcodeScreen"
 private const val CAMERA_PERMISSION = Manifest.permission.CAMERA
 
-@OptIn(ExperimentalGetImage::class)
+@OptIn(ExperimentalCamera2Interop::class)
 @Composable
 fun BarcodeScreen(
     navController: NavController,
@@ -84,13 +83,12 @@ fun BarcodeScreen(
         navController.getBackStackEntry(MAIN_ROUTE)
     )
 ) {
-
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var cameraProvider by remember { mutableStateOf<ProcessCameraProvider?>(null) }
     var isPermissionGranted by remember { mutableStateOf(false) }
-    val isbn = viewModel.isbn.collectAsStateWithLifecycle()
-    val searchResult = viewModel.searchResult.collectAsStateWithLifecycle()
+    val isbn by viewModel.isbn.collectAsStateWithLifecycle()
+    val searchResult by viewModel.searchResult.collectAsStateWithLifecycle()
 
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -104,8 +102,9 @@ fun BarcodeScreen(
         isPermissionGranted = checkPermission(context = context)
     }
 
-    LaunchedEffect(isbn.value) {
-        viewModel.searchBookWithIsbn(isbn.value)
+    LaunchedEffect(isbn) {
+        Log.d(TAG, "isbn: ${isbn}")
+        viewModel.searchBookWithIsbn(isbn)
     }
 
     LaunchedEffect(isPermissionGranted) {
@@ -119,10 +118,16 @@ fun BarcodeScreen(
         }
     }
 
+    LaunchedEffect(searchResult) {
+        Log.d(TAG, "searchResult: ${searchResult}")
+    }
+
     LaunchedEffect(Unit) {
-        barcodeScanner.isbnFlow.collect { value ->
-            if (value != null) {
-                viewModel.updateIsbn(value)
+        withContext(Dispatchers.Default) {
+            barcodeScanner.isbnFlow.collect { value ->
+                if (value != null) {
+                    viewModel.updateIsbn(value)
+                }
             }
         }
     }
@@ -131,15 +136,16 @@ fun BarcodeScreen(
         onBack = {
             navController.popBackStack()
         },
-        onNavigateToEditScreen = {
-            navController.navigate(BOOK_EDIT_ROUTE)
+        onAddBook = {
+            navController.navigate("$ADD_BOOK_ROUTE/$it")
         },
         isPermissionGranted = isPermissionGranted,
         lifecycleOwner = lifecycleOwner,
         cameraProvider = cameraProvider,
-        bookItem = searchResult.value,
+        bookItem = searchResult,
         onDismissDialog = {
             viewModel.resetIsbn()
+            viewModel.resetSearchResult()
         },
         barcodeScanner = barcodeScanner
     )
@@ -157,11 +163,11 @@ private fun initCameraProvider(
     )
 }
 
-@OptIn(ExperimentalGetImage::class)
+@OptIn(ExperimentalCamera2Interop::class)
 @Composable
 fun BarcodeScreenUI(
     onBack: () -> Unit = {},
-    onNavigateToEditScreen: () -> Unit = {},
+    onAddBook: (String) -> Unit = {},
     isPermissionGranted: Boolean? = null,
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
     cameraProvider: ProcessCameraProvider? = null,
@@ -171,24 +177,53 @@ fun BarcodeScreenUI(
 ) {
     Scaffold(
         topBar = {
-            IconButton(
-                onClick = onBack
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
             ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                    contentDescription = "Back"
+                IconButton(
+                    onClick = onBack,
+                    modifier = Modifier.align(Alignment.CenterStart)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color.White
+                    )
+                }
+                Text(
+                    text = "바코드 스캔하기",
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(vertical = 15.dp),
+                    style = TextStyle(
+                        fontFamily = PretendardFontFamily,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 18.sp,
+                        color = Color.White
+                    )
                 )
+                IconButton(
+                    onClick = onBack,
+                    modifier = Modifier.align(Alignment.CenterEnd)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Back",
+                        tint = Color.White
+                    )
+                }
             }
         }
     ) { innerPadding ->
         if (isPermissionGranted == null) return@Scaffold
 
         bookItem?.let {
-            BookBottomSheetDialog(
-                bottomPaddingValues = innerPadding,
+            BarcodeResultBottomSheet(
+                onDismissDialog = onDismissDialog,
                 bookItem = it,
-                onAddBookClick = {},
-                onDismiss = onDismissDialog
+                onAddBook = onAddBook
             )
         }
 
@@ -211,18 +246,17 @@ fun BarcodeScreenUI(
     }
 }
 
-@OptIn(ExperimentalGetImage::class)
+@OptIn(ExperimentalCamera2Interop::class)
 @Composable
 private fun CameraScreen(
     modifier: Modifier = Modifier,
     cameraProvider: ProcessCameraProvider? = null,
     lifecycleOwner: LifecycleOwner,
-    barcodeScanner: BarcodeScanner
+    barcodeScanner: BarcodeScanner,
 ) {
     if (cameraProvider == null) return
 
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-
+    Box(modifier = Modifier.fillMaxSize()) {
         AndroidView(
             factory = { ctx ->
                 val previewView = PreviewView(ctx)
@@ -240,7 +274,12 @@ private fun CameraScreen(
                         lifecycleOwner,
                         cameraSelector,
                         preview,
-                        barcodeScanner.imageAnalysis
+                        barcodeScanner.imageAnalysisBuilder.build()
+                            .also { analysis ->
+                                analysis.setAnalyzer(barcodeScanner.executor, { imageProxy ->
+                                    barcodeScanner.processImageProxy(imageProxy)
+                                })
+                            }
                     )
                 } catch (e: Exception) {
                     Log.e("BarcodeScreen", "bindToLifecycle failed: ${e.message}", e)
@@ -250,27 +289,6 @@ private fun CameraScreen(
                 previewView
             },
             modifier = Modifier.fillMaxSize()
-        )
-
-        val canvasWidth = constraints.maxWidth
-        val canvasHeight = constraints.maxHeight
-
-        val focusWidthPx = with(LocalDensity.current) { 362.dp.toPx() }
-        val focusHeightPx = with(LocalDensity.current) { 245.dp.toPx() }
-
-        val leftPx = (canvasWidth - focusWidthPx) / 2
-        val topPx = (canvasHeight - focusHeightPx) / 2
-
-        val focusRect = Rect(
-            left = leftPx,
-            top = topPx,
-            right = (leftPx + focusWidthPx),
-            bottom = (topPx + focusHeightPx)
-        )
-
-        BarcodeOverlay(
-            modifier = Modifier.fillMaxSize(),
-            focusRect = focusRect
         )
     }
 
@@ -284,67 +302,79 @@ private fun NoCameraScreen(modifier: Modifier = Modifier) {
     )
 }
 
+@kotlin.OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BarcodeOverlay(
-    modifier: Modifier = Modifier,
-    focusRect: Rect
+fun BarcodeResultBottomSheet(
+    sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+    onDismissDialog: () -> Unit,
+    bookItem: BookItem,
+    onAddBook: (String) -> Unit
 ) {
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.7f))
-    ) {
+    CustomModalBottomSheet(
+        sheetState = sheetState,
+        onDismiss = onDismissDialog,
+        content = { modifier ->
+            Column(
+                modifier
+                    .padding(horizontal = 20.dp, vertical = 25.dp)
+            ) {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        modifier = Modifier.size(26.dp),
+                        onClick = {
+                            onDismissDialog()
+                        }
+                    ) {
+                        Icon(Icons.Default.Close, contentDescription = "닫기")
+                    }
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // 책 썸네일
+                    AsyncImage(
+                        model = bookItem.cover,
+                        contentDescription = "책 썸네일",
+                        modifier = Modifier
+                            .size(width = 80.dp, height = 114.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop
+                    )
 
-        // 중앙 포커스 영역만 투명하게
-        Canvas(
-            modifier = modifier
-                .matchParentSize()
-        ) {
-            //중앙 부분을 지우기
-            drawRect(
-                color = Color.Transparent,
-                topLeft = Offset(focusRect.left, focusRect.top),
-                size = Size(focusRect.width, focusRect.height),
-                blendMode = BlendMode.Clear // <<< 이게 핵심
-            )
+                    Spacer(modifier = Modifier.width(12.dp))
 
-            // 테두리
-            drawRect(
-                color = Color(0xFFFFD900),
-                topLeft = Offset(focusRect.left, focusRect.top),
-                size = Size(focusRect.width, focusRect.height),
-                style = Stroke(width = 2f)
-            )
+                    Column(
+                        modifier = Modifier
+                            .height(114.dp)
+                            .fillMaxWidth()
+                    ) {
+                        Text(
+                            text = bookItem.title,
+                            style = MaterialTheme.typography.titleMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = bookItem.author,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.Gray
+                        )
+                        Spacer(Modifier.weight(1f))
+                        AddBookButton(
+                            modifier = Modifier.align(Alignment.End),
+                            onClick = { onAddBook(bookItem.isbn) }
+                        )
+                    }
+                }
+            }
         }
-
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 190.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "바코드를 영역에 맞춰 보세요",
-                color = Color.White,
-                style = TextStyle(
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 22.sp
-                )
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "원하는 책을 빠르게 찾을 수 있어요",
-                color = Color.White,
-                style = TextStyle(
-                    fontFamily = PretendardFontFamily,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 14.sp
-                )
-            )
-        }
-    }
-
+    )
 }
 
 private fun checkPermission(context: Context): Boolean =
@@ -352,89 +382,25 @@ private fun checkPermission(context: Context): Boolean =
 
 @kotlin.OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BookBottomSheetDialog(
-    bottomPaddingValues: PaddingValues,
-    bookItem: BookItem,
-    onAddBookClick: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // 책 썸네일
-            AsyncImage(
-                model = bookItem.cover,
-                contentDescription = "책 썸네일",
-                modifier = Modifier
-                    .size(60.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
-            )
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            // 책 정보
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = bookItem.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = bookItem.author,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
-                )
-            }
-
-            // "이 책 추가" 버튼
-            Button(
-                onClick = onAddBookClick,
-                modifier = Modifier.height(36.dp),
-                shape = RoundedCornerShape(8.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp)
-            ) {
-                Text(text = "이 책 추가 +")
-            }
-        }
+@androidx.compose.ui.tooling.preview.Preview
+private fun BarcodeResultBottomSheetPreview() {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    LaunchedEffect(Unit) {
+        sheetState.show()
     }
+    BarcodeResultBottomSheet(
+        sheetState = sheetState,
+        onDismissDialog = {},
+        bookItem = BookItem(
+            title = "test",
+            author = "test",
+            cover = "https://image.aladin.co.kr/product/4086/97/coversum/8936434128_2.jpg",
+            isbn = "test",
+            itemId = 0,
+            link = "test",
+            publisher = "test",
+            subInfo = null
+        ),
+        onAddBook = {}
+    )
 }
-//@OptIn(ExperimentalGetImage::class)
-//@Composable
-//@Preview(showBackground = true)
-//fun BarcodeScreenUIPreview() {
-//    AppTheme {
-//        BarcodeScreenUI(
-//            onBack = {},
-//            onNavigateToEditScreen = {},
-//            isPermissionGranted = true,
-//            lifecycleOwner = LocalLifecycleOwner.current,
-//            barcodeScanner = BarcodeScanner()
-//        )
-//    }
-//}
-
-//@Composable
-//@Preview(showBackground = true, apiLevel = 31)
-//fun BarcodeOverlayPreview() {
-//    AppTheme {
-//        Box(modifier = Modifier.fillMaxSize()) {
-//            Image(
-//                painter = painterResource(R.drawable.sample_book_cover2),
-//                contentDescription = null,
-//                modifier = Modifier.fillMaxSize()
-//            )
-//            BarcodeOverlay(Modifier.fillMaxSize())
-//        }
-//    }
-//}
