@@ -49,10 +49,6 @@ class SearchViewModel @Inject constructor(
         )
 
     init {
-        getPalette()
-    }
-
-    private fun getPalette() {
         viewModelScope.launch {
             paletteRepository.getPalette().collect { color ->
                 selectedColor.emit(Palette.getColor(color))
@@ -64,13 +60,9 @@ class SearchViewModel @Inject constructor(
         _searchKeyword.value = title
     }
 
-    fun emitSelectedBookIsbn(index: Int) {
+    fun selectBook(isbn: String) {
         viewModelScope.launch {
-            searchResult.value?.let { result ->
-                if (result.books.isNotEmpty()) {
-                    _selectedBookIsbn.emit(result.books[index].isbn)
-                }
-            }
+            _selectedBookIsbn.emit(isbn)
         }
     }
 }

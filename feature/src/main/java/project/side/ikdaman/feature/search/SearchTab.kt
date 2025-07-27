@@ -77,7 +77,7 @@ fun SearchTab(
         },
         searchKeyword = searchKeyword,
         bookSearchResult = bookSearch,
-        onClickAddBookButton = { viewModel.emitSelectedBookIsbn(it) }
+        onClickAddBookButton = viewModel::selectBook
     )
 }
 
@@ -88,7 +88,7 @@ fun SearchTabUI(
     onSearchKeywordChange: (String) -> Unit = {},
     searchKeyword: String = "",
     bookSearchResult: BookSearchResult? = BookSearchResult(),
-    onClickAddBookButton: (Int) -> Unit = {}
+    onClickAddBookButton: (String) -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -146,16 +146,15 @@ fun SearchTabUI(
 private fun SearchResultScreen(
     searchKeyword: String,
     bookSearchResult: BookSearchResult?,
-    onClickAddBookButton: (Int) -> Unit
+    onClickAddBookButton: (String) -> Unit
 ) {
     if (bookSearchResult == null || bookSearchResult.totalBookCount == 0) {
         NoSearchResultScreen(searchKeyword)
     } else {
         LazyColumn(modifier = Modifier.padding(top = 24.dp)) {
-            items(bookSearchResult.books.withIndex().toList()) { (index, item) ->
+            items(bookSearchResult.books) { item ->
                 SearchResultItem(
                     bookItem = item,
-                    index = index,
                     onClickAddBookButton = onClickAddBookButton
                 )
                 Box(
@@ -233,8 +232,7 @@ private fun SearchTextField(
 @Composable
 private fun SearchResultItem(
     bookItem: BookItem,
-    index: Int,
-    onClickAddBookButton: (Int) -> Unit
+    onClickAddBookButton: (String) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -268,24 +266,11 @@ private fun SearchResultItem(
                 )
             }
         }
-        SearchResultAddButton(
-            modifier = Modifier.align(Alignment.BottomEnd),
-            index = index,
-            onClick = onClickAddBookButton
+        AddBookButton(
+            onClick = { onClickAddBookButton(bookItem.isbn) },
+            modifier = Modifier.align(Alignment.BottomEnd)
         )
     }
-}
-
-@Composable
-private fun SearchResultAddButton(
-    modifier: Modifier,
-    index: Int,
-    onClick: (Int) -> Unit = {},
-) {
-    AddBookButton(
-        onClick = { onClick(index) },
-        modifier = modifier
-    )
 }
 
 @Composable
