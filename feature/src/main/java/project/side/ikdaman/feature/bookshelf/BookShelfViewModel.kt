@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.domain.model.ApiResult
@@ -44,9 +43,10 @@ class BookShelfViewModel @Inject constructor(
 
     fun getBooks(
         filter: BookShelfFilter = BookShelfFilter.ALL,
+        isLoadMore: Boolean = false,
         keyword: String? = null,
         page: Int = 1,
-        limit: Int = 9
+        limit: Int = 15
     ) {
         viewModelScope.launch {
             getBooksOnShelfUseCase(
@@ -60,15 +60,14 @@ class BookShelfViewModel @Inject constructor(
                         _uiState.emit(
                             _uiState.value.copy(
                                 isLoading = false,
-                                books = it.data.books,
-                                totalBooks = it.data.books.size,
+                                books = if (isLoadMore) _uiState.value.books + it.data.books else it.data.books,
                                 totalPage = it.data.totalPage,
                                 nowPage = it.data.nowPage
-                        ))
+                            )
+                        )
                     }
 
                     is ApiResult.Error -> {
-//                        _uiState.value = _uiState.value.copy(isLoading = false)
                         _uiState.emit(_uiState.value.copy(isLoading = false))
                         _uiEvent.emit("정보를 불러오는데 실패했습니다. 잠시 후 다시 시도해 주세요.")
                     }
@@ -90,6 +89,5 @@ class BookShelfViewModel @Inject constructor(
         val books: List<BookShelfItem> = emptyList(),
         val totalPage: Int = 0,
         val nowPage: Int = 0,
-        val totalBooks: Int = 0,
     )
 }

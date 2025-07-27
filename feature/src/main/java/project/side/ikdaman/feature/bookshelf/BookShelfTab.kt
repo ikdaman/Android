@@ -1,29 +1,35 @@
 package project.side.ikdaman.feature.bookshelf
 
-import android.util.Log
+import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,6 +46,7 @@ import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
+import kotlinx.coroutines.flow.distinctUntilChanged
 import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.core.ui.Palette
@@ -49,12 +56,34 @@ import project.side.ikdaman.feature.bookshelf.BookShelfViewModel.BookShelfFilter
 import project.side.ikdaman.feature.search.SearchTextField
 import kotlin.math.ceil
 
+@SuppressLint("UnrememberedMutableState")
 @Composable
 fun BookShelfTab(navController: NavController, viewModel: BookShelfViewModel = hiltViewModel()) {
     val selectedColor = viewModel.selectedColor.collectAsState().value
     val uiState = viewModel.uiState.collectAsState().value
     val context = LocalContext.current
     val selectedFilter = remember { mutableStateOf(BookShelfFilter.ALL) }
+    val lazyListState = rememberLazyListState()
+
+    val shouldLoadMore by derivedStateOf {
+        if(uiState.books.isEmpty()) return@derivedStateOf false
+        val lastVisibleRow = lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+        val totalRows = ceil(uiState.books.size / 3.0).toInt()
+        lastVisibleRow >= totalRows - 2 && !uiState.isLoading && uiState.nowPage < uiState.totalPage
+    }
+
+    LaunchedEffectLoadMoreBooks(shouldLoadMore) {
+        viewModel.getBooks(
+            filter = selectedFilter.value,
+            isLoadMore = true,
+            keyword = null,
+            page = uiState.nowPage + 1
+        )
+    }
+
+    LaunchedEffect(selectedFilter.value) {
+        lazyListState.scrollToItem(0)
+    }
 
     LaunchedEffect(Unit) {
         viewModel.uiEvent.collect { message ->
@@ -66,11 +95,10 @@ fun BookShelfTab(navController: NavController, viewModel: BookShelfViewModel = h
         onNavigateTo = {
             navController.navigate(it)
         },
-        selectedColor = selectedColor,
-        isLoading = uiState.isLoading,
-        totalPage = uiState.totalPage,
+        lazyListState = lazyListState,
         books = uiState.books,
-        totalBooks = uiState.totalBooks,
+        isLoading = uiState.isLoading,
+        selectedColor = selectedColor,
         selectedFilter = selectedFilter.value,
         onFilterChanged = { filter ->
             selectedFilter.value = filter
@@ -80,17 +108,32 @@ fun BookShelfTab(navController: NavController, viewModel: BookShelfViewModel = h
 }
 
 @Composable
+fun LaunchedEffectLoadMoreBooks(
+    shouldLoadMore: Boolean,
+    onLoadMoreBooks: () -> Unit = {}
+) {
+    LaunchedEffect(shouldLoadMore) {
+        snapshotFlow { shouldLoadMore }
+            .distinctUntilChanged()
+            .collect { shouldLoad ->
+                if (shouldLoad) {
+                    onLoadMoreBooks()
+                }
+            }
+    }
+}
+
+@SuppressLint("UnrememberedMutableState")
+@Composable
 fun BookShelfTabUI(
     onNavigateTo: (String) -> Unit = {},
-    selectedColor: Color = Palette.first,
+    lazyListState: LazyListState = rememberLazyListState(),
     isLoading: Boolean = false,
-    totalPage: Int = 1,
     books: List<BookShelfItem> = emptyList(),
-    totalBooks: Int = 0,
+    selectedColor: Color = Palette.first,
     selectedFilter: BookShelfFilter = BookShelfFilter.ALL,
     onFilterChanged: (BookShelfFilter) -> Unit = {},
 ) {
-    val pagerState = rememberPagerState(pageCount = { totalPage })
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -134,63 +177,61 @@ fun BookShelfTabUI(
                     onClick = { onFilterChanged(BookShelfFilter.PROGRESS) }
                 )
             }
-            HorizontalPager(state = pagerState) { page ->
-                Column(
-                    modifier = Modifier.fillMaxSize()
+            if (books.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                        .height(175.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color.White.copy(alpha = 0.6f))
                 ) {
-                    Log.d("yewon", "$totalBooks")
-                    val totalBookShelfLine = ceil(totalBooks / 3.0).toInt()
-                    val lastBooks = totalBooks % 3
+                    val text = when (selectedFilter) {
+                        BookShelfFilter.COMPLETE -> "+\n" +
+                                "완독한 책이 없어요.\n" +
+                                "읽다만 책을 읽어볼까요?"
 
-                    if (totalBooks == 0) {
-                        Box(
+                        else -> "+\n" +
+                                "가지고 있는 책이 없어요.\n" +
+                                "독서를 추가해보세요 \uD83E\uDD13\uFE0F"
+                    }
+
+                    Text(
+                        modifier = Modifier.align(Alignment.Center),
+                        text = text,
+                        style = BookShelfTextStyle.emptyBookShelfText,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            } else {
+                LazyColumn(
+                    state = lazyListState,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .navigationBarsPadding(),
+                    contentPadding = PaddingValues(bottom = 56.dp)
+                ) {
+                    val rowCount = ceil(books.size / 3.0).toInt()
+                    items(rowCount) { row ->
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 20.dp)
-                                .height(175.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(Color.White.copy(alpha = 0.6f))
+                                .padding(horizontal = 20.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            val text = when (selectedFilter) {
-                                BookShelfFilter.ALL -> "+\n" +
-                                        "가지고 있는 책이 없어요.\n" +
-                                        "독서를 추가해보세요 \uD83E\uDD13\uFE0F"
+                            for (col in 0..<3) {
+                                val book = books.getOrNull(row * 3 + col)
 
-                                BookShelfFilter.COMPLETE -> "+\n" +
-                                        "완독한 책이 없어요.\n" +
-                                        "읽다만 책을 읽어볼까요?"
-
-                                BookShelfFilter.PROGRESS -> ""
-                            }
-
-                            Text(
-                                modifier = Modifier.align(Alignment.Center),
-                                text = text,
-                                style = BookShelfTextStyle.emptyBookShelfText,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    } else {
-                        for (i in 0..<totalBookShelfLine) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 20.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                for (j in 0..<lastBooks) {
-                                    val book = books[i * 3 + j]
-                                    BookItem(true, book.mybookId, book.coverImage)
-                                }
-                                if (lastBooks != 0) {
-                                    for (j in 0..<(3 - lastBooks)) {
-                                        Spacer(modifier = Modifier.size(100.dp, 160.dp))
-                                    }
+                                if (book != null) {
+                                    BookItem(book.isCompleted, book.mybookId, book.coverImage)
+                                } else {
+                                    Spacer(modifier = Modifier.size(100.dp, 160.dp))
                                 }
                             }
-                            BookShelf(selectedColor = selectedColor)
-                            Spacer(modifier = Modifier.height(30.dp))
                         }
+                        BookShelf(selectedColor = selectedColor)
+                        Spacer(modifier = Modifier.height(50.dp))
                     }
                 }
             }
@@ -297,6 +338,6 @@ fun BookItem(
 @Preview(showBackground = true)
 fun BookShelfTabUIPreview() {
     AppTheme {
-        BookShelfTabUI(isLoading = true, books = listOf(BookShelfItem()), totalBooks = 0)
+        BookShelfTabUI(isLoading = true, books = listOf(BookShelfItem()))
     }
 }

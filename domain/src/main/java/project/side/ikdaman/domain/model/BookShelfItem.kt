@@ -10,5 +10,6 @@ data class BookShelfItem(
     val mybookId: Long = 0L,
     val title: String = "",
     val author: String = "",
-    val coverImage: String = ""
+    val coverImage: String = "",
+    val isCompleted: Boolean = false,
 )
