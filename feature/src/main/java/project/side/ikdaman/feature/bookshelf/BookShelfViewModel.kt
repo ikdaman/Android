@@ -3,10 +3,15 @@ package project.side.ikdaman.feature.bookshelf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.domain.model.ApiResult
@@ -28,9 +33,12 @@ class BookShelfViewModel @Inject constructor(
     private val _uiEvent = MutableSharedFlow<String>()
     val uiEvent = _uiEvent.asSharedFlow()
 
+    private val _keyword = MutableStateFlow<String?>(null)
+    val keyword = _keyword.asStateFlow()
+
     init {
         getPalette()
-        getBooks()
+        observeKeyword()
     }
 
     private fun getPalette() {
@@ -41,12 +49,24 @@ class BookShelfViewModel @Inject constructor(
         }
     }
 
+    @OptIn(FlowPreview::class)
+    private fun observeKeyword() {
+        viewModelScope.launch {
+            _keyword.debounce(DEBOUNCE_TIME)
+                .map { it?.trim() }
+                .distinctUntilChanged()
+                .collectLatest { keyword ->
+                    getBooks(keyword = keyword)
+                }
+        }
+    }
+
     fun getBooks(
-        filter: BookShelfFilter = BookShelfFilter.ALL,
-        isLoadMore: Boolean = false,
-        keyword: String? = null,
+        filter: BookShelfFilter = _uiState.value.filter,
+        keyword: String? = _keyword.value,
         page: Int = 1,
-        limit: Int = 15
+        limit: Int = PAGE_SIZE,
+        isLoadMore: Boolean = false,
     ) {
         viewModelScope.launch {
             getBooksOnShelfUseCase(
@@ -80,6 +100,14 @@ class BookShelfViewModel @Inject constructor(
         }
     }
 
+    fun onKeywordChanged(keyword: String) {
+        _keyword.value = keyword.ifEmpty { null }
+    }
+
+    fun onFilterChanged(filter: BookShelfFilter) {
+        _uiState.value = _uiState.value.copy(filter = filter)
+    }
+
     enum class BookShelfFilter(val value: String?) {
         ALL(null), PROGRESS("in-progress"), COMPLETE("completed")
     }
@@ -87,7 +115,13 @@ class BookShelfViewModel @Inject constructor(
     data class BookShelfUiState(
         val isLoading: Boolean = false,
         val books: List<BookShelfItem> = emptyList(),
+        val filter: BookShelfFilter = BookShelfFilter.ALL,
         val totalPage: Int = 0,
         val nowPage: Int = 0,
     )
+
+    companion object {
+        const val PAGE_SIZE = 15
+        const val DEBOUNCE_TIME = 300L
+    }
 }

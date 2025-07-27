@@ -24,6 +24,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -62,26 +63,24 @@ fun BookShelfTab(navController: NavController, viewModel: BookShelfViewModel = h
     val selectedColor = viewModel.selectedColor.collectAsState().value
     val uiState = viewModel.uiState.collectAsState().value
     val context = LocalContext.current
-    val selectedFilter = remember { mutableStateOf(BookShelfFilter.ALL) }
     val lazyListState = rememberLazyListState()
+    val keyword = viewModel.keyword.collectAsState().value
 
     val shouldLoadMore by derivedStateOf {
-        if(uiState.books.isEmpty()) return@derivedStateOf false
+        if (uiState.books.isEmpty()) return@derivedStateOf false
         val lastVisibleRow = lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
         val totalRows = ceil(uiState.books.size / 3.0).toInt()
-        lastVisibleRow >= totalRows - 2 && !uiState.isLoading && uiState.nowPage < uiState.totalPage
+        lastVisibleRow >= totalRows - 1 && !uiState.isLoading && uiState.nowPage < uiState.totalPage
     }
 
     LaunchedEffectLoadMoreBooks(shouldLoadMore) {
         viewModel.getBooks(
-            filter = selectedFilter.value,
             isLoadMore = true,
-            keyword = null,
             page = uiState.nowPage + 1
         )
     }
 
-    LaunchedEffect(selectedFilter.value) {
+    LaunchedEffect(uiState.filter) {
         lazyListState.scrollToItem(0)
     }
 
@@ -98,11 +97,13 @@ fun BookShelfTab(navController: NavController, viewModel: BookShelfViewModel = h
         lazyListState = lazyListState,
         books = uiState.books,
         isLoading = uiState.isLoading,
+        keyword = keyword ?: "",
+        onKeywordChanged = { viewModel.onKeywordChanged(it) },
         selectedColor = selectedColor,
-        selectedFilter = selectedFilter.value,
+        selectedFilter = uiState.filter,
         onFilterChanged = { filter ->
-            selectedFilter.value = filter
-            viewModel.getBooks(filter)
+            viewModel.onFilterChanged(filter)
+            viewModel.getBooks()
         }
     )
 }
@@ -130,6 +131,8 @@ fun BookShelfTabUI(
     lazyListState: LazyListState = rememberLazyListState(),
     isLoading: Boolean = false,
     books: List<BookShelfItem> = emptyList(),
+    keyword: String = "",
+    onKeywordChanged: (String) -> Unit = {},
     selectedColor: Color = Palette.first,
     selectedFilter: BookShelfFilter = BookShelfFilter.ALL,
     onFilterChanged: (BookShelfFilter) -> Unit = {},
@@ -151,8 +154,8 @@ fun BookShelfTabUI(
                 modifier = Modifier
                     .padding(horizontal = 20.dp)
                     .padding(top = 35.dp, bottom = 40.dp),
-                searchText = "",
-                onSearchTextChanged = {}
+                searchText = keyword,
+                onSearchTextChanged = { onKeywordChanged(it) }
             )
             Row(
                 modifier = Modifier
@@ -251,6 +254,7 @@ fun FilterText(text: String, isSelected: Boolean, onClick: () -> Unit) {
     )
 }
 
+@Stable
 @Composable
 fun BookShelf(modifier: Modifier = Modifier, selectedColor: Color = Palette.first) {
     Box(
