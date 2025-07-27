@@ -70,7 +70,7 @@ fun MainScreen(appNavController: NavHostController, onNotificationPermissionChec
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             floatingActionButton = {
-                if (currentDestination.value == HOME_ROUTE) {
+                if (currentDestination.value == HOME_ROUTE || currentDestination.value == BOOKSHELF_ROUTE) {
                     FloatingActionButton(
                         onClick = { addBookDialogState.value = true },
                         containerColor = Color.Transparent,

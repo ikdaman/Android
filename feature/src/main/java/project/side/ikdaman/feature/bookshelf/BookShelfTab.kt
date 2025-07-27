@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -49,6 +51,7 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.flow.distinctUntilChanged
 import project.side.ikdaman.app.feature.R
+import project.side.ikdaman.core.navigation.BOOK_DETAIL_ROUTE
 import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.core.utils.noEffectClick
@@ -65,6 +68,7 @@ fun BookShelfTab(navController: NavController, viewModel: BookShelfViewModel = h
     val context = LocalContext.current
     val lazyListState = rememberLazyListState()
     val keyword = viewModel.keyword.collectAsState().value
+    val prevFilter = remember { mutableStateOf(uiState.filter) }
 
     val shouldLoadMore by derivedStateOf {
         if (uiState.books.isEmpty()) return@derivedStateOf false
@@ -81,7 +85,10 @@ fun BookShelfTab(navController: NavController, viewModel: BookShelfViewModel = h
     }
 
     LaunchedEffect(uiState.filter) {
-        lazyListState.scrollToItem(0)
+        if (prevFilter.value != uiState.filter) {
+            lazyListState.scrollToItem(0)
+            prevFilter.value = uiState.filter
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -141,6 +148,7 @@ fun BookShelfTabUI(
         modifier = Modifier
             .fillMaxSize()
             .background(selectedColor)
+            .statusBarsPadding()
     ) {
         if (isLoading) {
             CircularProgressIndicator(
@@ -227,7 +235,9 @@ fun BookShelfTabUI(
                                 val book = books.getOrNull(row * 3 + col)
 
                                 if (book != null) {
-                                    BookItem(book.isCompleted, book.mybookId, book.coverImage)
+                                    BookItem(book.isCompleted, book.mybookId, book.coverImage) {
+                                        onNavigateTo(it)
+                                    }
                                 } else {
                                     Spacer(modifier = Modifier.size(100.dp, 160.dp))
                                 }
@@ -275,7 +285,8 @@ fun BookShelf(modifier: Modifier = Modifier, selectedColor: Color = Palette.firs
 fun BookItem(
     isCompleted: Boolean = false,
     myBookId: Long = 0,
-    bookImage: String = ""
+    bookImage: String = "",
+    onNavigateTo: (String) -> Unit = {}
 ) {
     val isLoading = remember { mutableStateOf(true) }
     Box(
@@ -288,6 +299,7 @@ fun BookItem(
                 offsetY = 0.dp,
                 blurRadius = 4.dp
             )
+            .clickable { onNavigateTo("$BOOK_DETAIL_ROUTE/$myBookId/false") }
     ) {
         if (isCompleted) {
             Image(
