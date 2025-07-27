@@ -9,10 +9,16 @@ import javax.inject.Inject
 
 val TAG = "BookRepositoryImpl"
 
-class BookRepositoryImpl @Inject constructor(private val bookService: BookService): BookRepository {
-    override suspend fun searchBookWithTitle(title: String): BookSearchResult {
+class BookRepositoryImpl @Inject constructor(private val bookService: BookService) : BookRepository {
+    override suspend fun searchBookWithTitle(
+        title: String,
+        startPage: Int
+    ): BookSearchResult {
         try {
-            val response = bookService.searchBookWithTitle(query = title)
+            val response = bookService.searchBookWithTitle(
+                query = title,
+                startPage = startPage
+            )
             Log.d(TAG, "searchBookWithTitle: $response")
             return response.toDomain()
         } catch (e: Exception) {
