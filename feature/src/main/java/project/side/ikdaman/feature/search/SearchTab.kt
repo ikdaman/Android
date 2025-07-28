@@ -170,7 +170,8 @@ private fun SearchResultScreen(
             }
     }
     LazyColumn(
-        state = listState
+        state = listState,
+        modifier = Modifier.padding(bottom = 56.dp)
     ) {
         items(bookItems) { item ->
             SearchResultItem(
