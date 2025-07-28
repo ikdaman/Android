@@ -3,18 +3,18 @@ package project.side.ikdaman.feature.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import project.side.ikdaman.core.ui.Palette
+import project.side.ikdaman.domain.model.BookItem
 import project.side.ikdaman.domain.model.BookSearchResult
 import project.side.ikdaman.domain.repository.PaletteRepository
 import project.side.ikdaman.domain.usecase.SearchBookWithTitleUseCase
@@ -35,24 +35,15 @@ class SearchViewModel @Inject constructor(
     private val _searchKeyword = MutableStateFlow("")
     val searchKeyword = _searchKeyword.asStateFlow()
 
-    val searchResult: StateFlow<BookSearchResult?> = _searchKeyword
-        .debounce(200L)
-        .flatMapLatest { keyword ->
-            flow {
-                emit(searchBookWithTitleUseCase(keyword))
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Lazily,
-            initialValue = null
-        )
+    private val _searchResult: MutableStateFlow<List<BookItem>> = MutableStateFlow(listOf())
+    val searchResult: StateFlow<List<BookItem>> = _searchResult.asStateFlow()
+
+    private var startPage: Int = 1
+    private var cachedSearchResult: BookSearchResult = BookSearchResult()
+
+    private var searchJob: Job? = null
 
     init {
-        getPalette()
-    }
-
-    private fun getPalette() {
         viewModelScope.launch {
             paletteRepository.getPalette().collect { color ->
                 selectedColor.emit(Palette.getColor(color))
@@ -61,15 +52,36 @@ class SearchViewModel @Inject constructor(
     }
 
     fun updateSearchKeyword(title: String) {
-        _searchKeyword.value = title
+        _searchKeyword.update { title }
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch(Dispatchers.IO) {
+            delay(50L)
+            val result = searchBookWithTitleUseCase(
+                keyword = title,
+                startPage = startPage
+            )
+            _searchResult.update { result.books }
+            startPage = 1
+            cachedSearchResult = result
+        }
     }
 
-    fun emitSelectedBookIsbn(index: Int) {
+    fun selectBook(isbn: String) {
         viewModelScope.launch {
-            searchResult.value?.let { result ->
-                if (result.books.isNotEmpty()) {
-                    _selectedBookIsbn.emit(result.books[index].isbn)
-                }
+            _selectedBookIsbn.emit(isbn)
+        }
+    }
+
+    fun loadMore() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val result = searchBookWithTitleUseCase(
+                keyword = searchKeyword.value,
+                startPage = startPage + 1
+            )
+            if (result != cachedSearchResult) {
+                startPage++
+                cachedSearchResult = result
+                _searchResult.update { it + result.books }
             }
         }
     }

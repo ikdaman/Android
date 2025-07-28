@@ -12,7 +12,9 @@ interface BookService {
         @Query("queryType") queryType: String = "Title",
         @Query("cover") cover: String = "Big",
         @Query("output") output: String = "js",
-        @Query("version") version: String = "20131101"
+        @Query("version") version: String = "20131101",
+        @Query("maxResults") maxResults: Int = 50,
+        @Query("start") startPage: Int = 1
     ): BookSearchResponse
 
     @GET("ttb/api/ItemLookUp.aspx")
