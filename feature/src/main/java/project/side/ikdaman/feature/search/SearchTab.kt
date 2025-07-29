@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -12,13 +13,13 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,22 +43,25 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import kotlinx.coroutines.flow.distinctUntilChanged
 import project.side.ikdaman.app.feature.R
-import project.side.ikdaman.core.navigation.MAIN_ROUTE
 import project.side.ikdaman.core.navigation.ADD_BOOK_ROUTE
+import project.side.ikdaman.core.navigation.BARCODE_ROUTE
+import project.side.ikdaman.core.navigation.FromWhere
+import project.side.ikdaman.core.navigation.HOME_ROUTE
+import project.side.ikdaman.core.navigation.MAIN_ROUTE
 import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.core.ui.PretendardFontFamily
+import project.side.ikdaman.core.utils.oneClick
 import project.side.ikdaman.core.view.AddBookButton
 import project.side.ikdaman.core.view.GradientBox
 import project.side.ikdaman.domain.model.BookItem
 import project.side.ikdaman.domain.model.BookSubInfo
 
-private const val TAG = "SearchScreen"
-
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun SearchTab(
     appNavController: NavController,
+    mainNavController: NavController,
     viewModel: SearchViewModel = hiltViewModel(
         appNavController.getBackStackEntry(MAIN_ROUTE)
     )
@@ -72,13 +76,23 @@ fun SearchTab(
         }
     }
 
+    LaunchedEffect(Unit) {
+        val needToGoHome = appNavController.currentBackStackEntry?.savedStateHandle?.get<Boolean>("navigateToHome")
+        if (needToGoHome == true) {
+            mainNavController.navigate(HOME_ROUTE)
+        }
+    }
+
     SearchTabUI(
         selectedColor = selectedColor,
         onSearchKeywordChange = viewModel::updateSearchKeyword,
         searchKeyword = searchKeyword,
         bookItems = bookSearch,
         onClickAddBookButton = viewModel::selectBook,
-        onLoadMoreBooks = viewModel::loadMore
+        onLoadMoreBooks = viewModel::loadMore,
+        onNavigateToBarcodeScanner = {
+            appNavController.navigate("${BARCODE_ROUTE}/${FromWhere.FROM_SEARCH}")
+        }
     )
 }
 
@@ -90,7 +104,8 @@ fun SearchTabUI(
     searchKeyword: String = "",
     bookItems: List<BookItem> = listOf(),
     onClickAddBookButton: (String) -> Unit = {},
-    onLoadMoreBooks: () -> Unit = {}
+    onLoadMoreBooks: () -> Unit = {},
+    onNavigateToBarcodeScanner: () -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -133,7 +148,8 @@ fun SearchTabUI(
                     modifier = Modifier
                         .padding(vertical = 24.dp),
                     searchText = searchKeyword,
-                    onSearchTextChanged = onSearchKeywordChange
+                    onSearchTextChanged = onSearchKeywordChange,
+                    onNavigateToBarcodeScanner = onNavigateToBarcodeScanner
                 )
                 if (bookItems.isEmpty()) {
                     NoSearchResultScreen(searchKeyword)
@@ -192,7 +208,8 @@ private fun SearchResultScreen(
 private fun SearchTextField(
     modifier: Modifier = Modifier,
     searchText: String,
-    onSearchTextChanged: (String) -> Unit
+    onSearchTextChanged: (String) -> Unit,
+    onNavigateToBarcodeScanner: () -> Unit = {}
 ) {
     BasicTextField(
         modifier = modifier
@@ -209,13 +226,11 @@ private fun SearchTextField(
         textStyle = TextStyle(
             fontFamily = PretendardFontFamily,
             fontWeight = FontWeight.Normal,
-            fontSize = 15.sp
+            fontSize = 15.sp,
         ),
+        maxLines = 1,
         decorationBox = { innerTextField ->
-            Box(
-                modifier = Modifier
-
-            ) {
+            Box(modifier = Modifier) {
                 if (searchText.isEmpty()) {
                     Text(
                         "책 제목을 검색해주세요.",
@@ -233,15 +248,30 @@ private fun SearchTextField(
                 Box(
                     modifier = Modifier
                         .align(Alignment.CenterStart)
-                        .padding(horizontal = 15.dp)
+                        .padding(start = 15.dp, end = 80.dp)
                 ) {
                     innerTextField()
                 }
-                IconButton(onClick = {}, modifier = Modifier.align(Alignment.CenterEnd)) {
+                Row(Modifier
+                    .padding(end = 15.dp)
+                    .align(Alignment.CenterEnd)
+                    .oneClick {
+                        onNavigateToBarcodeScanner()
+                    }) {
+                    Icon(
+                        painter = painterResource(R.drawable.camera_scan),
+                        contentDescription = "Camera",
+                        modifier = Modifier
+                            .padding(top = 8.dp, bottom = 8.dp)
+                            .size(24.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
                     Icon(
                         painter = painterResource(R.drawable.magnifier),
                         contentDescription = "Search",
-                        Modifier.size(24.dp)
+                        Modifier
+                            .padding(top = 8.dp, bottom = 8.dp)
+                            .size(24.dp)
                     )
                 }
             }
@@ -328,7 +358,7 @@ private fun NoSearchResultScreen(searchKeyword: String) {
 private fun SearchTabUIPreview() {
     AppTheme {
         SearchTabUI(
-            searchKeyword = "소년",
+            searchKeyword = "소년이 온다 온다 온다 온다 온다 온다 온다 온다 온다",
             bookItems = List(5) {
                 BookItem(
                     title = "소년이 온다(개정판)",
@@ -350,7 +380,7 @@ private fun SearchTabUIPreview() {
 private fun SearchTabUIPreview_No_Result() {
     AppTheme {
         SearchTabUI(
-            searchKeyword = "소년ㅇㄴㅇ",
+            searchKeyword = "소년ㅇㄴaasdfasdfasdfasdfasdfㅇ",
             bookItems = emptyList(),
         )
     }

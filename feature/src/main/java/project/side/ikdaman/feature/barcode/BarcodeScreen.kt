@@ -1,4 +1,4 @@
-@file:kotlin.OptIn(ExperimentalMaterial3Api::class)
+@file:kotlin.OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
 
 package project.side.ikdaman.feature.barcode
 
@@ -14,6 +14,8 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,6 +41,7 @@ import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -66,19 +69,21 @@ import coil.compose.AsyncImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import project.side.ikdaman.core.navigation.ADD_BOOK_ROUTE
+import project.side.ikdaman.core.navigation.FromWhere
 import project.side.ikdaman.core.navigation.MAIN_ROUTE
 import project.side.ikdaman.core.ui.PretendardFontFamily
+import project.side.ikdaman.core.utils.oneClick
 import project.side.ikdaman.core.view.AddBookButton
 import project.side.ikdaman.core.view.CustomModalBottomSheet
 import project.side.ikdaman.domain.model.BookItem
 
-private val TAG = "BarcodeScreen"
 private const val CAMERA_PERMISSION = Manifest.permission.CAMERA
 
 @OptIn(ExperimentalCamera2Interop::class)
 @Composable
 fun BarcodeScreen(
     navController: NavController,
+    fromWhere: String = FromWhere.FROM_MAIN,
     viewModel: BarcodeViewModel = hiltViewModel(
         navController.getBackStackEntry(MAIN_ROUTE)
     )
@@ -103,7 +108,7 @@ fun BarcodeScreen(
     }
 
     LaunchedEffect(isbn) {
-        Log.d(TAG, "isbn: ${isbn}")
+        Log.d("BarcodeScreen", "isbn: $isbn")
         viewModel.searchBookWithIsbn(isbn)
     }
 
@@ -116,10 +121,6 @@ fun BarcodeScreen(
         } else {
             cameraPermissionLauncher.launch(CAMERA_PERMISSION)
         }
-    }
-
-    LaunchedEffect(searchResult) {
-        Log.d(TAG, "searchResult: ${searchResult}")
     }
 
     LaunchedEffect(Unit) {
@@ -136,18 +137,29 @@ fun BarcodeScreen(
         onBack = {
             navController.popBackStack()
         },
-        onAddBook = {
-            navController.navigate("$ADD_BOOK_ROUTE/$it")
-        },
         isPermissionGranted = isPermissionGranted,
         lifecycleOwner = lifecycleOwner,
         cameraProvider = cameraProvider,
         bookItem = searchResult,
+        barcodeScanner = barcodeScanner,
+        onNavigateToAddBookScreen = {
+            navController.navigate("$ADD_BOOK_ROUTE/$it")
+        },
+        onAddBook = {
+            viewModel.addBook {
+                if (fromWhere == FromWhere.FROM_SEARCH) {
+                    navController.previousBackStackEntry?.savedStateHandle?.set(
+                        "navigateToHome",
+                        true
+                    )
+                }
+                navController.popBackStack()
+            }
+        },
         onDismissDialog = {
             viewModel.resetIsbn()
             viewModel.resetSearchResult()
         },
-        barcodeScanner = barcodeScanner
     )
 }
 
@@ -167,19 +179,21 @@ private fun initCameraProvider(
 @Composable
 fun BarcodeScreenUI(
     onBack: () -> Unit = {},
-    onAddBook: (String) -> Unit = {},
     isPermissionGranted: Boolean? = null,
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
     cameraProvider: ProcessCameraProvider? = null,
     bookItem: BookItem? = null,
+    barcodeScanner: BarcodeScanner,
+    onNavigateToAddBookScreen: (String) -> Unit = {},
+    onAddBook: () -> Unit = {},
     onDismissDialog: () -> Unit = {},
-    barcodeScanner: BarcodeScanner
 ) {
     Scaffold(
         topBar = {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .background(Color.Black)
                     .statusBarsPadding()
             ) {
                 IconButton(
@@ -223,6 +237,7 @@ fun BarcodeScreenUI(
             BarcodeResultBottomSheet(
                 onDismissDialog = onDismissDialog,
                 bookItem = it,
+                onNavigateToAddBookScreen = onNavigateToAddBookScreen,
                 onAddBook = onAddBook
             )
         }
@@ -246,6 +261,7 @@ fun BarcodeScreenUI(
     }
 }
 
+
 @OptIn(ExperimentalCamera2Interop::class)
 @Composable
 private fun CameraScreen(
@@ -256,42 +272,67 @@ private fun CameraScreen(
 ) {
     if (cameraProvider == null) return
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    // DisposableEffect를 사용하여 화면 이탈 시 카메라 해제
+    DisposableEffect(cameraProvider, lifecycleOwner) {
+        onDispose {
+            try {
+                cameraProvider.unbindAll()
+            } catch (e: Exception) {
+                Log.e("BarcodeScreen", "Camera unbind failed: ${e.message}")
+            }
+        }
+    }
+
+    Box(modifier) {
         AndroidView(
             factory = { ctx ->
                 val previewView = PreviewView(ctx)
 
-                val preview = Preview.Builder().build().also {
-                    it.surfaceProvider = previewView.surfaceProvider
-                }
-
-                val cameraSelector = CameraSelector.Builder()
-                    .requireLensFacing(CameraSelector.LENS_FACING_BACK)
-                    .build()
-
-                try {
-                    cameraProvider.bindToLifecycle(
-                        lifecycleOwner,
-                        cameraSelector,
-                        preview,
-                        barcodeScanner.imageAnalysisBuilder.build()
-                            .also { analysis ->
-                                analysis.setAnalyzer(barcodeScanner.executor, { imageProxy ->
-                                    barcodeScanner.processImageProxy(imageProxy)
-                                })
-                            }
-                    )
-                } catch (e: Exception) {
-                    Log.e("BarcodeScreen", "bindToLifecycle failed: ${e.message}", e)
-                }
-
-
+                bindCamera(previewView, cameraProvider, lifecycleOwner, barcodeScanner)
                 previewView
             },
-            modifier = Modifier.fillMaxSize()
+            update = { view ->
+                bindCamera(view, cameraProvider, lifecycleOwner, barcodeScanner)
+            },
+            modifier = Modifier
+                .fillMaxSize()
+                .border(2.dp, Color(0xFFFFD900))
+                .background(Color.Black)
         )
     }
 
+}
+
+@OptIn(ExperimentalCamera2Interop::class)
+private fun bindCamera(
+    previewView: PreviewView,
+    cameraProvider: ProcessCameraProvider,
+    lifecycleOwner: LifecycleOwner,
+    barcodeScanner: BarcodeScanner
+) {
+    val preview = Preview.Builder().build().also {
+        it.surfaceProvider = previewView.surfaceProvider
+    }
+
+    val cameraSelector = CameraSelector.Builder()
+        .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+        .build()
+
+    try {
+        cameraProvider.bindToLifecycle(
+            lifecycleOwner,
+            cameraSelector,
+            preview,
+            barcodeScanner.imageAnalysisBuilder.build()
+                .also { analysis ->
+                    analysis.setAnalyzer(barcodeScanner.executor) { imageProxy ->
+                        barcodeScanner.processImageProxy(imageProxy)
+                    }
+                }
+        )
+    } catch (e: Exception) {
+        Log.e("BarcodeScreen", "bindToLifecycle failed: ${e.message}", e)
+    }
 }
 
 @Composable
@@ -308,7 +349,8 @@ fun BarcodeResultBottomSheet(
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
     onDismissDialog: () -> Unit,
     bookItem: BookItem,
-    onAddBook: (String) -> Unit
+    onNavigateToAddBookScreen: (String) -> Unit,
+    onAddBook: () -> Unit = {}
 ) {
     CustomModalBottomSheet(
         sheetState = sheetState,
@@ -334,7 +376,10 @@ fun BarcodeResultBottomSheet(
                 }
                 Row(
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .oneClick {
+                            onNavigateToAddBookScreen(bookItem.isbn)
+                        },
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // 책 썸네일
@@ -368,7 +413,7 @@ fun BarcodeResultBottomSheet(
                         Spacer(Modifier.weight(1f))
                         AddBookButton(
                             modifier = Modifier.align(Alignment.End),
-                            onClick = { onAddBook(bookItem.isbn) }
+                            onClick = onAddBook
                         )
                     }
                 }
@@ -401,6 +446,6 @@ private fun BarcodeResultBottomSheetPreview() {
             publisher = "test",
             subInfo = null
         ),
-        onAddBook = {}
+        onNavigateToAddBookScreen = {}
     )
 }
