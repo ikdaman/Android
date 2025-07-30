@@ -52,9 +52,12 @@ class BarcodeViewModel @Inject constructor(
 
     fun addBook(onSuccess: () -> Unit) {
         viewModelScope.launch {
-            postBookUseCase(AddBookItem(searchResult.value!!, "")).collect {
-                if (it is ApiResult.Success) {
-                    onSuccess()
+            val bookItem = searchResult.value
+            if (bookItem != null) {
+                postBookUseCase(AddBookItem(bookItem, "")).collect {
+                    if (it is ApiResult.Success) {
+                        onSuccess()
+                    }
                 }
             }
         }

@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalFoundationApi::class)
-
 package project.side.ikdaman.feature.home
 
 import ExpandableInlineText
@@ -7,7 +5,6 @@ import android.annotation.SuppressLint
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.LocalOverscrollFactory
 import androidx.compose.foundation.background
@@ -265,6 +262,7 @@ fun HomeTabUI(
             Box(
                 Modifier
                     .padding(top = 59.dp, start = 20.dp)
+                    .statusBarsPadding()
                     .align(Alignment.TopStart)
             ) {
                 PaletteView(Palette.paletteColors, selectedColor, paletteViewState) {

@@ -1,4 +1,4 @@
-@file:kotlin.OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
+@file:kotlin.OptIn(ExperimentalMaterial3Api::class)
 
 package project.side.ikdaman.feature.barcode
 
