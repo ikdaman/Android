@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Icon
@@ -23,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -38,6 +40,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import kotlinx.coroutines.flow.distinctUntilChanged
 import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.navigation.MAIN_ROUTE
 import project.side.ikdaman.core.navigation.ADD_BOOK_ROUTE
@@ -47,7 +50,6 @@ import project.side.ikdaman.core.ui.PretendardFontFamily
 import project.side.ikdaman.core.view.AddBookButton
 import project.side.ikdaman.core.view.GradientBox
 import project.side.ikdaman.domain.model.BookItem
-import project.side.ikdaman.domain.model.BookSearchResult
 import project.side.ikdaman.domain.model.BookSubInfo
 
 private const val TAG = "SearchScreen"
@@ -72,12 +74,11 @@ fun SearchTab(
 
     SearchTabUI(
         selectedColor = selectedColor,
-        onSearchKeywordChange = {
-            viewModel.updateSearchKeyword(it)
-        },
+        onSearchKeywordChange = viewModel::updateSearchKeyword,
         searchKeyword = searchKeyword,
-        bookSearchResult = bookSearch,
-        onClickAddBookButton = { viewModel.emitSelectedBookIsbn(it) }
+        bookItems = bookSearch,
+        onClickAddBookButton = viewModel::selectBook,
+        onLoadMoreBooks = viewModel::loadMore
     )
 }
 
@@ -87,8 +88,9 @@ fun SearchTabUI(
     selectedColor: Color = Palette.first,
     onSearchKeywordChange: (String) -> Unit = {},
     searchKeyword: String = "",
-    bookSearchResult: BookSearchResult? = BookSearchResult(),
-    onClickAddBookButton: (Int) -> Unit = {}
+    bookItems: List<BookItem> = listOf(),
+    onClickAddBookButton: (String) -> Unit = {},
+    onLoadMoreBooks: () -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -123,20 +125,25 @@ fun SearchTabUI(
             contentAlignment = Alignment.TopStart
         ) {
             Column(
-                modifier = Modifier.padding(horizontal = 20.dp),
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .padding(horizontal = 20.dp),
             ) {
                 SearchTextField(
                     modifier = Modifier
-                        .padding(paddingValues)
-                        .padding(top = 24.dp),
+                        .padding(vertical = 24.dp),
                     searchText = searchKeyword,
                     onSearchTextChanged = onSearchKeywordChange
                 )
-                SearchResultScreen(
-                    searchKeyword = searchKeyword,
-                    bookSearchResult = bookSearchResult,
-                    onClickAddBookButton = onClickAddBookButton,
-                )
+                if (bookItems.isEmpty()) {
+                    NoSearchResultScreen(searchKeyword)
+                } else {
+                    SearchResultScreen(
+                        bookItems = bookItems,
+                        onClickAddBookButton = onClickAddBookButton,
+                        onLoadMoreBooks = onLoadMoreBooks
+                    )
+                }
             }
         }
     }
@@ -144,27 +151,39 @@ fun SearchTabUI(
 
 @Composable
 private fun SearchResultScreen(
-    searchKeyword: String,
-    bookSearchResult: BookSearchResult?,
-    onClickAddBookButton: (Int) -> Unit
+    bookItems: List<BookItem>,
+    onClickAddBookButton: (String) -> Unit,
+    onLoadMoreBooks: () -> Unit
 ) {
-    if (bookSearchResult == null || bookSearchResult.totalBookCount == 0) {
-        NoSearchResultScreen(searchKeyword)
-    } else {
-        LazyColumn(modifier = Modifier.padding(top = 24.dp)) {
-            items(bookSearchResult.books.withIndex().toList()) { (index, item) ->
-                SearchResultItem(
-                    bookItem = item,
-                    index = index,
-                    onClickAddBookButton = onClickAddBookButton
-                )
-                Box(
-                    modifier = Modifier
-                        .height(1.dp)
-                        .fillMaxWidth()
-                        .background(Color.White.copy(alpha = 0.5f))
-                )
+    val listState = rememberLazyListState()
+    LaunchedEffect(listState, bookItems) {
+        snapshotFlow {
+            val visibleItems = listState.layoutInfo.visibleItemsInfo
+            if (visibleItems.isEmpty()) 0
+            else visibleItems.last().index
+        }
+            .distinctUntilChanged()
+            .collect { lastIndex ->
+                if (lastIndex == bookItems.size - 1) {
+                    onLoadMoreBooks()
+                }
             }
+    }
+    LazyColumn(
+        state = listState,
+        modifier = Modifier.padding(bottom = 56.dp)
+    ) {
+        items(bookItems) { item ->
+            SearchResultItem(
+                bookItem = item,
+                onClickAddBookButton = onClickAddBookButton
+            )
+            Box(
+                modifier = Modifier
+                    .height(1.dp)
+                    .fillMaxWidth()
+                    .background(Color.White.copy(alpha = 0.5f))
+            )
         }
     }
 }
@@ -233,8 +252,7 @@ fun SearchTextField(
 @Composable
 private fun SearchResultItem(
     bookItem: BookItem,
-    index: Int,
-    onClickAddBookButton: (Int) -> Unit
+    onClickAddBookButton: (String) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -268,24 +286,11 @@ private fun SearchResultItem(
                 )
             }
         }
-        SearchResultAddButton(
-            modifier = Modifier.align(Alignment.BottomEnd),
-            index = index,
-            onClick = onClickAddBookButton
+        AddBookButton(
+            onClick = { onClickAddBookButton(bookItem.isbn) },
+            modifier = Modifier.align(Alignment.BottomEnd)
         )
     }
-}
-
-@Composable
-private fun SearchResultAddButton(
-    modifier: Modifier,
-    index: Int,
-    onClick: (Int) -> Unit = {},
-) {
-    AddBookButton(
-        onClick = { onClick(index) },
-        modifier = modifier
-    )
 }
 
 @Composable
@@ -324,21 +329,18 @@ private fun SearchTabUIPreview() {
     AppTheme {
         SearchTabUI(
             searchKeyword = "소년",
-            bookSearchResult = BookSearchResult(
-                totalBookCount = 5,
-                books = List(5) {
-                    BookItem(
-                        title = "소년이 온다(개정판)",
-                        author = "한강",
-                        cover = "https://contents.kyobobook.co.kr/sih/fit-in/458x0/pdt/4808936434120.jpg",
-                        isbn = "",
-                        publisher = "창비",
-                        subInfo = BookSubInfo("279"),
-                        itemId = 0,
-                        link = ""
-                    )
-                }
-            )
+            bookItems = List(5) {
+                BookItem(
+                    title = "소년이 온다(개정판)",
+                    author = "한강",
+                    cover = "https://contents.kyobobook.co.kr/sih/fit-in/458x0/pdt/4808936434120.jpg",
+                    isbn = "",
+                    publisher = "창비",
+                    subInfo = BookSubInfo("279"),
+                    itemId = 0,
+                    link = ""
+                )
+            }
         )
     }
 }
@@ -349,10 +351,7 @@ private fun SearchTabUIPreview_No_Result() {
     AppTheme {
         SearchTabUI(
             searchKeyword = "소년ㅇㄴㅇ",
-            bookSearchResult = BookSearchResult(
-                totalBookCount = 0,
-                books = emptyList(),
-            )
+            bookItems = emptyList(),
         )
     }
 }
