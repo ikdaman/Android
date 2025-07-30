@@ -52,6 +52,7 @@ import coil.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.flow.distinctUntilChanged
 import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.navigation.BOOK_DETAIL_ROUTE
+import project.side.ikdaman.core.navigation.SEARCH_ROUTE
 import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.core.utils.noEffectClick
@@ -62,7 +63,11 @@ import kotlin.math.ceil
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
-fun BookShelfTab(navController: NavController, viewModel: BookShelfViewModel = hiltViewModel()) {
+fun BookShelfTab(
+    navController: NavController,
+    mainNavController: NavController,
+    viewModel: BookShelfViewModel = hiltViewModel()
+) {
     val selectedColor = viewModel.selectedColor.collectAsState().value
     val uiState = viewModel.uiState.collectAsState().value
     val context = LocalContext.current
@@ -98,9 +103,6 @@ fun BookShelfTab(navController: NavController, viewModel: BookShelfViewModel = h
     }
 
     BookShelfTabUI(
-        onNavigateTo = {
-            navController.navigate(it)
-        },
         lazyListState = lazyListState,
         books = uiState.books,
         isLoading = uiState.isLoading,
@@ -111,7 +113,9 @@ fun BookShelfTab(navController: NavController, viewModel: BookShelfViewModel = h
         onFilterChanged = { filter ->
             viewModel.onFilterChanged(filter)
             viewModel.getBooks()
-        }
+        },
+        onNavigateToBookDetail = { navController.navigate(it) },
+        onNavigateToBookSearch = { mainNavController.navigate(SEARCH_ROUTE) },
     )
 }
 
@@ -134,7 +138,6 @@ fun LaunchedEffectLoadMoreBooks(
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun BookShelfTabUI(
-    onNavigateTo: (String) -> Unit = {},
     lazyListState: LazyListState = rememberLazyListState(),
     isLoading: Boolean = false,
     books: List<BookShelfItem> = emptyList(),
@@ -143,6 +146,8 @@ fun BookShelfTabUI(
     selectedColor: Color = Palette.first,
     selectedFilter: BookShelfFilter = BookShelfFilter.ALL,
     onFilterChanged: (BookShelfFilter) -> Unit = {},
+    onNavigateToBookDetail: (String) -> Unit = {},
+    onNavigateToBookSearch: () -> Unit = {},
 ) {
     Box(
         modifier = Modifier
@@ -196,6 +201,7 @@ fun BookShelfTabUI(
                         .height(175.dp)
                         .clip(RoundedCornerShape(10.dp))
                         .background(Color.White.copy(alpha = 0.6f))
+                        .clickable { onNavigateToBookSearch() }
                 ) {
                     val text = when (selectedFilter) {
                         BookShelfFilter.COMPLETE -> "+\n" +
@@ -236,7 +242,7 @@ fun BookShelfTabUI(
 
                                 if (book != null) {
                                     BookItem(book.isCompleted, book.mybookId, book.coverImage) {
-                                        onNavigateTo(it)
+                                        onNavigateToBookDetail(it)
                                     }
                                 } else {
                                     Spacer(modifier = Modifier.size(100.dp, 160.dp))

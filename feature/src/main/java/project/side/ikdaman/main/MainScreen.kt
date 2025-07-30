@@ -109,7 +109,7 @@ fun MainScreen(appNavController: NavHostController, onNotificationPermissionChec
                 }
                 composable(BOOKSHELF_ROUTE) {
                     currentDestination.value = BOOKSHELF_ROUTE
-                    BookShelfTab(appNavController)
+                    BookShelfTab(appNavController, mainNavController)
                 }
                 composable(MY_PAGE_ROUTE) {
                     currentDestination.value = MY_PAGE_ROUTE
