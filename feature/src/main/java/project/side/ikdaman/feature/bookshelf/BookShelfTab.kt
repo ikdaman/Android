@@ -135,7 +135,6 @@ fun LaunchedEffectLoadMoreBooks(
     }
 }
 
-@SuppressLint("UnrememberedMutableState")
 @Composable
 fun BookShelfTabUI(
     lazyListState: LazyListState = rememberLazyListState(),
