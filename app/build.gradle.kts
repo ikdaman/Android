@@ -55,6 +55,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.core.splashscreen)
     implementation(projects.feature)
     implementation(projects.core)
     implementation(projects.domain)

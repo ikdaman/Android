@@ -8,3 +8,7 @@ plugins {
 android {
     setNamespace("core")
 }
+
+dependencies {
+    api(libs.androidx.core.splashscreen)
+}
