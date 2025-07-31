@@ -7,15 +7,17 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import project.side.ikdaman.domain.model.AddBookItem
+import project.side.ikdaman.domain.model.ApiResult
 import project.side.ikdaman.domain.model.BookItem
+import project.side.ikdaman.domain.usecase.PostBookUseCase
 import project.side.ikdaman.domain.usecase.SearchBookWithIsbnUseCase
 import javax.inject.Inject
 
-private val TAG = "BarcodeViewModel"
-
 @HiltViewModel
 class BarcodeViewModel @Inject constructor(
-    private val searchBookWithIsbnUseCase: SearchBookWithIsbnUseCase
+    private val searchBookWithIsbnUseCase: SearchBookWithIsbnUseCase,
+    private val postBookUseCase: PostBookUseCase,
 ) : ViewModel() {
 
     private val _isbn = MutableStateFlow<String?>(null)
@@ -46,5 +48,18 @@ class BarcodeViewModel @Inject constructor(
 
     fun resetSearchResult() {
         _searchResult.update { null }
+    }
+
+    fun addBook(onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            val bookItem = searchResult.value
+            if (bookItem != null) {
+                postBookUseCase(AddBookItem(bookItem, "")).collect {
+                    if (it is ApiResult.Success) {
+                        onSuccess()
+                    }
+                }
+            }
+        }
     }
 }

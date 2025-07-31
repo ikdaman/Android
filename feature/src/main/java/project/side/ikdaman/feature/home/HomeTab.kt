@@ -6,6 +6,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.LocalOverscrollFactory
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -30,6 +32,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -179,7 +182,9 @@ fun HomeTabUI(
         Column(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize().statusBarsPadding()
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
         ) {
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -257,6 +262,7 @@ fun HomeTabUI(
             Box(
                 Modifier
                     .padding(top = 59.dp, start = 20.dp)
+                    .statusBarsPadding()
                     .align(Alignment.TopStart)
             ) {
                 PaletteView(Palette.paletteColors, selectedColor, paletteViewState) {
@@ -304,146 +310,159 @@ private fun CarouselBooks(
     onNavigateToFirstImpression: (String) -> Unit = {}
 ) {
     val state = rememberScrollState()
-    Column(
-        Modifier.verticalScroll(state, reverseScrolling = true),
-        horizontalAlignment = Alignment.CenterHorizontally
+
+    LaunchedEffect(Unit) {
+        state.scrollTo(state.maxValue)
+    }
+
+    CompositionLocalProvider(
+        LocalOverscrollFactory provides null
     ) {
-        Spacer(Modifier.height(20.dp))
-        LeftDayBubble(books[selectedBookIndex.value])
-        Spacer(Modifier.height(17.dp))
-        BookCarousel(
-            deleteMode = deleteMode,
-            selectedBookIndex = selectedBookIndex,
-            items = books,
-            onDeleteClick = onDeleteClick,
-            onBookClicked = onBookClicked
-        )
-        Spacer(Modifier.height(19.dp))
         Column(
-            verticalArrangement = Arrangement.SpaceAround,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.height(42.dp).padding(horizontal = 20.dp)
+            Modifier
+                .verticalScroll(state, reverseScrolling = true)
+                .navigationBarsPadding(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            AppText(
-                books[selectedBookIndex.value].title,
-                style = HomeTextStyles.bookTitleText,
-                modifier = Modifier.basicMarquee()
+            Spacer(Modifier.height(20.dp))
+            LeftDayBubble(books[selectedBookIndex.value])
+            Spacer(Modifier.height(17.dp))
+            BookCarousel(
+                deleteMode = deleteMode,
+                selectedBookIndex = selectedBookIndex,
+                items = books,
+                onDeleteClick = onDeleteClick,
+                onBookClicked = onBookClicked
             )
-            AppText(
-                books[selectedBookIndex.value].author,
-                style = HomeTextStyles.bookAuthorText,
-                modifier = Modifier.basicMarquee()
-            )
-        }
-        Spacer(Modifier.height(10.dp))
-        BookProgressBarWithText(
-            LocalConfiguration.current.screenWidthDp - 40,
-            books[selectedBookIndex.value].progress,
-            modifier = Modifier.padding(horizontal = 20.dp)
-        )
-        Spacer(Modifier.height(20.dp))
-        Box(
-            Modifier.oneClick(500) {
-                onAddRecord(books[selectedBookIndex.value].id)
-            }
-        ) {
-            Column(modifier = Modifier.padding(8.dp)) {
-                AppText("이 책의 기록 추가 +", style = HomeTextStyles.buttonText)
-                Box(
-                    Modifier
-                        .width(87.dp)
-                        .height(1.dp)
-                        .background(Color.Black)
-                )
-            }
-        }
-        Spacer(Modifier.height(30.dp))
-        val isExpanded = remember { mutableStateOf(false) }
-        val isImpressionEmpty = books[selectedBookIndex.value].firstImpression.isEmpty()
-        if (isImpressionEmpty) {
+            Spacer(Modifier.height(19.dp))
             Column(
-                Modifier
-                    .padding(start = 20.dp, end = 20.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .fillMaxWidth()
-                    .background(Color.White)
-                    .padding(vertical = 25.dp, horizontal = 20.dp)
-                    .oneClick(500) {
-                        onNavigateToFirstImpression(books[selectedBookIndex.value].id)
-                    }
+                verticalArrangement = Arrangement.SpaceAround,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .height(42.dp)
+                    .padding(horizontal = 20.dp)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    AppText(
-                        "\uD83D\uDC95 책의 첫인상",
-                        style = HomeTextStyles.bottomTitle,
-                    )
-                    Image(
-                        imageVector = ImageVector.vectorResource(R.drawable.pencil),
-                        contentDescription = null,
-                        Modifier.size(24.dp)
-                    )
-                }
-                Spacer(Modifier.height(10.dp))
                 AppText(
-                    firstImpressionText(books, selectedBookIndex),
-                    style = HomeTextStyles.bottomDescription.copy(
-                        color = Color(0xFF333333)
-                    ),
-                    maxLines = 3,
-                    modifier = Modifier.fillMaxWidth(),
+                    books[selectedBookIndex.value].title,
+                    style = HomeTextStyles.bookTitleText,
+                    modifier = Modifier.basicMarquee()
+                )
+                AppText(
+                    books[selectedBookIndex.value].author,
+                    style = HomeTextStyles.bookAuthorText,
+                    modifier = Modifier.basicMarquee()
                 )
             }
-        } else {
-            Column(
-                Modifier
-                    .padding(start = 20.dp, end = 20.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .fillMaxWidth()
-                    .animateContentSize(
-                        animationSpec = tween(300)
-                    )
-                    .background(Color.White)
-                    .padding(25.dp),
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    AppText(
-                        "\uD83D\uDC95 책의 첫인상",
-                        style = HomeTextStyles.bottomTitle,
-                    )
-                    if (isExpanded.value) {
-                        Image(
-                            imageVector = ImageVector.vectorResource(R.drawable.arrow_small_up),
-                            contentDescription = null,
-                            modifier = Modifier.clickable {
-                                isExpanded.value = false
-                            }
-                        )
-                    } else {
-                        Box(Modifier.size(24.dp))
-                    }
+            Spacer(Modifier.height(10.dp))
+            BookProgressBarWithText(
+                LocalConfiguration.current.screenWidthDp - 40,
+                books[selectedBookIndex.value].progress,
+                modifier = Modifier.padding(horizontal = 20.dp)
+            )
+            Spacer(Modifier.height(20.dp))
+            Box(
+                Modifier.oneClick(500) {
+                    onAddRecord(books[selectedBookIndex.value].id)
                 }
-                Spacer(Modifier.height(10.dp))
-                ExpandableInlineText(
-                    text = firstImpressionText(books, selectedBookIndex),
-                    isExpanded = isExpanded,
-                    maxLines = 3,
-                    modifier = Modifier
+            ) {
+                Column(modifier = Modifier.padding(8.dp)) {
+                    AppText("이 책의 기록 추가 +", style = HomeTextStyles.buttonText)
+                    Box(
+                        Modifier
+                            .width(87.dp)
+                            .height(1.dp)
+                            .background(Color.Black)
+                    )
+                }
+            }
+            Spacer(Modifier.height(30.dp))
+            val isExpanded = remember { mutableStateOf(false) }
+            val isImpressionEmpty = books[selectedBookIndex.value].firstImpression.isEmpty()
+            if (isImpressionEmpty) {
+                Column(
+                    Modifier
+                        .padding(start = 20.dp, end = 20.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .fillMaxWidth()
+                        .background(Color.White)
+                        .padding(vertical = 25.dp, horizontal = 20.dp)
+                        .oneClick(500) {
+                            onNavigateToFirstImpression(books[selectedBookIndex.value].id)
+                        }
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        AppText(
+                            "\uD83D\uDC95 책의 첫인상",
+                            style = HomeTextStyles.bottomTitle,
+                        )
+                        Image(
+                            imageVector = ImageVector.vectorResource(R.drawable.pencil),
+                            contentDescription = null,
+                            Modifier.size(24.dp)
+                        )
+                    }
+                    Spacer(Modifier.height(10.dp))
+                    AppText(
+                        firstImpressionText(books, selectedBookIndex),
+                        style = HomeTextStyles.bottomDescription.copy(
+                            color = Color(0xFF333333)
+                        ),
+                        maxLines = 3,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            } else {
+                Column(
+                    Modifier
+                        .padding(start = 20.dp, end = 20.dp)
+                        .clip(RoundedCornerShape(10.dp))
                         .fillMaxWidth()
                         .animateContentSize(
-                            animationSpec = tween(100)
-                        ),
-                )
+                            animationSpec = tween(300)
+                        )
+                        .background(Color.White)
+                        .padding(25.dp),
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        AppText(
+                            "\uD83D\uDC95 책의 첫인상",
+                            style = HomeTextStyles.bottomTitle,
+                        )
+                        if (isExpanded.value) {
+                            Image(
+                                imageVector = ImageVector.vectorResource(R.drawable.arrow_small_up),
+                                contentDescription = null,
+                                modifier = Modifier.clickable {
+                                    isExpanded.value = false
+                                }
+                            )
+                        } else {
+                            Box(Modifier.size(24.dp))
+                        }
+                    }
+                    Spacer(Modifier.height(10.dp))
+                    ExpandableInlineText(
+                        text = firstImpressionText(books, selectedBookIndex),
+                        isExpanded = isExpanded,
+                        maxLines = 3,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .animateContentSize(
+                                animationSpec = tween(100)
+                            ),
+                    )
+                }
             }
+            Spacer(Modifier.height(111.dp))
         }
-        Spacer(Modifier.height(111.dp))
     }
 }
 

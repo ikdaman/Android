@@ -11,6 +11,7 @@ import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.runtime.Composable
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
@@ -45,6 +46,7 @@ import project.side.ikdaman.feature.splash.SplashScreen
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
@@ -62,14 +64,28 @@ class MainActivity : ComponentActivity() {
                     slideComposable(MAIN_ROUTE) {
                         MainScreen(navController) {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                                    ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 100)
+                                if (ContextCompat.checkSelfPermission(
+                                        this@MainActivity,
+                                        Manifest.permission.POST_NOTIFICATIONS
+                                    ) != PackageManager.PERMISSION_GRANTED
+                                ) {
+                                    ActivityCompat.requestPermissions(
+                                        this@MainActivity,
+                                        arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                                        100
+                                    )
                                 }
                             }
                         }
                     }
-                    slideComposable(BARCODE_ROUTE) {
-                        BarcodeScreen(navController)
+                    slideComposable(
+                        "${BARCODE_ROUTE}/{fromWhere}",
+                        arguments = listOf(
+                            navArgument("fromWhere") { type = NavType.StringType; }
+                        )
+                    ) { backStackEntry ->
+                        val fromWhere = backStackEntry.arguments?.getString("fromWhere") ?: ""
+                        BarcodeScreen(navController = navController, fromWhere = fromWhere)
                     }
                     slideComposable(
                         route = "$ADD_BOOK_ROUTE/{isbn}",
@@ -77,7 +93,8 @@ class MainActivity : ComponentActivity() {
                             navArgument("isbn") { type = NavType.StringType }
                         )
                     ) { backStackEntry ->
-                        val isbn = backStackEntry.arguments?.getString("isbn") ?: return@slideComposable
+                        val isbn =
+                            backStackEntry.arguments?.getString("isbn") ?: return@slideComposable
                         AddBookScreen(isbn = isbn, navController = navController)
                     }
                     slideComposable(

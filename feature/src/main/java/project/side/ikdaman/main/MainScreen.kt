@@ -48,6 +48,7 @@ import androidx.navigation.compose.rememberNavController
 import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.navigation.BARCODE_ROUTE
 import project.side.ikdaman.core.navigation.BOOKSHELF_ROUTE
+import project.side.ikdaman.core.navigation.FromWhere
 import project.side.ikdaman.core.navigation.HOME_ROUTE
 import project.side.ikdaman.core.navigation.MY_PAGE_ROUTE
 import project.side.ikdaman.core.navigation.SEARCH_ROUTE
@@ -105,7 +106,7 @@ fun MainScreen(appNavController: NavHostController, onNotificationPermissionChec
                 }
                 composable(SEARCH_ROUTE) {
                     currentDestination.value = SEARCH_ROUTE
-                    SearchTab(appNavController)
+                    SearchTab(appNavController, mainNavController)
                 }
                 composable(BOOKSHELF_ROUTE) {
                     currentDestination.value = BOOKSHELF_ROUTE
@@ -178,7 +179,7 @@ fun MainScreen(appNavController: NavHostController, onNotificationPermissionChec
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    appNavController.navigate(BARCODE_ROUTE)
+                                    appNavController.navigate("${BARCODE_ROUTE}/${FromWhere.FROM_MAIN}")
                                     onDismissDialog()
                                 }
                         )

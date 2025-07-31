@@ -4,6 +4,7 @@ animation = "1.8.0"
 barcodeScanning = "17.3.0"
 cameraCore = "1.4.2"
 converterMoshi = "2.9.0"
+coreSplashscreen = "1.0.1"
 datastorePreferences = "1.1.4"
 javaxInject = "1"
 kotlin = "2.1.0"
@@ -53,6 +54,7 @@ uiAndroid = "1.6.6"
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
 android-desugarJdkLibs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "androidDesugarJdkLibs" }
 androidx-animation = { module = "androidx.compose.animation:animation", version.ref = "animation" }
+androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 androidx-datastore-preferences-core = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastorePreferences" }
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraCore" }
