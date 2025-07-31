@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,6 +36,8 @@ import project.side.ikdaman.core.ui.AppText
 import project.side.ikdaman.domain.model.Notice
 import project.side.ikdaman.domain.model.NoticeDetail
 import project.side.ikdaman.feature.mypage.NoticeViewModel
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun NoticeScreen(
@@ -142,6 +145,8 @@ private fun NoticeItem(
     onClick: () -> Unit
 ) {
     val rotationDegree by animateFloatAsState(targetValue = if (isExpanded) 180f else 0f)
+    val inputTimeFormatter = remember { DateTimeFormatter.ISO_LOCAL_DATE_TIME }
+    val outputTimeFormatter = remember { DateTimeFormatter.ofPattern("yyyy.MM.dd") }
 
     Column(
         modifier = Modifier
@@ -157,7 +162,9 @@ private fun NoticeItem(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 AppText(
-                    text = notice.uploadedAt,
+                    text = LocalDateTime
+                        .parse(notice.uploadedAt, inputTimeFormatter)
+                        .format(outputTimeFormatter),
                     style = TextStyle(
                         fontSize = 12.sp,
                         color = Color.Black.copy(alpha = 0.5f)
@@ -184,8 +191,10 @@ private fun NoticeItem(
                 Spacer(modifier = Modifier.height(8.dp))
                 AppText(
                     text = noticeDetail.content,
-                    style = TextStyle(fontSize = 13.sp, color = Color(0xFF444444)),
-                    modifier = Modifier.padding(vertical = 15.dp, horizontal = 23.dp)
+                    style = TextStyle(fontSize = 13.sp, color = Color(0xFF444444), lineHeight = 22.sp),
+                    modifier = Modifier.padding(vertical = 15.dp, horizontal = 23.dp),
+                    overflow = TextOverflow.Visible,
+                    maxLines = Int.MAX_VALUE
                 )
             }
         }

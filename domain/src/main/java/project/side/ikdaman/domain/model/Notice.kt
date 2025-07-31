@@ -4,7 +4,7 @@ data class NoticeItem(
     val notices: List<Notice>,
     val hasNext: Boolean,
     val currentPage: Int,
-    val totalPage: Int
+    val totalPages: Int
 )
 
 data class Notice(

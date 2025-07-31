@@ -46,6 +46,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import project.side.ikdaman.app.feature.R
+import project.side.ikdaman.core.navigation.NOTICE_ROUTE
 import project.side.ikdaman.core.navigation.USERINFO_ROUTE
 import project.side.ikdaman.core.ui.AppTheme
 import java.util.Locale
@@ -66,7 +67,8 @@ fun MyPageTab(
             viewModel.toggleAlarm()
             onPermissionCheck()
         },
-        onTimeSelected = { viewModel.updateSelectedTime(it) }
+        onTimeSelected = { viewModel.updateSelectedTime(it) },
+        navigateToNotice = { navController.navigate(NOTICE_ROUTE) }
     )
 }
 
@@ -78,7 +80,8 @@ fun MyPageTabUI(
     isTimeSelectOpened: MutableState<Boolean> = remember { mutableStateOf(false) },
     navigateToEditProfile: () -> Unit = {},
     onCheckedChanged: (Boolean) -> Unit = {},
-    onTimeSelected: (String) -> Unit = {}
+    onTimeSelected: (String) -> Unit = {},
+    navigateToNotice: () -> Unit = {}
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     Box(
@@ -181,7 +184,7 @@ fun MyPageTabUI(
                     .background(Color(0xFFF9F9F9))
             )
             Spacer(modifier = Modifier.height(27.dp))
-            MyPageMenuItem("공지사항")
+            MyPageMenuItem("공지사항", navigateToNotice)
             MyPageMenuItem("서비스 이용약관")
             MyPageMenuItem("개인정보 처리방침")
             MyPageMenuItem("1:1 문의")
@@ -273,7 +276,7 @@ fun MyPageMenuItem(
 @Composable
 @Preview(showBackground = true)
 fun MyPageTabUIPreview() {
-    AppTheme { MyPageTabUI("닉네임", true)}
+    AppTheme { MyPageTabUI("닉네임", true) }
 }
 
 @Composable

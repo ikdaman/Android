@@ -46,7 +46,7 @@ class NoticeViewModel @Inject constructor(
                 _noticeUiState.update {
                     it.copy(
                         notices = notices.notices,
-                        totalPage = notices.totalPage
+                        totalPage = notices.totalPages
                     )
                 }
             } catch (e: Exception) {

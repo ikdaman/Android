@@ -9,13 +9,13 @@ import retrofit2.http.Query
 
 interface NoticeService {
     @GET("notices")
-    fun getNotices(
+    suspend fun getNotices(
         @Query("page") page: Int,
         @Query("limit") limit: Int
     ): Response<NoticeItem>
 
     @GET("notices/{id}")
-    fun getNoticeDetail(
+    suspend fun getNoticeDetail(
         @Path("id") id: Long
     ): Response<NoticeDetail>
 }
