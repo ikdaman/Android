@@ -1,5 +1,6 @@
 package com.example.app.ui
 
+import android.widget.Toast
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -10,50 +11,71 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import project.side.ikdaman.core.ui.AppText
+import project.side.ikdaman.domain.model.Notice
+import project.side.ikdaman.domain.model.NoticeDetail
+import project.side.ikdaman.feature.mypage.NoticeViewModel
 
-data class Notice(
-    val id: String,
-    val date: String,
-    val title: String,
-    val content: String
-)
+@Composable
+fun NoticeScreen(
+    onBack: () -> Unit
+) {
+    val viewModel = hiltViewModel<NoticeViewModel>()
+    val noticeUiState by viewModel.noticeUiState.collectAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        viewModel.noticeErrorEvent.collect {
+            Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    LaunchedEffect(noticeUiState.currentPage) {
+        viewModel.getNotices(noticeUiState.currentPage)
+    }
+
+    NoticeScreenUi(
+        notices = noticeUiState.notices,
+        currentPage = noticeUiState.currentPage,
+        totalPages = noticeUiState.totalPage,
+        onBack = onBack,
+        onPageChange = { viewModel.changeCurrentPage(it) },
+        expandedNotices = noticeUiState.expandedNotices,
+        onToggleNoticeExpansion = { viewModel.toggleNoticeExpansion(it) }
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NoticeScreen(
+fun NoticeScreenUi(
     notices: List<Notice>,
     currentPage: Int,
     totalPages: Int,
     onBack: () -> Unit,
-    onPageChange: (Int) -> Unit
+    onPageChange: (Int) -> Unit,
+    expandedNotices: Map<Long, NoticeDetail>,
+    onToggleNoticeExpansion: (Long) -> Unit
 ) {
-    var expandedId by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         topBar = {
@@ -92,10 +114,9 @@ fun NoticeScreen(
                 itemsIndexed(notices) { _, notice ->
                     NoticeItem(
                         notice = notice,
-                        isExpanded = expandedId == notice.id,
-                        onClick = {
-                            expandedId = if (expandedId == notice.id) null else notice.id
-                        }
+                        noticeDetail = expandedNotices.get(notice.noticeId),
+                        isExpanded = expandedNotices.containsKey(notice.noticeId),
+                        onClick = { onToggleNoticeExpansion(notice.noticeId) }
                     )
                     HorizontalDivider(color = Color.Black.copy(alpha = 0.1f))
                 }
@@ -116,6 +137,7 @@ fun NoticeScreen(
 @Composable
 private fun NoticeItem(
     notice: Notice,
+    noticeDetail: NoticeDetail?,
     isExpanded: Boolean,
     onClick: () -> Unit
 ) {
@@ -135,7 +157,7 @@ private fun NoticeItem(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 AppText(
-                    text = notice.date,
+                    text = notice.uploadedAt,
                     style = TextStyle(
                         fontSize = 12.sp,
                         color = Color.Black.copy(alpha = 0.5f)
@@ -156,12 +178,12 @@ private fun NoticeItem(
             )
         }
 
-        if (isExpanded) {
+        if (isExpanded && noticeDetail != null) {
             Column(Modifier.background(Color(0xFFF8F8F8))) {
                 HorizontalDivider(color = Color.Black.copy(alpha = 0.1f))
                 Spacer(modifier = Modifier.height(8.dp))
                 AppText(
-                    text = notice.content,
+                    text = noticeDetail.content,
                     style = TextStyle(fontSize = 13.sp, color = Color(0xFF444444)),
                     modifier = Modifier.padding(vertical = 15.dp, horizontal = 23.dp)
                 )
@@ -220,20 +242,30 @@ private fun Pagination(
 
 @Preview(showBackground = true)
 @Composable
-fun NoticeScreenPreview() {
+fun NoticeScreenUiPreview() {
     val sampleNotices = List(8) { index ->
         Notice(
-            id = index.toString(),
-            date = "25.05.31",
-            title = "공지사항 제목 #$index",
-            content = "공지사항 상세 내용"
+            noticeId = index.toLong(),
+            title = "공지사항 제목 $index",
+            uploadedAt = "2025-07-05T23:32:37.048128"
         )
     }
-    NoticeScreen(
+    val sampleNoticeDetails = List(8) { index ->
+        NoticeDetail(
+            noticeId = index.toLong(),
+            title = "공지사항 제목 $index",
+            content = "공지사항 내용 $index",
+            uploadedAt = "2025-07-05T23:32:37.048128",
+            noticeWriter = "관리자"
+        )
+    }
+    NoticeScreenUi(
         notices = sampleNotices,
         currentPage = 1,
         totalPages = 3,
         onBack = {},
-        onPageChange = {}
+        onPageChange = {},
+        expandedNotices = mapOf(0L to sampleNoticeDetails[0], 4L to sampleNoticeDetails[4]),
+        onToggleNoticeExpansion = {}
     )
 }
