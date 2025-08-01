@@ -14,14 +14,17 @@ import project.side.ikdaman.data.data_source.AuthDataStore
 import project.side.ikdaman.data.repository.AuthRepositoryImpl
 import project.side.ikdaman.data.repository.BookRepositoryImpl
 import project.side.ikdaman.data.repository.MyBooksApiRepositoryImpl
+import project.side.ikdaman.data.repository.NoticeRepositoryImpl
 import project.side.ikdaman.data.repository.UserRepositoryImpl
 import project.side.ikdaman.data.service.AuthService
 import project.side.ikdaman.data.service.BookService
 import project.side.ikdaman.data.service.MyBookApi
+import project.side.ikdaman.data.service.NoticeService
 import project.side.ikdaman.data.service.UserService
 import project.side.ikdaman.domain.repository.AuthRepository
 import project.side.ikdaman.domain.repository.BookRepository
 import project.side.ikdaman.domain.repository.MyBooksApiRepository
+import project.side.ikdaman.domain.repository.NoticeRepository
 import project.side.ikdaman.domain.repository.UserRepository
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
@@ -159,4 +162,15 @@ object ApiModule {
         return retrofit.create(UserService::class.java)
     }
 
+    @Provides
+    @Singleton
+    fun provideNoticeService(@AuthRetrofit retrofit: Retrofit): NoticeService {
+        return retrofit.create(NoticeService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNoticeRepository(noticeService: NoticeService): NoticeRepository {
+        return NoticeRepositoryImpl(noticeService)
+    }
 }

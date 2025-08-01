@@ -20,6 +20,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.app.ui.NoticeScreen
 import dagger.hilt.android.AndroidEntryPoint
 import project.side.ikdaman.core.navigation.ADD_BOOK_RECORD
 import project.side.ikdaman.core.navigation.ADD_BOOK_ROUTE
@@ -31,6 +32,7 @@ import project.side.ikdaman.core.navigation.ExitToLeftTransition
 import project.side.ikdaman.core.navigation.ExitToRightTransition
 import project.side.ikdaman.core.navigation.LOGIN_ROUTE
 import project.side.ikdaman.core.navigation.MAIN_ROUTE
+import project.side.ikdaman.core.navigation.NOTICE_ROUTE
 import project.side.ikdaman.core.navigation.SPLASH_ROUTE
 import project.side.ikdaman.core.navigation.USERINFO_ROUTE
 import project.side.ikdaman.core.ui.AppTheme
@@ -135,6 +137,9 @@ class MainActivity : ComponentActivity() {
                     }
                     slideComposable(USERINFO_ROUTE) {
                         UserInfoScreen(navController)
+                    }
+                    slideComposable(NOTICE_ROUTE) {
+                        NoticeScreen { navController.popBackStack() }
                     }
                 }
             }
