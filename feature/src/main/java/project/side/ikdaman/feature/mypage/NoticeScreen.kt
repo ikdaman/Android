@@ -123,7 +123,7 @@ fun NoticeScreenUi(
                 items(notices) { notice ->
                     NoticeItem(
                         notice = notice,
-                        noticeDetail = expandedNotices.get(notice.noticeId),
+                        noticeDetail = expandedNotices[notice.noticeId],
                         isExpanded = expandedNotices.containsKey(notice.noticeId),
                         onClick = { onToggleNoticeExpansion(notice.noticeId) }
                     )

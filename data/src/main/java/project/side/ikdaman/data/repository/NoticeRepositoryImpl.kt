@@ -22,9 +22,9 @@ class NoticeRepositoryImpl @Inject constructor(
 
     override suspend fun getNoticeDetail(id: Long): NoticeDetail {
         val responseBody = noticeService.getNoticeDetail(id).body()
-        if (responseBody == null){
+        if (responseBody == null) {
             throw IllegalStateException("responseBody is null")
-        }else{
+        } else {
             return responseBody
         }
     }
