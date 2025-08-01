@@ -101,7 +101,7 @@ class BookShelfViewModel @Inject constructor(
     }
 
     fun onKeywordChanged(keyword: String) {
-        _keyword.value = keyword.ifEmpty { null }
+        _keyword.value = keyword.trim().takeIf { it.isNotEmpty() }
     }
 
     fun onFilterChanged(filter: BookShelfFilter) {
