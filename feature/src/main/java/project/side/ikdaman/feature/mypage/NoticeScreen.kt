@@ -3,15 +3,19 @@ package com.example.app.ui
 import android.widget.Toast
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -25,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -32,6 +37,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.ui.AppText
 import project.side.ikdaman.domain.model.Notice
 import project.side.ikdaman.domain.model.NoticeDetail
@@ -85,13 +91,13 @@ fun NoticeScreenUi(
             TopAppBar(
                 title = {},
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                            contentDescription = "뒤로가기",
-                            modifier = Modifier.size(26.dp)
-                        )
-                    }
+                    Image(
+                        painter = painterResource(R.drawable.arrow_back),
+                        contentDescription = "back",
+                        modifier = Modifier
+                            .padding(12.dp)
+                            .size(26.dp)
+                    )
                 }
             )
         }
@@ -114,7 +120,7 @@ fun NoticeScreenUi(
             LazyColumn(
                 modifier = Modifier.weight(1f)
             ) {
-                itemsIndexed(notices) { _, notice ->
+                items(notices) { notice ->
                     NoticeItem(
                         notice = notice,
                         noticeDetail = expandedNotices.get(notice.noticeId),
@@ -144,14 +150,17 @@ private fun NoticeItem(
     isExpanded: Boolean,
     onClick: () -> Unit
 ) {
-    val rotationDegree by animateFloatAsState(targetValue = if (isExpanded) 180f else 0f)
     val inputTimeFormatter = remember { DateTimeFormatter.ISO_LOCAL_DATE_TIME }
     val outputTimeFormatter = remember { DateTimeFormatter.ofPattern("yyyy.MM.dd") }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onClick
+            )
             .animateContentSize()
     ) {
         Row(
@@ -177,11 +186,11 @@ private fun NoticeItem(
                 )
             }
             Icon(
-                imageVector = Icons.Default.KeyboardArrowDown,
+                imageVector = if (isExpanded) Icons.Default.KeyboardArrowUp
+                else Icons.Default.KeyboardArrowDown,
                 contentDescription = if (isExpanded) "접기" else "펼치기",
                 modifier = Modifier
                     .size(24.dp)
-                    .rotate(rotationDegree)
             )
         }
 
