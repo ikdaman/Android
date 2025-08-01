@@ -5,6 +5,8 @@ import project.side.ikdaman.domain.model.AddBookItem
 import project.side.ikdaman.domain.model.ApiResult
 import project.side.ikdaman.domain.model.BookDetail
 import project.side.ikdaman.domain.model.BookLog
+import project.side.ikdaman.domain.model.BookShelfBooks
+import project.side.ikdaman.domain.model.BookShelfItem
 import project.side.ikdaman.domain.model.HomeBookItem
 
 interface MyBooksApiRepository {
@@ -25,4 +27,11 @@ interface MyBooksApiRepository {
     fun updateCompleted(bookId: String, logId: Int, content: String): Flow<ApiResult<Unit>>
 
     fun postBook(addBookItem: AddBookItem): Flow<ApiResult<Unit>>
+
+    fun getBooksOnShelf(
+        status: String?,
+        keyword: String?,
+        page: Int,
+        limit: Int
+    ): Flow<ApiResult<BookShelfBooks>>
 }

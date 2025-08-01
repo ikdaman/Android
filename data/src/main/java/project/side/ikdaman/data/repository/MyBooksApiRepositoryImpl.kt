@@ -12,9 +12,13 @@ import project.side.ikdaman.data.model.book.BookThink
 import project.side.ikdaman.data.model.book.PostBookRequestBody
 import project.side.ikdaman.data.model.book.UpdateBookCompleted
 import project.side.ikdaman.data.model.book.UpdateBookThink
+import project.side.ikdaman.data.model.responses.BookShelfResponse
+import project.side.ikdaman.data.model.responses.toDomain
 import project.side.ikdaman.data.service.MyBookApi
 import project.side.ikdaman.domain.model.AddBookItem
 import project.side.ikdaman.domain.model.ApiResult
+import project.side.ikdaman.domain.model.BookShelfBooks
+import project.side.ikdaman.domain.model.BookShelfItem
 import project.side.ikdaman.domain.repository.MyBooksApiRepository
 import java.time.Instant
 import java.time.format.DateTimeFormatter
@@ -101,18 +105,19 @@ class MyBooksApiRepositoryImpl(private val api: MyBookApi) : MyBooksApiRepositor
         emit(ApiResult.Error("Network error: ${it.message}"))
     }
 
-    override fun addThink(bookId: String, content: String, page: Int): Flow<ApiResult<Unit>> = flow {
-        emit(ApiResult.Loading)
-        val response = api.addThink(bookId, BookThink(content, page))
-        if (response.isSuccessful) {
-            emit(ApiResult.Success(Unit))
-        } else {
-            emit(ApiResult.Error("오류 발생"))
+    override fun addThink(bookId: String, content: String, page: Int): Flow<ApiResult<Unit>> =
+        flow {
+            emit(ApiResult.Loading)
+            val response = api.addThink(bookId, BookThink(content, page))
+            if (response.isSuccessful) {
+                emit(ApiResult.Success(Unit))
+            } else {
+                emit(ApiResult.Error("오류 발생"))
+            }
+        }.catch {
+            Log.e("MyBooksApiRepositoryImpl", "Error adding think: ${it.message}", it)
+            emit(ApiResult.Error("Network error: ${it.message}"))
         }
-    }.catch {
-        Log.e("MyBooksApiRepositoryImpl", "Error adding think: ${it.message}", it)
-        emit(ApiResult.Error("Network error: ${it.message}"))
-    }
 
     override fun deleteThink(bookId: String, logId: Int) = flow {
         emit(ApiResult.Loading)
@@ -206,5 +211,30 @@ class MyBooksApiRepositoryImpl(private val api: MyBookApi) : MyBooksApiRepositor
     }.catch {
         Log.e("BookApiRepository", "Error posting books: ${it.message}", it)
         emit(ApiResult.Error("Network error: ${it.message}"))
+    }
+
+    override fun getBooksOnShelf(
+        status: String?,
+        keyword: String?,
+        page: Int,
+        limit: Int
+    ): Flow<ApiResult<BookShelfBooks>> = flow {
+        emit(ApiResult.Loading)
+        val response = api.getBookList(
+            status = status,
+            keyword = keyword,
+            page = page,
+            limit = limit
+        )
+        if (response.isSuccessful) {
+            val body = response.body()
+            if (body!= null && body.code == 0) {
+                emit(ApiResult.Success(body.toDomain()))
+            } else {
+                emit(ApiResult.Error("body is null"))
+            }
+        } else emit(ApiResult.Error("서버 오류: ${response.message()}"))
+    }.catch {
+        emit(ApiResult.Error("네트워크 오류: ${it.message}"))
     }
 }

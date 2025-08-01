@@ -205,7 +205,7 @@ private fun SearchResultScreen(
 }
 
 @Composable
-private fun SearchTextField(
+fun SearchTextField(
     modifier: Modifier = Modifier,
     searchText: String,
     onSearchTextChanged: (String) -> Unit,

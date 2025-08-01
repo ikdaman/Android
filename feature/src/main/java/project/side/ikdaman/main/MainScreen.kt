@@ -71,7 +71,7 @@ fun MainScreen(appNavController: NavHostController, onNotificationPermissionChec
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             floatingActionButton = {
-                if (currentDestination.value == HOME_ROUTE) {
+                if (currentDestination.value == HOME_ROUTE || currentDestination.value == BOOKSHELF_ROUTE) {
                     FloatingActionButton(
                         onClick = { addBookDialogState.value = true },
                         containerColor = Color.Transparent,
@@ -110,7 +110,7 @@ fun MainScreen(appNavController: NavHostController, onNotificationPermissionChec
                 }
                 composable(BOOKSHELF_ROUTE) {
                     currentDestination.value = BOOKSHELF_ROUTE
-                    BookShelfTab(appNavController)
+                    BookShelfTab(appNavController, mainNavController)
                 }
                 composable(MY_PAGE_ROUTE) {
                     currentDestination.value = MY_PAGE_ROUTE
