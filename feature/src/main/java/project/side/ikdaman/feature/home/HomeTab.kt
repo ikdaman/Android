@@ -244,6 +244,7 @@ fun HomeTabUI(
                         unpinnedItems = unpinnedItems,
                         deleteMode = deleteMode,
                         onPinItem = onPinItem,
+                        onBookClicked = onBookClicked,
                         onDeleteClick = onDeleteClick
                     )
                 }
