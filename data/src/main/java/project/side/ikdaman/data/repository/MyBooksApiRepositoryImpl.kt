@@ -1,8 +1,6 @@
 package project.side.ikdaman.data.repository
 
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
@@ -12,13 +10,11 @@ import project.side.ikdaman.data.model.book.BookThink
 import project.side.ikdaman.data.model.book.PostBookRequestBody
 import project.side.ikdaman.data.model.book.UpdateBookCompleted
 import project.side.ikdaman.data.model.book.UpdateBookThink
-import project.side.ikdaman.data.model.responses.BookShelfResponse
 import project.side.ikdaman.data.model.responses.toDomain
 import project.side.ikdaman.data.service.MyBookApi
 import project.side.ikdaman.domain.model.AddBookItem
 import project.side.ikdaman.domain.model.ApiResult
 import project.side.ikdaman.domain.model.BookShelfBooks
-import project.side.ikdaman.domain.model.BookShelfItem
 import project.side.ikdaman.domain.repository.MyBooksApiRepository
 import java.time.Instant
 import java.time.format.DateTimeFormatter
@@ -93,7 +89,7 @@ class MyBooksApiRepositoryImpl(private val api: MyBookApi) : MyBooksApiRepositor
             val body = response.body()
             val books = body?.books?.map { it.transformToDomain() }
             if (books != null && body.isSuccess()) {
-                emit(ApiResult.Success(books))
+                emit(ApiResult.Success(books.take(10)))
             } else {
                 emit(ApiResult.Error("Books data is missing"))
             }
