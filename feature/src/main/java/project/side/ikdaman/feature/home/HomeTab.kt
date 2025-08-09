@@ -39,6 +39,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,6 +54,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import kotlinx.coroutines.launch
 import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.navigation.ADD_BOOK_RECORD
 import project.side.ikdaman.core.navigation.BOOK_DETAIL_ROUTE
@@ -310,10 +312,7 @@ private fun CarouselBooks(
     onNavigateToFirstImpression: (String) -> Unit = {}
 ) {
     val state = rememberScrollState()
-
-    LaunchedEffect(Unit) {
-        state.scrollTo(state.maxValue)
-    }
+    val coroutineScope = rememberCoroutineScope()
 
     CompositionLocalProvider(
         LocalOverscrollFactory provides null
@@ -332,7 +331,12 @@ private fun CarouselBooks(
                 selectedBookIndex = selectedBookIndex,
                 items = books,
                 onDeleteClick = onDeleteClick,
-                onBookClicked = onBookClicked
+                onBookClicked = onBookClicked,
+                scrollToTop = {
+                    coroutineScope.launch {
+                        state.scrollTo(state.maxValue)
+                    }
+                }
             )
             Spacer(Modifier.height(19.dp))
             Column(

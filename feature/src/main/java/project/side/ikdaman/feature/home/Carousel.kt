@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,7 +55,12 @@ fun BookCarousel(
     items: List<HomeBookItem> = emptyList(),
     onDeleteClick: (HomeBookItem) -> Unit = {},
     onBookClicked: (String) -> Unit = {},
+    scrollToTop: () -> Unit = {}
 ) {
+    LaunchedEffect(Unit) {
+        scrollToTop()
+    }
+
     // Carousel
     val pagerState = rememberPagerState(pageCount = { items.size }, initialPage = 0)
     val coroutineScope = rememberCoroutineScope()
