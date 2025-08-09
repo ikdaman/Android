@@ -19,9 +19,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -100,7 +102,8 @@ fun BookDetailScreen(
         bookDetailScreenViewModel.initialize(bookId)
     }
     val deleteBookDialogState = remember { MutableTransitionState(false) }
-    val deleteLogDialogState: MutableTransitionState<Boolean> = remember { MutableTransitionState(false) }
+    val deleteLogDialogState: MutableTransitionState<Boolean> =
+        remember { MutableTransitionState(false) }
     val deleteLogItem = remember { mutableStateOf(DeleteLogItem()) }
 
     val bookInfo = bookDetailScreenViewModel.bookDetailState.collectAsState().value
@@ -170,11 +173,21 @@ fun BookDetailScreen(
     val scope = rememberCoroutineScope()
     if (snackBarState.isNotEmpty()) {
         LaunchedEffect(snackBarState) {
-            scope.launch { snackbarHostState.showSnackbar(snackBarState, duration = SnackbarDuration.Short) }
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    snackBarState,
+                    duration = SnackbarDuration.Short
+                )
+            }
         }
     } else if (errorMessageState.isNotEmpty()) {
         LaunchedEffect(errorMessageState) {
-            scope.launch { snackbarHostState.showSnackbar(errorMessageState, duration = SnackbarDuration.Short) }
+            scope.launch {
+                snackbarHostState.showSnackbar(
+                    errorMessageState,
+                    duration = SnackbarDuration.Short
+                )
+            }
         }
     }
 }
@@ -229,7 +242,10 @@ fun BookDetailScreenUI(
         }
     ) {
         GradientBox(
-            modifier = Modifier.fillMaxSize().noEffectClick { focusManager.clearFocus() },
+            modifier = Modifier
+                .fillMaxSize()
+                .imePadding()
+                .noEffectClick { focusManager.clearFocus() },
             gradient = gradient
         ) {
             when (bookInfoApiResult) {
@@ -494,6 +510,7 @@ private fun LazyListScope.BookLogList(
                     bookLogs.forEachIndexed { i, item ->
                         val expanded = expandedIndex.value == i
                         val isNotOpenLog = item.isNotOpenLog()
+                        val isEditable = item.isEditable()
 
                         Column(
                             Modifier
@@ -501,15 +518,16 @@ private fun LazyListScope.BookLogList(
                                 .clip(RoundedCornerShape(10.dp))
                                 .background(Color.White)
                                 .animateContentSize(animationSpec = tween(300))
-                                .noEffectClick {
-                                    if (isNotOpenLog) {
-                                        expandedIndex.value = if (expanded) null else i
-                                    }
-                                }
                                 .padding(20.dp)
                         ) {
                             Row(
-                                Modifier.height(24.dp),
+                                Modifier
+                                    .height(24.dp)
+                                    .noEffectClick {
+                                        if (isNotOpenLog) {
+                                            expandedIndex.value = if (expanded) null else i
+                                        }
+                                    },
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 AppText(
@@ -554,6 +572,7 @@ private fun LazyListScope.BookLogList(
                                             textState.value = it
                                         }
                                     },
+                                    enabled = isEditable,
                                     textStyle = DetailScreenTextStyle.bookLogContentStyle,
                                     modifier = Modifier.fillMaxWidth()
                                 )
@@ -570,12 +589,19 @@ private fun LazyListScope.BookLogList(
                                                 .background(Color.Black)
                                                 .oneClick(1000) {
                                                     if (item.content != textState.value) {
-                                                        onUpdateLog(item, item.type, textState.value)
+                                                        onUpdateLog(
+                                                            item,
+                                                            item.type,
+                                                            textState.value
+                                                        )
                                                     }
                                                 }
                                                 .padding(horizontal = 12.dp, vertical = 6.dp)
                                         ) {
-                                            AppText("저장", style = DetailScreenTextStyle.bookLogButtonStyle)
+                                            AppText(
+                                                "저장",
+                                                style = DetailScreenTextStyle.bookLogButtonStyle
+                                            )
                                         }
                                         Spacer(Modifier.width(5.dp))
                                         Box(
@@ -588,7 +614,10 @@ private fun LazyListScope.BookLogList(
                                                 }
                                                 .padding(horizontal = 12.dp, vertical = 6.dp)
                                         ) {
-                                            AppText("삭제", style = DetailScreenTextStyle.bookLogButtonStyle)
+                                            AppText(
+                                                "삭제",
+                                                style = DetailScreenTextStyle.bookLogButtonStyle
+                                            )
                                         }
                                     }
                                 }
@@ -603,6 +632,7 @@ private fun LazyListScope.BookLogList(
                 }
             }
         }
+
         is ApiResult.Loading -> {
             item {
                 CircularProgressIndicator(
@@ -612,6 +642,7 @@ private fun LazyListScope.BookLogList(
                 )
             }
         }
+
         is ApiResult.Error -> {
             item {
                 AppText(
@@ -715,7 +746,7 @@ private fun BookInfoView(
                     AppText(
                         "총 페이지",
                         style = DetailScreenTextStyle.bookInfoKey,
-                        modifier = Modifier.width(50.dp)
+                        modifier = Modifier.wrapContentWidth(),
                     )
                     AppText(
                         "${bookInfo.totalPage}",
@@ -732,7 +763,8 @@ private fun BookInfoView(
                     )
                     Spacer(Modifier.width(9.dp))
                     val context = LocalContext.current
-                    val url = "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=${bookInfo.itemId}&amp;partner=openAPI&amp;start=api"
+                    val url =
+                        "https://www.aladin.co.kr/shop/wproduct.aspx?ItemId=${bookInfo.itemId}&amp;partner=openAPI&amp;start=api"
                     Column(
                         verticalArrangement = Arrangement.SpaceBetween,
                         horizontalAlignment = Alignment.CenterHorizontally,
