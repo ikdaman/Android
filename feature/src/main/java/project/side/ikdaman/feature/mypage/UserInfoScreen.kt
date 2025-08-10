@@ -20,6 +20,7 @@ import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.foundation.verticalScroll
@@ -44,6 +45,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -235,6 +237,7 @@ fun UserInfoScreenUI(
             UserInfoLabel("생년월일")
             UserInfoTextField(
                 modifier = Modifier.fillMaxWidth(),
+                onlyNumber = true,
                 bringIntoViewRequester = bringIntoViewRequester,
                 coroutineScope = coroutineScope,
                 value = birthdate.value
@@ -358,6 +361,7 @@ fun UserInfoButton(
 @Composable
 fun UserInfoTextField(
     modifier: Modifier = Modifier,
+    onlyNumber: Boolean = false,
     value: TextFieldValue,
     bringIntoViewRequester: BringIntoViewRequester,
     coroutineScope: CoroutineScope,
@@ -381,6 +385,8 @@ fun UserInfoTextField(
                         }
                     }
                 },
+            keyboardOptions = KeyboardOptions(keyboardType = if (onlyNumber) KeyboardType.Number else KeyboardType.Unspecified),
+            singleLine = true,
             colors = TextFieldDefaults.colors(
                 focusedTextColor = Color.Black,
                 unfocusedTextColor = Color(0xFF626262),
