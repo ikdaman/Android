@@ -166,6 +166,7 @@ fun BookShelfTabUI(
                 modifier = Modifier
                     .padding(horizontal = 20.dp)
                     .padding(top = 35.dp, bottom = 40.dp),
+                isCamera = false,
                 searchText = keyword,
                 onSearchTextChanged = { onKeywordChanged(it) }
             )

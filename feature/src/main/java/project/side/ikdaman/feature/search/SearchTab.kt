@@ -207,6 +207,7 @@ private fun SearchResultScreen(
 @Composable
 fun SearchTextField(
     modifier: Modifier = Modifier,
+    isCamera: Boolean = true,
     searchText: String,
     onSearchTextChanged: (String) -> Unit,
     onNavigateToBarcodeScanner: () -> Unit = {}
@@ -258,14 +259,16 @@ fun SearchTextField(
                     .oneClick {
                         onNavigateToBarcodeScanner()
                     }) {
-                    Icon(
-                        painter = painterResource(R.drawable.camera_scan),
-                        contentDescription = "Camera",
-                        modifier = Modifier
-                            .padding(top = 8.dp, bottom = 8.dp)
-                            .size(24.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
+                    if (isCamera) {
+                        Icon(
+                            painter = painterResource(R.drawable.camera_scan),
+                            contentDescription = "Camera",
+                            modifier = Modifier
+                                .padding(top = 8.dp, bottom = 8.dp)
+                                .size(24.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                    }
                     Icon(
                         painter = painterResource(R.drawable.magnifier),
                         contentDescription = "Search",
