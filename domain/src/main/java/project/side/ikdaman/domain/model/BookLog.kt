@@ -53,7 +53,7 @@ data class BookLogItem(
     }
 
     fun isEditable(): Boolean {
-        return type != "IMPRESSION"
+        return isNotImpression()
     }
 
 }

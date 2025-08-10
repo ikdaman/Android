@@ -158,8 +158,12 @@ class BookDetailScreenViewModel @Inject constructor(
     fun showSnackBarMessage(s: String) {
         viewModelScope.launch {
             snackbarMessage.emit(s)
-            delay(500)
+            delay(SNACKBAR_DELAY_MS)
             snackbarMessage.emit("")
         }
+    }
+
+    companion object {
+        private const val SNACKBAR_DELAY_MS = 500L
     }
 }

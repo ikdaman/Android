@@ -180,7 +180,7 @@ private fun AnimatedVisibilityScope.ListBooksDetail(
             .height(105.dp)
             .background(Color.White.copy(alpha = 0.7f))
             .padding(11.dp)
-            .oneClick(500) {
+            .oneClick(DEBOUNCE_DELAY_MS) {
                 onBookClicked(item.id)
             },
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -345,3 +345,5 @@ fun ListBooksPreview() {
         }
     }
 }
+
+private const val DEBOUNCE_DELAY_MS = 500L

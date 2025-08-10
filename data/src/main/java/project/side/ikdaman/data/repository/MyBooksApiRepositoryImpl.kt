@@ -20,6 +20,10 @@ import java.time.Instant
 import java.time.format.DateTimeFormatter
 
 class MyBooksApiRepositoryImpl(private val api: MyBookApi) : MyBooksApiRepository {
+    companion object {
+        private const val BOOKS_LIMIT = 10
+    }
+
     override fun getBookLog(bookId: String, page: Int, limit: Int) = flow {
         emit(ApiResult.Loading)
         val response = api.getBookLog(bookId, page, limit)
@@ -89,7 +93,7 @@ class MyBooksApiRepositoryImpl(private val api: MyBookApi) : MyBooksApiRepositor
             val body = response.body()
             val books = body?.books?.map { it.transformToDomain() }
             if (books != null && body.isSuccess()) {
-                emit(ApiResult.Success(books.take(10)))
+                emit(ApiResult.Success(books.take(BOOKS_LIMIT)))
             } else {
                 emit(ApiResult.Error("Books data is missing"))
             }
