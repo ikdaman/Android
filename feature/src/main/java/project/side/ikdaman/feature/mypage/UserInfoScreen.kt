@@ -40,9 +40,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
@@ -72,6 +74,7 @@ fun UserInfoScreen(
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
     val accountUiState = accountViewModel.uiState.collectAsStateWithLifecycle().value
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
     val showLogoutDialog = remember { mutableStateOf(false) }
     val showWithdrawDialog = remember { mutableStateOf(false) }
     val showRealWithdrawDialog = remember { mutableStateOf(false) }
@@ -99,6 +102,12 @@ fun UserInfoScreen(
             }
 
             else -> Unit
+        }
+    }
+
+    LaunchedEffect(uiState.isUpdated) {
+        if (uiState.isUpdated) {
+            navController.popBackStack()
         }
     }
 
@@ -130,6 +139,7 @@ fun UserInfoScreen(
 
     UserInfoScreenUI(
         isLoading = uiState.isLoading || accountUiState == AccountState.Loading,
+        focusManager = focusManager,
         userInfo = uiState.userInfo,
         nicknameIsValid = uiState.nicknameIsValid,
         birthdateIsValid = uiState.birthdateIsValid,
@@ -155,6 +165,7 @@ private fun navigateToLoginScreen(navController: NavController) {
 @Composable
 fun UserInfoScreenUI(
     isLoading: Boolean = false,
+    focusManager: FocusManager = LocalFocusManager.current,
     userInfo: UserInfo,
     nicknameIsValid: Boolean = true,
     birthdateIsValid: Boolean = true,
@@ -285,6 +296,7 @@ fun UserInfoScreenUI(
                 modifier = Modifier.bringIntoViewRequester(bringIntoViewRequester),
                 text = "저장하기",
                 onClick = {
+                    focusManager.clearFocus()
                     updateUserInfo(
                         nickname.value.text,
                         birthdate.value.text,

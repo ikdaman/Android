@@ -93,12 +93,12 @@ class UserInfoViewModel @Inject constructor(
         viewModelScope.launch {
             when (updateUserInfoUseCase(nickname, birthdate, gender)) {
                 is ApiResult.Success -> {
-                    _uiState.value = _uiState.value.copy(isLoading = false)
+                    _uiState.value = _uiState.value.copy(isLoading = false, isUpdated = true)
                     _uiEvent.emit("변경되었습니다.")
                 }
 
                 is ApiResult.Error -> {
-                    _uiState.value = _uiState.value.copy(isLoading = false)
+                    _uiState.value = _uiState.value.copy(isLoading = false, isUpdated = false)
                     _uiEvent.emit("오류가 발생했습니다. 잠시 후 다시 시도해 주세요.")
                 }
 
@@ -122,6 +122,7 @@ class UserInfoViewModel @Inject constructor(
 
 data class UserInfoUiState(
     val isLoading: Boolean = false,
+    val isUpdated: Boolean = false,
     val userInfo: UserInfo = UserInfo(),
     val nicknameIsValid: Boolean = true,
     val birthdateIsValid: Boolean = true,
