@@ -2,6 +2,7 @@ package project.side.ikdaman.feature.mypage
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -216,6 +217,7 @@ fun UserInfoScreenUI(
             Row(modifier = Modifier.padding(top = 10.dp)) {
                 UserInfoTextField(
                     modifier = Modifier.weight(1f),
+                    isError = nickname.value.text.isEmpty(),
                     bringIntoViewRequester = bringIntoViewRequester,
                     coroutineScope = coroutineScope,
                     value = nickname.value
@@ -238,6 +240,7 @@ fun UserInfoScreenUI(
             UserInfoTextField(
                 modifier = Modifier.fillMaxWidth(),
                 onlyNumber = true,
+                isError = !birthdateIsValid,
                 bringIntoViewRequester = bringIntoViewRequester,
                 coroutineScope = coroutineScope,
                 value = birthdate.value
@@ -362,6 +365,7 @@ fun UserInfoButton(
 fun UserInfoTextField(
     modifier: Modifier = Modifier,
     onlyNumber: Boolean = false,
+    isError: Boolean = false,
     value: TextFieldValue,
     bringIntoViewRequester: BringIntoViewRequester,
     coroutineScope: CoroutineScope,
@@ -384,17 +388,26 @@ fun UserInfoTextField(
                             bringIntoViewRequester.bringIntoView()
                         }
                     }
-                },
+                }
+                .then(
+                    if (isError)
+                        Modifier.border(1.dp, Color.Red, RoundedCornerShape(10.dp))
+                    else Modifier
+                ),
+            isError = isError,
             keyboardOptions = KeyboardOptions(keyboardType = if (onlyNumber) KeyboardType.Number else KeyboardType.Unspecified),
             singleLine = true,
             colors = TextFieldDefaults.colors(
                 focusedTextColor = Color.Black,
+                errorTextColor = Color.Red,
                 unfocusedTextColor = Color(0xFF626262),
                 focusedContainerColor = Color(0xFFF5F5F5),
                 unfocusedContainerColor = Color(0xFFF5F5F5),
+                errorContainerColor = Color(0xFFF5F5F5),
                 cursorColor = Color(0xFF626262),
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
+                errorIndicatorColor = Color.Transparent,
             ),
             textStyle = MyPageTextStyle.TextFieldText
         )
