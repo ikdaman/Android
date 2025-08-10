@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -12,6 +13,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.domain.model.ApiResult
@@ -69,6 +71,11 @@ class BookShelfViewModel @Inject constructor(
         isLoadMore: Boolean = false,
     ) {
         viewModelScope.launch {
+            val loadingDelay = launch {
+                delay(300)
+                _uiState.update { it.copy(isLoading = true) }
+            }
+
             getBooksOnShelfUseCase(
                 status = filter.value,
                 keyword = keyword,
@@ -77,9 +84,11 @@ class BookShelfViewModel @Inject constructor(
             ).collect {
                 when (it) {
                     is ApiResult.Success -> {
+                        loadingDelay.cancel()
                         _uiState.emit(
                             _uiState.value.copy(
                                 isLoading = false,
+                                isCompleted = true,
                                 books = if (isLoadMore) _uiState.value.books + it.data.books else it.data.books,
                                 totalPage = it.data.totalPage,
                                 nowPage = it.data.nowPage
@@ -88,13 +97,12 @@ class BookShelfViewModel @Inject constructor(
                     }
 
                     is ApiResult.Error -> {
-                        _uiState.emit(_uiState.value.copy(isLoading = false))
+                        loadingDelay.cancel()
+                        _uiState.emit(_uiState.value.copy(isLoading = false, isCompleted = true))
                         _uiEvent.emit("정보를 불러오는데 실패했습니다. 잠시 후 다시 시도해 주세요.")
                     }
 
-                    is ApiResult.Loading -> {
-                        _uiState.emit(_uiState.value.copy(isLoading = true))
-                    }
+                    is ApiResult.Loading -> {}
                 }
             }
         }
@@ -105,7 +113,7 @@ class BookShelfViewModel @Inject constructor(
     }
 
     fun onFilterChanged(filter: BookShelfFilter) {
-        _uiState.value = _uiState.value.copy(filter = filter)
+        _uiState.value = _uiState.value.copy(isCompleted = false, filter = filter)
     }
 
     enum class BookShelfFilter(val value: String?) {
@@ -113,7 +121,8 @@ class BookShelfViewModel @Inject constructor(
     }
 
     data class BookShelfUiState(
-        val isLoading: Boolean = false,
+        val isLoading: Boolean = true,
+        val isCompleted: Boolean = false,
         val books: List<BookShelfItem> = emptyList(),
         val filter: BookShelfFilter = BookShelfFilter.ALL,
         val totalPage: Int = 0,
