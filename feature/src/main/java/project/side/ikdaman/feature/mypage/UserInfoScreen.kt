@@ -61,6 +61,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.navigation.LOGIN_ROUTE
+import project.side.ikdaman.core.utils.oneClick
 import project.side.ikdaman.core.view.AppDialog
 import project.side.ikdaman.core.view.WithdrawDialog
 import project.side.ikdaman.domain.model.UserInfo
@@ -198,7 +199,7 @@ fun UserInfoScreenUI(
                     .statusBarsPadding()
                     .padding(top = 22.dp, start = 12.dp)
                     .size(26.dp)
-                    .clickable { navigateBack() }
+                    .oneClick { navigateBack() }
             )
         }
     ) { innerPadding ->
@@ -228,7 +229,7 @@ fun UserInfoScreenUI(
             Row(modifier = Modifier.padding(top = 10.dp)) {
                 UserInfoTextField(
                     modifier = Modifier.weight(1f),
-                    isError = nickname.value.text.isEmpty(),
+                    isError = !nicknameIsValid && nickname.value.text.isEmpty(),
                     bringIntoViewRequester = bringIntoViewRequester,
                     coroutineScope = coroutineScope,
                     value = nickname.value
@@ -312,7 +313,7 @@ fun UserInfoScreenUI(
             Box(
                 modifier = Modifier
                     .height(26.dp)
-                    .clickable { onLogoutClicked() },
+                    .oneClick(500) { onLogoutClicked() },
                 contentAlignment = Alignment.CenterStart
             ) {
                 Text("로그아웃", style = MyPageTextStyle.SubMenuText)
@@ -321,7 +322,7 @@ fun UserInfoScreenUI(
             Box(
                 modifier = Modifier
                     .height(26.dp)
-                    .clickable { onWithdrawClicked() },
+                    .oneClick(500) { onWithdrawClicked() },
                 contentAlignment = Alignment.CenterStart
             ) {
                 Text("회원탈퇴", style = MyPageTextStyle.SubMenuText)
@@ -417,9 +418,10 @@ fun UserInfoTextField(
                 unfocusedContainerColor = Color(0xFFF5F5F5),
                 errorContainerColor = Color(0xFFF5F5F5),
                 cursorColor = Color(0xFF626262),
+                errorCursorColor = Color(0xFF626262),
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
-                errorIndicatorColor = Color.Transparent,
+                errorIndicatorColor = Color.Transparent
             ),
             textStyle = MyPageTextStyle.TextFieldText
         )

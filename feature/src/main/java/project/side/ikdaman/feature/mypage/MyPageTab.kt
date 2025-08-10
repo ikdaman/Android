@@ -49,6 +49,7 @@ import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.navigation.NOTICE_ROUTE
 import project.side.ikdaman.core.navigation.USERINFO_ROUTE
 import project.side.ikdaman.core.ui.AppTheme
+import project.side.ikdaman.core.utils.oneClick
 import java.util.Locale
 
 @Composable
@@ -103,7 +104,7 @@ fun MyPageTabUI(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 20.dp, top = 34.dp, bottom = 30.dp, end = 21.dp)
-                    .clickable { navigateToEditProfile() },
+                    .oneClick { navigateToEditProfile() },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("내 정보 관리", style = MyPageTextStyle.MenuText)
@@ -260,7 +261,7 @@ fun MyPageMenuItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
-            .clickable { onClick() },
+            .oneClick { onClick() },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(

@@ -121,7 +121,7 @@ class UserInfoViewModel @Inject constructor(
 }
 
 data class UserInfoUiState(
-    val isLoading: Boolean = false,
+    val isLoading: Boolean = true,
     val isUpdated: Boolean = false,
     val userInfo: UserInfo = UserInfo(),
     val nicknameIsValid: Boolean = true,

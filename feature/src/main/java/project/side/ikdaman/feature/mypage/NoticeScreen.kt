@@ -1,16 +1,22 @@
-package com.example.app.ui
+package project.side.ikdaman.feature.mypage
 
 import android.widget.Toast
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -23,10 +29,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -39,9 +48,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.ui.AppText
+import project.side.ikdaman.core.utils.oneClick
 import project.side.ikdaman.domain.model.Notice
 import project.side.ikdaman.domain.model.NoticeDetail
-import project.side.ikdaman.feature.mypage.NoticeViewModel
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -97,6 +106,7 @@ fun NoticeScreenUi(
                         modifier = Modifier
                             .padding(12.dp)
                             .size(26.dp)
+                            .oneClick { onBack() }
                     )
                 }
             )
@@ -200,7 +210,11 @@ private fun NoticeItem(
                 Spacer(modifier = Modifier.height(8.dp))
                 AppText(
                     text = noticeDetail.content,
-                    style = TextStyle(fontSize = 13.sp, color = Color(0xFF444444), lineHeight = 22.sp),
+                    style = TextStyle(
+                        fontSize = 13.sp,
+                        color = Color(0xFF444444),
+                        lineHeight = 22.sp
+                    ),
                     modifier = Modifier.padding(vertical = 15.dp, horizontal = 23.dp),
                     overflow = TextOverflow.Visible,
                     maxLines = Int.MAX_VALUE
