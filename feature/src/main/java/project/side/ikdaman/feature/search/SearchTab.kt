@@ -272,12 +272,11 @@ fun SearchTextField(
                 ) {
                     innerTextField()
                 }
-                Row(Modifier
-                    .padding(end = 15.dp)
-                    .align(Alignment.CenterEnd)
-                    .oneClick {
-                        onNavigateToBarcodeScanner()
-                    }) {
+                Row(
+                    Modifier
+                        .padding(end = 15.dp)
+                        .align(Alignment.CenterEnd)
+                ) {
                     if (isCamera) {
                         Icon(
                             painter = painterResource(R.drawable.camera_scan),
@@ -285,6 +284,9 @@ fun SearchTextField(
                             modifier = Modifier
                                 .padding(top = 8.dp, bottom = 8.dp)
                                 .size(24.dp)
+                                .oneClick {
+                                    onNavigateToBarcodeScanner()
+                                }
                         )
                         Spacer(Modifier.width(8.dp))
                     }
