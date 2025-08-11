@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -157,6 +158,12 @@ class BookDetailScreenViewModel @Inject constructor(
     fun showSnackBarMessage(s: String) {
         viewModelScope.launch {
             snackbarMessage.emit(s)
+            delay(SNACKBAR_DELAY_MS)
+            snackbarMessage.emit("")
         }
+    }
+
+    companion object {
+        private const val SNACKBAR_DELAY_MS = 500L
     }
 }

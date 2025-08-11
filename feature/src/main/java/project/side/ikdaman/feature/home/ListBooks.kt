@@ -51,6 +51,7 @@ import project.side.ikdaman.core.ui.AppText
 import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.core.ui.circleRed
+import project.side.ikdaman.core.utils.oneClick
 import project.side.ikdaman.core.view.BookProgressBar
 import project.side.ikdaman.core.view.GradientBox
 import project.side.ikdaman.domain.model.HomeBookItem
@@ -60,6 +61,7 @@ fun ListBooks(
     pinnedItems: List<HomeBookItem> = emptyList(),
     unpinnedItems: List<HomeBookItem> = emptyList(),
     deleteMode: MutableState<Boolean> = remember { mutableStateOf(true) },
+    onBookClicked: (String) -> Unit = {},
     onDeleteClick: (HomeBookItem) -> Unit = {},
     onPinItem: (String) -> Unit = {}
 ) {
@@ -106,6 +108,7 @@ fun ListBooks(
                         item = item,
                         isPinned = index < pinnedItems.size,
                         deleteMode = deleteMode.value,
+                        onBookClicked = onBookClicked,
                         onPinItem = {
                             visibleMap[item.id] = false
                             coroutineScope.launch {
@@ -159,6 +162,7 @@ private fun AnimatedVisibilityScope.ListBooksDetail(
     item: HomeBookItem,
     isPinned: Boolean,
     deleteMode: Boolean,
+    onBookClicked: (String) -> Unit,
     onPinItem: () -> Unit,
 ) {
     val clipColor = if (isPinned) Color(0xFF222221) else Color(0xFFCECECE)
@@ -175,7 +179,10 @@ private fun AnimatedVisibilityScope.ListBooksDetail(
             .fillMaxWidth()
             .height(105.dp)
             .background(Color.White.copy(alpha = 0.7f))
-            .padding(11.dp),
+            .padding(11.dp)
+            .oneClick(DEBOUNCE_DELAY_MS) {
+                onBookClicked(item.id)
+            },
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -338,3 +345,5 @@ fun ListBooksPreview() {
         }
     }
 }
+
+private const val DEBOUNCE_DELAY_MS = 500L
