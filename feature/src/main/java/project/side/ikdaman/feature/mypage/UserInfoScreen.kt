@@ -3,7 +3,6 @@ package project.side.ikdaman.feature.mypage
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -144,6 +143,7 @@ fun UserInfoScreen(
         userInfo = uiState.userInfo,
         nicknameIsValid = uiState.nicknameIsValid,
         birthdateIsValid = uiState.birthdateIsValid,
+        nicknameIsUnique = uiState.nicknameIsUnique,
         updateNicknameIsValid = viewModel::updateNicknameIsValid,
         updateBirthdateIsValid = viewModel::updateBirthdateIsValid,
         updateUserInfo = viewModel::updateUserInfo,
@@ -170,6 +170,7 @@ fun UserInfoScreenUI(
     userInfo: UserInfo,
     nicknameIsValid: Boolean = true,
     birthdateIsValid: Boolean = true,
+    nicknameIsUnique: Boolean = true,
     updateNicknameIsValid: (String) -> Unit = {},
     updateBirthdateIsValid: (String) -> Unit = {},
     checkNickname: (String) -> Unit = {},
@@ -229,7 +230,7 @@ fun UserInfoScreenUI(
             Row(modifier = Modifier.padding(top = 10.dp)) {
                 UserInfoTextField(
                     modifier = Modifier.weight(1f),
-                    isError = !nicknameIsValid && nickname.value.text.isEmpty(),
+                    isError = (!nicknameIsValid && nickname.value.text.isBlank()) || !nicknameIsUnique,
                     bringIntoViewRequester = bringIntoViewRequester,
                     coroutineScope = coroutineScope,
                     value = nickname.value
@@ -243,7 +244,7 @@ fun UserInfoScreenUI(
                     onClick = {
                         checkNickname(nickname.value.text)
                     },
-                    enabled = nickname.value.text.isNotBlank() && !nicknameIsValid,
+                    enabled = !nicknameIsValid,
                     style = MyPageTextStyle.CheckButtonText,
                     containerColor = Color(0xFF858585)
                 )

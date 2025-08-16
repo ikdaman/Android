@@ -67,6 +67,7 @@ class UserInfoViewModel @Inject constructor(
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         nicknameIsValid = result.data,
+                        nicknameIsUnique = result.data
                     )
 
                     if (result.data) _uiEvent.emit("사용 가능한 닉네임입니다.")
@@ -77,6 +78,7 @@ class UserInfoViewModel @Inject constructor(
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         nicknameIsValid = false,
+                        nicknameIsUnique = false,
                         message = result.message
                     )
                     _uiEvent.emit("오류가 발생했습니다. 잠시 후 다시 시도해 주세요.")
@@ -109,7 +111,8 @@ class UserInfoViewModel @Inject constructor(
 
     fun updateNicknameIsValid(nickname: String) {
         _uiState.value = _uiState.value.copy(
-            nicknameIsValid = nickname == _uiState.value.userInfo.nickname
+            nicknameIsValid = nickname == _uiState.value.userInfo.nickname && nickname.isNotBlank(),
+            nicknameIsUnique = true,
         )
     }
 
@@ -124,6 +127,7 @@ data class UserInfoUiState(
     val isLoading: Boolean = true,
     val isUpdated: Boolean = false,
     val userInfo: UserInfo = UserInfo(),
+    val nicknameIsUnique: Boolean = true,
     val nicknameIsValid: Boolean = true,
     val birthdateIsValid: Boolean = true,
     val message: String = ""
