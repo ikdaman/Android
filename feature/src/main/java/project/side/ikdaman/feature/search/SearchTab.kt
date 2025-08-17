@@ -19,6 +19,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -28,11 +30,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -66,6 +71,7 @@ fun SearchTab(
         appNavController.getBackStackEntry(MAIN_ROUTE)
     )
 ) {
+    val focusManager = LocalFocusManager.current
     val bookSearch by viewModel.searchResult.collectAsStateWithLifecycle()
     val searchKeyword by viewModel.searchKeyword.collectAsStateWithLifecycle()
     val selectedColor by viewModel.selectedColor.collectAsStateWithLifecycle()
@@ -77,13 +83,15 @@ fun SearchTab(
     }
 
     LaunchedEffect(Unit) {
-        val needToGoHome = appNavController.currentBackStackEntry?.savedStateHandle?.get<Boolean>("navigateToHome")
+        val needToGoHome =
+            appNavController.currentBackStackEntry?.savedStateHandle?.get<Boolean>("navigateToHome")
         if (needToGoHome == true) {
             mainNavController.navigate(HOME_ROUTE)
         }
     }
 
     SearchTabUI(
+        focusManager = focusManager,
         selectedColor = selectedColor,
         onSearchKeywordChange = viewModel::updateSearchKeyword,
         searchKeyword = searchKeyword,
@@ -99,6 +107,7 @@ fun SearchTab(
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun SearchTabUI(
+    focusManager: FocusManager = LocalFocusManager.current,
     selectedColor: Color = Palette.first,
     onSearchKeywordChange: (String) -> Unit = {},
     searchKeyword: String = "",
@@ -147,6 +156,7 @@ fun SearchTabUI(
                 SearchTextField(
                     modifier = Modifier
                         .padding(vertical = 24.dp),
+                    focusManager = focusManager,
                     searchText = searchKeyword,
                     onSearchTextChanged = onSearchKeywordChange,
                     onNavigateToBarcodeScanner = onNavigateToBarcodeScanner
@@ -207,6 +217,8 @@ private fun SearchResultScreen(
 @Composable
 fun SearchTextField(
     modifier: Modifier = Modifier,
+    focusManager: FocusManager,
+    isCamera: Boolean = true,
     searchText: String,
     onSearchTextChanged: (String) -> Unit,
     onNavigateToBarcodeScanner: () -> Unit = {}
@@ -229,6 +241,14 @@ fun SearchTextField(
             fontSize = 15.sp,
         ),
         maxLines = 1,
+        keyboardOptions = KeyboardOptions.Default.copy(
+            imeAction = ImeAction.Search
+        ),
+        keyboardActions = KeyboardActions(
+            onSearch = {
+                focusManager.clearFocus()
+            }
+        ),
         decorationBox = { innerTextField ->
             Box(modifier = Modifier) {
                 if (searchText.isEmpty()) {
@@ -252,20 +272,24 @@ fun SearchTextField(
                 ) {
                     innerTextField()
                 }
-                Row(Modifier
-                    .padding(end = 15.dp)
-                    .align(Alignment.CenterEnd)
-                    .oneClick {
-                        onNavigateToBarcodeScanner()
-                    }) {
-                    Icon(
-                        painter = painterResource(R.drawable.camera_scan),
-                        contentDescription = "Camera",
-                        modifier = Modifier
-                            .padding(top = 8.dp, bottom = 8.dp)
-                            .size(24.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
+                Row(
+                    Modifier
+                        .padding(end = 15.dp)
+                        .align(Alignment.CenterEnd)
+                ) {
+                    if (isCamera) {
+                        Icon(
+                            painter = painterResource(R.drawable.camera_scan),
+                            contentDescription = "Camera",
+                            modifier = Modifier
+                                .padding(top = 8.dp, bottom = 8.dp)
+                                .size(24.dp)
+                                .oneClick {
+                                    onNavigateToBarcodeScanner()
+                                }
+                        )
+                        Spacer(Modifier.width(8.dp))
+                    }
                     Icon(
                         painter = painterResource(R.drawable.magnifier),
                         contentDescription = "Search",

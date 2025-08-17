@@ -2,7 +2,7 @@ package project.side.ikdaman.feature.mypage
 
 import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,6 +20,7 @@ import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.foundation.verticalScroll
@@ -38,12 +39,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -56,6 +60,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.navigation.LOGIN_ROUTE
+import project.side.ikdaman.core.utils.oneClick
 import project.side.ikdaman.core.view.AppDialog
 import project.side.ikdaman.core.view.WithdrawDialog
 import project.side.ikdaman.domain.model.UserInfo
@@ -69,6 +74,7 @@ fun UserInfoScreen(
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
     val accountUiState = accountViewModel.uiState.collectAsStateWithLifecycle().value
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
     val showLogoutDialog = remember { mutableStateOf(false) }
     val showWithdrawDialog = remember { mutableStateOf(false) }
     val showRealWithdrawDialog = remember { mutableStateOf(false) }
@@ -96,6 +102,12 @@ fun UserInfoScreen(
             }
 
             else -> Unit
+        }
+    }
+
+    LaunchedEffect(uiState.isUpdated) {
+        if (uiState.isUpdated) {
+            navController.popBackStack()
         }
     }
 
@@ -127,9 +139,11 @@ fun UserInfoScreen(
 
     UserInfoScreenUI(
         isLoading = uiState.isLoading || accountUiState == AccountState.Loading,
+        focusManager = focusManager,
         userInfo = uiState.userInfo,
         nicknameIsValid = uiState.nicknameIsValid,
         birthdateIsValid = uiState.birthdateIsValid,
+        nicknameIsUnique = uiState.nicknameIsUnique,
         updateNicknameIsValid = viewModel::updateNicknameIsValid,
         updateBirthdateIsValid = viewModel::updateBirthdateIsValid,
         updateUserInfo = viewModel::updateUserInfo,
@@ -152,9 +166,11 @@ private fun navigateToLoginScreen(navController: NavController) {
 @Composable
 fun UserInfoScreenUI(
     isLoading: Boolean = false,
+    focusManager: FocusManager = LocalFocusManager.current,
     userInfo: UserInfo,
     nicknameIsValid: Boolean = true,
     birthdateIsValid: Boolean = true,
+    nicknameIsUnique: Boolean = true,
     updateNicknameIsValid: (String) -> Unit = {},
     updateBirthdateIsValid: (String) -> Unit = {},
     checkNickname: (String) -> Unit = {},
@@ -184,7 +200,7 @@ fun UserInfoScreenUI(
                     .statusBarsPadding()
                     .padding(top = 22.dp, start = 12.dp)
                     .size(26.dp)
-                    .clickable { navigateBack() }
+                    .oneClick { navigateBack() }
             )
         }
     ) { innerPadding ->
@@ -214,6 +230,7 @@ fun UserInfoScreenUI(
             Row(modifier = Modifier.padding(top = 10.dp)) {
                 UserInfoTextField(
                     modifier = Modifier.weight(1f),
+                    isError = (!nicknameIsValid && nickname.value.text.isBlank()) || !nicknameIsUnique,
                     bringIntoViewRequester = bringIntoViewRequester,
                     coroutineScope = coroutineScope,
                     value = nickname.value
@@ -227,7 +244,7 @@ fun UserInfoScreenUI(
                     onClick = {
                         checkNickname(nickname.value.text)
                     },
-                    enabled = nickname.value.text.isNotBlank() && !nicknameIsValid,
+                    enabled = !nicknameIsValid,
                     style = MyPageTextStyle.CheckButtonText,
                     containerColor = Color(0xFF858585)
                 )
@@ -235,6 +252,8 @@ fun UserInfoScreenUI(
             UserInfoLabel("생년월일")
             UserInfoTextField(
                 modifier = Modifier.fillMaxWidth(),
+                onlyNumber = true,
+                isError = !birthdateIsValid,
                 bringIntoViewRequester = bringIntoViewRequester,
                 coroutineScope = coroutineScope,
                 value = birthdate.value
@@ -279,6 +298,7 @@ fun UserInfoScreenUI(
                 modifier = Modifier.bringIntoViewRequester(bringIntoViewRequester),
                 text = "저장하기",
                 onClick = {
+                    focusManager.clearFocus()
                     updateUserInfo(
                         nickname.value.text,
                         birthdate.value.text,
@@ -294,7 +314,7 @@ fun UserInfoScreenUI(
             Box(
                 modifier = Modifier
                     .height(26.dp)
-                    .clickable { onLogoutClicked() },
+                    .oneClick(500) { onLogoutClicked() },
                 contentAlignment = Alignment.CenterStart
             ) {
                 Text("로그아웃", style = MyPageTextStyle.SubMenuText)
@@ -303,7 +323,7 @@ fun UserInfoScreenUI(
             Box(
                 modifier = Modifier
                     .height(26.dp)
-                    .clickable { onWithdrawClicked() },
+                    .oneClick(500) { onWithdrawClicked() },
                 contentAlignment = Alignment.CenterStart
             ) {
                 Text("회원탈퇴", style = MyPageTextStyle.SubMenuText)
@@ -358,6 +378,8 @@ fun UserInfoButton(
 @Composable
 fun UserInfoTextField(
     modifier: Modifier = Modifier,
+    onlyNumber: Boolean = false,
+    isError: Boolean = false,
     value: TextFieldValue,
     bringIntoViewRequester: BringIntoViewRequester,
     coroutineScope: CoroutineScope,
@@ -380,15 +402,27 @@ fun UserInfoTextField(
                             bringIntoViewRequester.bringIntoView()
                         }
                     }
-                },
+                }
+                .then(
+                    if (isError)
+                        Modifier.border(1.dp, Color.Red, RoundedCornerShape(10.dp))
+                    else Modifier
+                ),
+            isError = isError,
+            keyboardOptions = KeyboardOptions(keyboardType = if (onlyNumber) KeyboardType.Number else KeyboardType.Unspecified),
+            singleLine = true,
             colors = TextFieldDefaults.colors(
                 focusedTextColor = Color.Black,
+                errorTextColor = Color.Red,
                 unfocusedTextColor = Color(0xFF626262),
                 focusedContainerColor = Color(0xFFF5F5F5),
                 unfocusedContainerColor = Color(0xFFF5F5F5),
+                errorContainerColor = Color(0xFFF5F5F5),
                 cursorColor = Color(0xFF626262),
+                errorCursorColor = Color(0xFF626262),
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
+                errorIndicatorColor = Color.Transparent
             ),
             textStyle = MyPageTextStyle.TextFieldText
         )

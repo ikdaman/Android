@@ -15,17 +15,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -54,6 +54,7 @@ import project.side.ikdaman.core.navigation.MY_PAGE_ROUTE
 import project.side.ikdaman.core.navigation.SEARCH_ROUTE
 import project.side.ikdaman.core.ui.AppText
 import project.side.ikdaman.core.ui.AppTheme
+import project.side.ikdaman.core.utils.oneClick
 import project.side.ikdaman.core.view.CustomModalBottomSheet
 import project.side.ikdaman.feature.bookshelf.BookShelfTab
 import project.side.ikdaman.feature.home.HomeTab
@@ -63,7 +64,10 @@ import project.side.ikdaman.feature.search.SearchTab
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun MainScreen(appNavController: NavHostController, onNotificationPermissionCheck: () -> Unit = {}) {
+fun MainScreen(
+    appNavController: NavHostController,
+    onNotificationPermissionCheck: () -> Unit = {}
+) {
     val mainNavController = rememberNavController()
     val currentDestination = remember { mutableStateOf(HOME_ROUTE) }
     val addBookDialogState = remember { mutableStateOf(false) }
@@ -72,20 +76,22 @@ fun MainScreen(appNavController: NavHostController, onNotificationPermissionChec
         Scaffold(
             floatingActionButton = {
                 if (currentDestination.value == HOME_ROUTE || currentDestination.value == BOOKSHELF_ROUTE) {
-                    FloatingActionButton(
-                        onClick = { addBookDialogState.value = true },
-                        containerColor = Color.Transparent,
-                        elevation = FloatingActionButtonDefaults.elevation(
-                            defaultElevation = 0.dp,
-                            pressedElevation = 0.dp
-                        )
+                    Surface(
+                        modifier = Modifier.oneClick(500) { addBookDialogState.value = true },
+                        shape = CircleShape,
+                        color = Color.Transparent
                     ) {
-                        Icon(
-                            painter = painterResource(R.drawable.floting),
-                            contentDescription = "Floating Button",
+                        Box(
                             modifier = Modifier.size(45.dp),
-                            tint = Color.Unspecified
-                        )
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.floting),
+                                contentDescription = "Floating Button",
+                                modifier = Modifier.size(45.dp),
+                                tint = Color.Unspecified
+                            )
+                        }
                     }
                 }
             },

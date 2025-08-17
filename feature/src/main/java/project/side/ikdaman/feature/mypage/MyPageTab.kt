@@ -2,6 +2,7 @@
 
 package project.side.ikdaman.feature.mypage
 
+import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -38,17 +39,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import project.side.ikdaman.app.core.R.string
 import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.navigation.NOTICE_ROUTE
 import project.side.ikdaman.core.navigation.USERINFO_ROUTE
 import project.side.ikdaman.core.ui.AppTheme
+import project.side.ikdaman.core.utils.oneClick
 import java.util.Locale
 
 @Composable
@@ -58,6 +63,8 @@ fun MyPageTab(
     viewModel: MyPageViewModel = hiltViewModel()
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
+    val context = LocalContext.current
+
     MyPageTabUI(
         nickname = uiState.nickname,
         isChecked = uiState.isChecked,
@@ -68,7 +75,12 @@ fun MyPageTab(
             onPermissionCheck()
         },
         onTimeSelected = { viewModel.updateSelectedTime(it) },
-        navigateToNotice = { navController.navigate(NOTICE_ROUTE) }
+        navigateToNotice = { navController.navigate(NOTICE_ROUTE) },
+        navigateToLink = { resId ->
+            context.startActivity(
+                Intent(Intent.ACTION_VIEW, context.getString(resId).toUri())
+            )
+        }
     )
 }
 
@@ -81,7 +93,8 @@ fun MyPageTabUI(
     navigateToEditProfile: () -> Unit = {},
     onCheckedChanged: (Boolean) -> Unit = {},
     onTimeSelected: (String) -> Unit = {},
-    navigateToNotice: () -> Unit = {}
+    navigateToNotice: () -> Unit = {},
+    navigateToLink: (Int) -> Unit = {},
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     Box(
@@ -103,7 +116,7 @@ fun MyPageTabUI(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 20.dp, top = 34.dp, bottom = 30.dp, end = 21.dp)
-                    .clickable { navigateToEditProfile() },
+                    .oneClick { navigateToEditProfile() },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("내 정보 관리", style = MyPageTextStyle.MenuText)
@@ -185,8 +198,8 @@ fun MyPageTabUI(
             )
             Spacer(modifier = Modifier.height(27.dp))
             MyPageMenuItem("공지사항", navigateToNotice)
-            MyPageMenuItem("서비스 이용약관")
-            MyPageMenuItem("개인정보 처리방침")
+            MyPageMenuItem("서비스 이용약관") { navigateToLink(string.url_terms_of_service) }
+            MyPageMenuItem("개인정보 처리방침") { navigateToLink(string.url_privacy_policy) }
             MyPageMenuItem("1:1 문의")
         }
 
@@ -260,7 +273,7 @@ fun MyPageMenuItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
-            .clickable { onClick() },
+            .oneClick { onClick() },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(

@@ -1,5 +1,6 @@
 package project.side.ikdaman.feature.login
 
+import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -33,9 +34,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import project.side.ikdaman.app.core.R.string
 import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.core.navigation.LOGIN_ROUTE
 import project.side.ikdaman.core.navigation.MAIN_ROUTE
@@ -76,6 +79,11 @@ fun LoginScreen(
         },
         onKakaoLogin = {
             viewModel.kakaoLogin(context)
+        },
+        navigateToLink = { resId ->
+            context.startActivity(
+                Intent(Intent.ACTION_VIEW, context.getString(resId).toUri())
+            )
         }
     )
 }
@@ -95,10 +103,15 @@ fun LoginScreenUI(
     isLoading: Boolean = false,
     onGoogleLogin: () -> Unit = {},
     onNaverLogin: () -> Unit = {},
-    onKakaoLogin: () -> Unit = {}
+    onKakaoLogin: () -> Unit = {},
+    navigateToLink: (Int) -> Unit = {},
 ) {
     Scaffold {
-        Box(modifier = Modifier.fillMaxSize().padding(it)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(it)
+        ) {
             if (isLoading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             }
@@ -128,9 +141,9 @@ fun LoginScreenUI(
                 Box(Modifier.weight(1f))
                 Row {
                     Text(text = "가입 시 ", style = LoginTextStyle.TermsRegularText)
-                    TermText("이용약관")
+                    TermText("이용약관") { navigateToLink(string.url_terms_of_service) }
                     Text(text = " 및 ", style = LoginTextStyle.TermsRegularText)
-                    TermText("개인정보처리방침에")
+                    TermText("개인정보처리방침에") { navigateToLink(string.url_privacy_policy) }
                     Text(text = " 동의하게 됩니다.", style = LoginTextStyle.TermsRegularText)
                 }
 

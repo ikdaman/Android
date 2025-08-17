@@ -20,7 +20,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.app.ui.NoticeScreen
 import dagger.hilt.android.AndroidEntryPoint
 import project.side.ikdaman.core.navigation.ADD_BOOK_RECORD
 import project.side.ikdaman.core.navigation.ADD_BOOK_ROUTE
@@ -42,6 +41,7 @@ import project.side.ikdaman.feature.addbook.AddBookScreen
 import project.side.ikdaman.feature.barcode.BarcodeScreen
 import project.side.ikdaman.feature.detail.BookDetailScreen
 import project.side.ikdaman.feature.login.LoginScreen
+import project.side.ikdaman.feature.mypage.NoticeScreen
 import project.side.ikdaman.feature.mypage.UserInfoScreen
 import project.side.ikdaman.feature.splash.SplashScreen
 

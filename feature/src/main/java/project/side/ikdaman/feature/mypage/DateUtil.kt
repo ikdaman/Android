@@ -7,12 +7,12 @@ import java.time.format.ResolverStyle
 
 fun isValidDate(dateStr: String): Boolean {
     return try {
-        LocalDate.parse(
+        val date = LocalDate.parse(
             dateStr, DateTimeFormatter.ofPattern("uuuu-MM-dd").withResolverStyle(
                 ResolverStyle.STRICT
             )
         )
-        true
+        date <= LocalDate.now()
     } catch (e: Exception) {
         false
     }
