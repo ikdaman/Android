@@ -6,11 +6,13 @@ import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -56,6 +58,7 @@ import project.side.ikdaman.core.ui.PretendardFontFamily
 import project.side.ikdaman.core.view.GradientBox
 import project.side.ikdaman.domain.model.ApiResult
 import project.side.ikdaman.domain.model.BookItem
+import project.side.ikdaman.domain.model.BookSubInfo
 
 @Composable
 fun AddBookScreen(
@@ -181,39 +184,50 @@ private fun AddBookScreenUI(
 
                 Spacer(Modifier.height(24.dp))
 
-                Row {
-                    Column {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row {
                         Text(
                             "책 제목",
                             style = labelTextStyle,
+                            modifier = Modifier.defaultMinSize(minWidth = 52.dp)
                         )
-                        Text(
-                            "작가",
-                            style = labelTextStyle,
-                        )
-                        Text(
-                            "출판사",
-                            style = labelTextStyle,
-                        )
-                        Text(
-                            "총 페이지",
-                            style = labelTextStyle,
-                        )
-                    }
-                    Spacer(Modifier.width(30.dp))
-                    Column {
+                        Spacer(Modifier.width(30.dp))
                         Text(
                             bookItem.title,
                             style = contentTextStyle
                         )
+                    }
+                    Row {
+                        Text(
+                            "작가",
+                            style = labelTextStyle,
+                            modifier = Modifier.defaultMinSize(minWidth = 52.dp)
+                        )
+                        Spacer(Modifier.width(30.dp))
                         Text(
                             bookItem.author,
                             style = contentTextStyle
                         )
+                    }
+                    Row {
+                        Text(
+                            "출판사",
+                            style = labelTextStyle,
+                            modifier = Modifier.defaultMinSize(minWidth = 52.dp)
+                        )
+                        Spacer(Modifier.width(30.dp))
                         Text(
                             bookItem.publisher,
                             style = contentTextStyle
                         )
+                    }
+                    Row {
+                        Text(
+                            "총 페이지",
+                            style = labelTextStyle,
+                            modifier = Modifier.defaultMinSize(minWidth = 52.dp)
+                        )
+                        Spacer(Modifier.width(30.dp))
                         Text(
                             bookItem.subInfo?.itemPage ?: "0",
                             style = contentTextStyle
@@ -352,6 +366,15 @@ private fun AddBookButton(modifier: Modifier, addBook: () -> Unit) {
 @Preview
 private fun AddBookScreenUIPreview() {
     AppTheme {
-        AddBookScreenUI()
+        AddBookScreenUI(
+            bookItem = BookItem(
+                title = "안드로이드 개발의 정석 정말 긴 안드로이드 정석  안드로이드 개발의 정석 정말 긴 안드로이드 정석",
+                author = "홍길동",
+                publisher = "출판사",
+                cover = "https://example.com/cover.jpg",
+                link = "https://example.com/book/1",
+                subInfo = BookSubInfo(itemPage = "300")
+            ),
+        )
     }
 }
