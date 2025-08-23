@@ -10,17 +10,17 @@ import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import project.side.ikdaman.app.data.BuildConfig
-import project.side.ikdaman.data.data_source.AuthDataStore
+import project.side.ikdaman.data.data_source.local.AuthDataStore
 import project.side.ikdaman.data.repository.AuthRepositoryImpl
 import project.side.ikdaman.data.repository.BookRepositoryImpl
 import project.side.ikdaman.data.repository.MyBooksApiRepositoryImpl
 import project.side.ikdaman.data.repository.NoticeRepositoryImpl
 import project.side.ikdaman.data.repository.UserRepositoryImpl
-import project.side.ikdaman.data.service.AuthService
-import project.side.ikdaman.data.service.BookService
-import project.side.ikdaman.data.service.MyBookApi
-import project.side.ikdaman.data.service.NoticeService
-import project.side.ikdaman.data.service.UserService
+import project.side.ikdaman.data.data_source.remote.AuthService
+import project.side.ikdaman.data.data_source.remote.BookService
+import project.side.ikdaman.data.data_source.remote.MyBookService
+import project.side.ikdaman.data.data_source.remote.NoticeService
+import project.side.ikdaman.data.data_source.remote.UserService
 import project.side.ikdaman.domain.repository.AuthRepository
 import project.side.ikdaman.domain.repository.BookRepository
 import project.side.ikdaman.domain.repository.MyBooksApiRepository
@@ -125,13 +125,13 @@ object ApiModule {
 
     @Provides
     @Singleton
-    fun provideMyBookApi(@AuthRetrofit authRetrofit: Retrofit): MyBookApi {
-        return authRetrofit.create(MyBookApi::class.java)
+    fun provideMyBookApi(@AuthRetrofit authRetrofit: Retrofit): MyBookService {
+        return authRetrofit.create(MyBookService::class.java)
     }
 
     @Provides
     @Singleton
-    fun provideMyBooksApiRepository(myBookApi: MyBookApi): MyBooksApiRepository {
+    fun provideMyBooksApiRepository(myBookApi: MyBookService): MyBooksApiRepository {
         return MyBooksApiRepositoryImpl(myBookApi)
     }
 

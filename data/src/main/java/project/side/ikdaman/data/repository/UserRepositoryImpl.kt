@@ -1,9 +1,9 @@
 package project.side.ikdaman.data.repository
 
 import kotlinx.coroutines.flow.Flow
-import project.side.ikdaman.data.data_source.AuthDataStore
+import project.side.ikdaman.data.data_source.local.AuthDataStore
 import project.side.ikdaman.data.model.user.toDomain
-import project.side.ikdaman.data.service.UserService
+import project.side.ikdaman.data.data_source.remote.UserService
 import project.side.ikdaman.domain.model.ApiResult
 import project.side.ikdaman.domain.model.UserInfo
 import project.side.ikdaman.domain.repository.UserRepository

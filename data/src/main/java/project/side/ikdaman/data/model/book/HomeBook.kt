@@ -2,8 +2,6 @@ package project.side.ikdaman.data.model.book
 
 import project.side.ikdaman.domain.model.HomeBookItem
 import project.side.ikdaman.domain.util.convertUtcToLocalLong
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 data class HomeBook(
     val mybookId: Int,

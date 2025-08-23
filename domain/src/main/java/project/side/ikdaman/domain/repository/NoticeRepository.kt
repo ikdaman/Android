@@ -1,6 +1,5 @@
 package project.side.ikdaman.domain.repository
 
-import project.side.ikdaman.domain.model.Notice
 import project.side.ikdaman.domain.model.NoticeDetail
 import project.side.ikdaman.domain.model.NoticeItem
 

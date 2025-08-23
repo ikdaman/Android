@@ -1,6 +1,6 @@
 package project.side.ikdaman.domain.model
 
 data class AddBookItem(
-    val bookItem: BookItem,
+    val bookItem: BookSearchItemEntity,
     val impression: String
 )

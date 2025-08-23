@@ -11,7 +11,7 @@ import project.side.ikdaman.data.model.book.PostBookRequestBody
 import project.side.ikdaman.data.model.book.UpdateBookCompleted
 import project.side.ikdaman.data.model.book.UpdateBookThink
 import project.side.ikdaman.data.model.responses.toDomain
-import project.side.ikdaman.data.service.MyBookApi
+import project.side.ikdaman.data.data_source.remote.MyBookService
 import project.side.ikdaman.domain.model.AddBookItem
 import project.side.ikdaman.domain.model.ApiResult
 import project.side.ikdaman.domain.model.BookShelfBooks
@@ -19,7 +19,7 @@ import project.side.ikdaman.domain.repository.MyBooksApiRepository
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
-class MyBooksApiRepositoryImpl(private val api: MyBookApi) : MyBooksApiRepository {
+class MyBooksApiRepositoryImpl(private val api: MyBookService) : MyBooksApiRepository {
     companion object {
         private const val BOOKS_LIMIT = 10
     }
@@ -203,7 +203,7 @@ class MyBooksApiRepositoryImpl(private val api: MyBookApi) : MyBooksApiRepositor
             createdAt = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
         )
         val response = api.postBook(postBookRequestBody)
-        if (response.code() == 201) {
+        if (response.isSuccessful) {
             emit(ApiResult.Success(Unit))
         } else {
             emit(ApiResult.Error(response.message() ?: ""))

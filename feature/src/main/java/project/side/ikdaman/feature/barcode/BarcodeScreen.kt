@@ -75,7 +75,7 @@ import project.side.ikdaman.core.ui.PretendardFontFamily
 import project.side.ikdaman.core.utils.oneClick
 import project.side.ikdaman.core.view.AddBookButton
 import project.side.ikdaman.core.view.CustomModalBottomSheet
-import project.side.ikdaman.domain.model.BookItem
+import project.side.ikdaman.domain.model.BookSearchItemEntity
 
 private const val CAMERA_PERMISSION = Manifest.permission.CAMERA
 
@@ -182,7 +182,7 @@ fun BarcodeScreenUI(
     isPermissionGranted: Boolean? = null,
     lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
     cameraProvider: ProcessCameraProvider? = null,
-    bookItem: BookItem? = null,
+    bookItem: BookSearchItemEntity? = null,
     barcodeScanner: BarcodeScanner,
     onNavigateToAddBookScreen: (String) -> Unit = {},
     onAddBook: () -> Unit = {},
@@ -348,7 +348,7 @@ private fun NoCameraScreen(modifier: Modifier = Modifier) {
 fun BarcodeResultBottomSheet(
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
     onDismissDialog: () -> Unit,
-    bookItem: BookItem,
+    bookItem: BookSearchItemEntity,
     onNavigateToAddBookScreen: (String) -> Unit,
     onAddBook: () -> Unit = {}
 ) {
@@ -436,7 +436,7 @@ private fun BarcodeResultBottomSheetPreview() {
     BarcodeResultBottomSheet(
         sheetState = sheetState,
         onDismissDialog = {},
-        bookItem = BookItem(
+        bookItem = BookSearchItemEntity(
             title = "test",
             author = "test",
             cover = "https://image.aladin.co.kr/product/4086/97/coversum/8936434128_2.jpg",

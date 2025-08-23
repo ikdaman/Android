@@ -7,7 +7,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import project.side.ikdaman.data.data_source.AlarmDataStore
+import project.side.ikdaman.data.data_source.local.AlarmDataStore
 import project.side.ikdaman.data.repository.AlarmRepositoryImpl
 import project.side.ikdaman.domain.repository.AlarmRepository
 import javax.inject.Qualifier

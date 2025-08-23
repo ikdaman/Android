@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import project.side.ikdaman.domain.model.AddBookItem
 import project.side.ikdaman.domain.model.ApiResult
-import project.side.ikdaman.domain.model.BookItem
+import project.side.ikdaman.domain.model.BookSearchItemEntity
 import project.side.ikdaman.domain.usecase.PostBookUseCase
 import project.side.ikdaman.domain.usecase.SearchBookWithIsbnUseCase
 import javax.inject.Inject
@@ -23,15 +23,17 @@ class BarcodeViewModel @Inject constructor(
     private val _isbn = MutableStateFlow<String?>(null)
     val isbn = _isbn.asStateFlow()
 
-    private val _searchResult = MutableStateFlow<BookItem?>(null)
+    private val _searchResult = MutableStateFlow<BookSearchItemEntity?>(null)
     val searchResult = _searchResult.asStateFlow()
 
     fun searchBookWithIsbn(isbn: String?) {
         viewModelScope.launch {
             if (isbn != null) {
                 val result = searchBookWithIsbnUseCase(isbn)
-                if (result.books.isNotEmpty()) {
-                    _searchResult.value = result.books[0]
+                if (result is ApiResult.Success) {
+                    if (result.data.books.isNotEmpty()) {
+                        _searchResult.value = result.data.books[0]
+                    }
                 }
 
             }

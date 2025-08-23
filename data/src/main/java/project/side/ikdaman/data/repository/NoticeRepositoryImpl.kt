@@ -1,6 +1,6 @@
 package project.side.ikdaman.data.repository
 
-import project.side.ikdaman.data.service.NoticeService
+import project.side.ikdaman.data.data_source.remote.NoticeService
 import project.side.ikdaman.domain.model.NoticeDetail
 import project.side.ikdaman.domain.model.NoticeItem
 import project.side.ikdaman.domain.repository.NoticeRepository

@@ -1,4 +1,4 @@
-package project.side.ikdaman.data.service
+package project.side.ikdaman.data.data_source.remote
 
 import project.side.ikdaman.data.model.FirstImpression
 import project.side.ikdaman.data.model.book.BookCompleted
@@ -10,7 +10,6 @@ import project.side.ikdaman.data.model.responses.BookShelfResponse
 import project.side.ikdaman.data.model.responses.BooksResponse
 import project.side.ikdaman.domain.model.BookDetail
 import project.side.ikdaman.domain.model.BookLog
-import project.side.ikdaman.domain.model.BookShelfItem
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -20,7 +19,7 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-interface MyBookApi {
+interface MyBookService {
 
     // 나의 책 기록 조회
     @GET("mybooks/{id}/booklog")

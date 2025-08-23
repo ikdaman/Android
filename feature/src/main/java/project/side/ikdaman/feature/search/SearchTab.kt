@@ -59,7 +59,7 @@ import project.side.ikdaman.core.ui.PretendardFontFamily
 import project.side.ikdaman.core.utils.oneClick
 import project.side.ikdaman.core.view.AddBookButton
 import project.side.ikdaman.core.view.GradientBox
-import project.side.ikdaman.domain.model.BookItem
+import project.side.ikdaman.domain.model.BookSearchItemEntity
 import project.side.ikdaman.domain.model.BookSubInfo
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -111,7 +111,7 @@ fun SearchTabUI(
     selectedColor: Color = Palette.first,
     onSearchKeywordChange: (String) -> Unit = {},
     searchKeyword: String = "",
-    bookItems: List<BookItem> = listOf(),
+    bookItems: List<BookSearchItemEntity> = listOf(),
     onClickAddBookButton: (String) -> Unit = {},
     onLoadMoreBooks: () -> Unit = {},
     onNavigateToBarcodeScanner: () -> Unit = {}
@@ -177,7 +177,7 @@ fun SearchTabUI(
 
 @Composable
 private fun SearchResultScreen(
-    bookItems: List<BookItem>,
+    bookItems: List<BookSearchItemEntity>,
     onClickAddBookButton: (String) -> Unit,
     onLoadMoreBooks: () -> Unit
 ) {
@@ -305,7 +305,7 @@ fun SearchTextField(
 
 @Composable
 private fun SearchResultItem(
-    bookItem: BookItem,
+    bookItem: BookSearchItemEntity,
     onClickAddBookButton: (String) -> Unit
 ) {
     Box(
@@ -384,7 +384,7 @@ private fun SearchTabUIPreview() {
         SearchTabUI(
             searchKeyword = "소년이 온다 온다 온다 온다 온다 온다 온다 온다 온다",
             bookItems = List(5) {
-                BookItem(
+                BookSearchItemEntity(
                     title = "소년이 온다(개정판)",
                     author = "한강",
                     cover = "https://contents.kyobobook.co.kr/sih/fit-in/458x0/pdt/4808936434120.jpg",

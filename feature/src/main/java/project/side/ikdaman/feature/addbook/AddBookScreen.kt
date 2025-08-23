@@ -57,7 +57,7 @@ import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.core.ui.PretendardFontFamily
 import project.side.ikdaman.core.view.GradientBox
 import project.side.ikdaman.domain.model.ApiResult
-import project.side.ikdaman.domain.model.BookItem
+import project.side.ikdaman.domain.model.BookSearchItemEntity
 import project.side.ikdaman.domain.model.BookSubInfo
 
 @Composable
@@ -107,7 +107,7 @@ private fun AddBookScreenUI(
     selectedColor: Color = Palette.first,
     initialImpression: String = "",
     onInitialImpressionChange: (String) -> Unit = {},
-    bookItem: BookItem? = null,
+    bookItem: BookSearchItemEntity? = null,
     addBook: () -> Unit = {},
     context: Context = LocalContext.current,
     popBackStack: () -> Unit = {}
@@ -367,7 +367,7 @@ private fun AddBookButton(modifier: Modifier, addBook: () -> Unit) {
 private fun AddBookScreenUIPreview() {
     AppTheme {
         AddBookScreenUI(
-            bookItem = BookItem(
+            bookItem = BookSearchItemEntity(
                 title = "안드로이드 개발의 정석 정말 긴 안드로이드 정석  안드로이드 개발의 정석 정말 긴 안드로이드 정석",
                 author = "홍길동",
                 publisher = "출판사",

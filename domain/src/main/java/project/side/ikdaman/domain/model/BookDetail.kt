@@ -1,9 +1,6 @@
 package project.side.ikdaman.domain.model
 
 import project.side.ikdaman.domain.util.convertUtcToLocalLong
-import project.side.ikdaman.domain.util.convertUtcToLocalString
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 data class BookDetail(
     val bookInfo: BookInfo = BookInfo(),

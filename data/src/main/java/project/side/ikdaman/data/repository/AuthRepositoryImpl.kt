@@ -1,8 +1,8 @@
 package project.side.ikdaman.data.repository
 
-import project.side.ikdaman.data.data_source.AuthDataStore
-import project.side.ikdaman.data.service.AuthService
-import project.side.ikdaman.data.service.LoginRequest
+import project.side.ikdaman.data.data_source.local.AuthDataStore
+import project.side.ikdaman.data.data_source.remote.AuthService
+import project.side.ikdaman.data.data_source.remote.LoginRequest
 import project.side.ikdaman.domain.model.ApiResult
 import project.side.ikdaman.domain.repository.AuthRepository
 import javax.inject.Inject

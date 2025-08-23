@@ -1,4 +1,4 @@
-package project.side.ikdaman.data.data_source
+package project.side.ikdaman.data.data_source.local
 
 import android.content.Context
 import androidx.datastore.core.DataStore

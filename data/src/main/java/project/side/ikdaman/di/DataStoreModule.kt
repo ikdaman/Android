@@ -5,12 +5,12 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import project.side.ikdaman.data.data_source.AlarmDataStore
+import project.side.ikdaman.data.data_source.local.AlarmDataStore
 import project.side.ikdaman.data.repository.PaletteRepositoryImpl
 import project.side.ikdaman.data.repository.PinningBookRepositoryImpl
-import project.side.ikdaman.data.service.PaletteService
-import project.side.ikdaman.data.data_source.AuthDataStore
-import project.side.ikdaman.data.service.PinningBookService
+import project.side.ikdaman.data.data_source.local.PaletteDataStore
+import project.side.ikdaman.data.data_source.local.AuthDataStore
+import project.side.ikdaman.data.data_source.local.PinningBookDataStore
 import project.side.ikdaman.domain.repository.PaletteRepository
 import project.side.ikdaman.domain.repository.PinningBookRepository
 import javax.inject.Singleton
@@ -21,20 +21,20 @@ object DataStoreModule {
 
     @Provides
     @Singleton
-    fun providePinningBookService(application: Application) = PinningBookService(application)
+    fun providePinningBookService(application: Application) = PinningBookDataStore(application)
 
     @Provides
     @Singleton
-    fun providePinningBookRepository(pinningBookService: PinningBookService): PinningBookRepository =
-        PinningBookRepositoryImpl(pinningBookService)
+    fun providePinningBookRepository(pinningBookDataStore: PinningBookDataStore): PinningBookRepository =
+        PinningBookRepositoryImpl(pinningBookDataStore)
 
     @Provides
     @Singleton
-    fun providePaletteService(application: Application) = PaletteService(application)
+    fun providePaletteService(application: Application) = PaletteDataStore(application)
 
     @Provides
     @Singleton
-    fun providePaletteRepository(paletteService: PaletteService): PaletteRepository =
+    fun providePaletteRepository(paletteService: PaletteDataStore): PaletteRepository =
         PaletteRepositoryImpl(paletteService)
 
 	@Provides

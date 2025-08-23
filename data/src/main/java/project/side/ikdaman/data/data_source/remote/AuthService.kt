@@ -1,4 +1,4 @@
-package project.side.ikdaman.data.service
+package project.side.ikdaman.data.data_source.remote
 
 import retrofit2.Response
 import retrofit2.http.Body

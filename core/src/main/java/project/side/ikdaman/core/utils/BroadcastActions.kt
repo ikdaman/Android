@@ -1,3 +1,3 @@
-package project.side.ikdaman.domain.util
+package project.side.ikdaman.core.utils
 
 const val ALARM_ACTION = "project.side.ikdaman.alarm"

@@ -1,4 +1,4 @@
-package project.side.ikdaman.data.service
+package project.side.ikdaman.data.data_source.local
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.map
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "pinned_settings")
 
-class PinningBookService(private val context: Context) {
+class PinningBookDataStore(private val context: Context) {
 
     companion object {
         val PINNED_ITEMS_KEY = stringSetPreferencesKey("pinned_items")

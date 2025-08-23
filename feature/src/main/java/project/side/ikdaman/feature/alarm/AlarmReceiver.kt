@@ -14,7 +14,7 @@ import dagger.hilt.android.EntryPointAccessors
 import project.side.ikdaman.app.feature.R
 import project.side.ikdaman.domain.usecase.AlarmReceiverEntryPoint
 import project.side.ikdaman.domain.usecase.ReScheduleAlarmUseCase
-import project.side.ikdaman.domain.util.ALARM_ACTION
+import project.side.ikdaman.core.utils.ALARM_ACTION
 import project.side.ikdaman.main.MainActivity
 import java.util.Calendar
 

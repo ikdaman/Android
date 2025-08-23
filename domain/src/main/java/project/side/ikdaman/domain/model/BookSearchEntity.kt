@@ -1,11 +1,11 @@
 package project.side.ikdaman.domain.model
 
-data class BookSearchResult(
+data class BookSearchEntity(
     val totalBookCount: Int = 0,
-    val books: List<BookItem> = emptyList()
+    val books: List<BookSearchItemEntity> = emptyList()
 )
 
-data class BookItem(
+data class BookSearchItemEntity(
     val title: String = "",
     val author: String = "",
     val cover: String = "",

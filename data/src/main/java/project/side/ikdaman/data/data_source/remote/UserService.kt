@@ -1,4 +1,4 @@
-package project.side.ikdaman.data.service
+package project.side.ikdaman.data.data_source.remote
 
 import project.side.ikdaman.data.model.user.CheckNickNameResponse
 import project.side.ikdaman.data.model.user.UserInfoResponse

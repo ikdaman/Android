@@ -1,4 +1,4 @@
-package project.side.ikdaman.data.service
+package project.side.ikdaman.data.data_source.remote
 
 import project.side.ikdaman.domain.model.NoticeDetail
 import project.side.ikdaman.domain.model.NoticeItem

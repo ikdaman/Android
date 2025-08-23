@@ -1,4 +1,4 @@
-package project.side.ikdaman.data.service
+package project.side.ikdaman.data.data_source.local
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.map
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "palette_settings")
 
-class PaletteService(private val context: Context) {
+class PaletteDataStore(private val context: Context) {
     companion object {
         val PALETTE_KEY = longPreferencesKey("palette_key")
     }
@@ -19,7 +19,7 @@ class PaletteService(private val context: Context) {
     // 현재 팔레트 가져오기
     val currentPalette: Flow<Long> = context.dataStore.data
         .map { preferences ->
-            preferences[PALETTE_KEY]?.toLong() ?: 0xFFC1A4DB // 기본 팔레트 색상
+            preferences[PALETTE_KEY] ?: 0xFFC1A4DB // 기본 팔레트 색상
         }
 
     // 팔레트 설정

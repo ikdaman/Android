@@ -62,13 +62,10 @@ fun MyPageTab(
     onPermissionCheck: () -> Unit = {},
     viewModel: MyPageViewModel = hiltViewModel()
 ) {
-    val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
     val context = LocalContext.current
 
     MyPageTabUI(
-        nickname = uiState.nickname,
-        isChecked = uiState.isChecked,
-        selectedTime = uiState.selectedTime,
+        uiState = viewModel.uiState.collectAsStateWithLifecycle().value,
         navigateToEditProfile = { navController.navigate(USERINFO_ROUTE) },
         onCheckedChanged = {
             viewModel.toggleAlarm()
@@ -86,9 +83,7 @@ fun MyPageTab(
 
 @Composable
 fun MyPageTabUI(
-    nickname: String,
-    isChecked: Boolean,
-    selectedTime: String = "21:00",
+    uiState: MyPageUiState,
     isTimeSelectOpened: MutableState<Boolean> = remember { mutableStateOf(false) },
     navigateToEditProfile: () -> Unit = {},
     onCheckedChanged: (Boolean) -> Unit = {},
@@ -96,6 +91,10 @@ fun MyPageTabUI(
     navigateToNotice: () -> Unit = {},
     navigateToLink: (Int) -> Unit = {},
 ) {
+    val nickname = uiState.nickname
+    val isChecked = uiState.isChecked
+    val selectedTime = uiState.selectedTime
+
     val interactionSource = remember { MutableInteractionSource() }
     Box(
         Modifier
@@ -289,7 +288,16 @@ fun MyPageMenuItem(
 @Composable
 @Preview(showBackground = true)
 fun MyPageTabUIPreview() {
-    AppTheme { MyPageTabUI("닉네임", true) }
+    AppTheme {
+        MyPageTabUI(
+            uiState = MyPageUiState(
+                nickname = "홍길동",
+                isChecked = true,
+                selectedTime = "21:00"
+            ),
+            isTimeSelectOpened = remember { mutableStateOf(false) }
+        )
+    }
 }
 
 @Composable

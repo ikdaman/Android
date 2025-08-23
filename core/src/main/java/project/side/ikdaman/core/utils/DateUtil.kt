@@ -1,4 +1,4 @@
-package project.side.ikdaman.feature.mypage
+package project.side.ikdaman.core.utils
 
 import androidx.compose.ui.text.input.TextFieldValue
 import java.time.LocalDate
@@ -13,7 +13,7 @@ fun isValidDate(dateStr: String): Boolean {
             )
         )
         date <= LocalDate.now()
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         false
     }
 }

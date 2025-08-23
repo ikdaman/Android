@@ -14,13 +14,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import project.side.ikdaman.core.ui.Palette
-import project.side.ikdaman.domain.model.BookItem
-import project.side.ikdaman.domain.model.BookSearchResult
+import project.side.ikdaman.domain.model.ApiResult
+import project.side.ikdaman.domain.model.BookSearchItemEntity
+import project.side.ikdaman.domain.model.BookSearchEntity
 import project.side.ikdaman.domain.repository.PaletteRepository
 import project.side.ikdaman.domain.usecase.SearchBookWithTitleUseCase
 import javax.inject.Inject
-
-private const val TAG = "SearchViewModel"
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
@@ -35,11 +34,11 @@ class SearchViewModel @Inject constructor(
     private val _searchKeyword = MutableStateFlow("")
     val searchKeyword = _searchKeyword.asStateFlow()
 
-    private val _searchResult: MutableStateFlow<List<BookItem>> = MutableStateFlow(listOf())
-    val searchResult: StateFlow<List<BookItem>> = _searchResult.asStateFlow()
+    private val _searchResult: MutableStateFlow<List<BookSearchItemEntity>> = MutableStateFlow(listOf())
+    val searchResult: StateFlow<List<BookSearchItemEntity>> = _searchResult.asStateFlow()
 
     private var startPage: Int = 1
-    private var cachedSearchResult: BookSearchResult = BookSearchResult()
+    private var cachedSearchResult: BookSearchEntity = BookSearchEntity()
 
     private var searchJob: Job? = null
 
@@ -60,9 +59,15 @@ class SearchViewModel @Inject constructor(
                 keyword = title,
                 startPage = startPage
             )
-            _searchResult.update { result.books }
-            startPage = 1
-            cachedSearchResult = result
+            when(result) {
+                is ApiResult.Success -> {
+                    _searchResult.update { result.data.books }
+                    startPage = 1
+                    cachedSearchResult = result.data
+                } else -> {
+
+                }
+            }
         }
     }
 
@@ -78,10 +83,12 @@ class SearchViewModel @Inject constructor(
                 keyword = searchKeyword.value,
                 startPage = startPage + 1
             )
-            if (result != cachedSearchResult) {
-                startPage++
-                cachedSearchResult = result
-                _searchResult.update { it + result.books }
+            if (result is ApiResult.Success) {
+                if (result.data != cachedSearchResult) {
+                    startPage++
+                    cachedSearchResult = result.data
+                    _searchResult.update { it + result.data.books }
+                }
             }
         }
     }

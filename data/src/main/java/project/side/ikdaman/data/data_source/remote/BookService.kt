@@ -1,6 +1,8 @@
-package project.side.ikdaman.data.service
+package project.side.ikdaman.data.data_source.remote
 
 import project.side.ikdaman.app.data.BuildConfig
+import project.side.ikdaman.data.model.BookSearchDto
+import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -15,7 +17,7 @@ interface BookService {
         @Query("version") version: String = "20131101",
         @Query("maxResults") maxResults: Int = 50,
         @Query("start") startPage: Int = 1
-    ): BookSearchResponse
+    ): Response<BookSearchDto>
 
     @GET("ttb/api/ItemLookUp.aspx")
     suspend fun searchBookWithIsbn(
@@ -25,26 +27,6 @@ interface BookService {
         @Query("cover") cover: String = "Big",
         @Query("output") output: String = "js",
         @Query("Version") version: String = "20131101"
-    ): BookSearchResponse
+    ): Response<BookSearchDto>
 }
 
-data class BookSearchResponse(
-    val totalResults: Int,
-    val item: List<BookSearchItem>
-)
-
-data class BookSearchItem(
-    val title: String,
-    val link: String,
-    val author: String,
-    val cover: String,
-    val publisher: String,
-    val isbn: String?,
-    val isbn13: String?,
-    val itemId: Long,
-    val subInfo: BookSubInfoResponse? = null
-)
-
-data class BookSubInfoResponse(
-    val itemPage: String? = null
-)
