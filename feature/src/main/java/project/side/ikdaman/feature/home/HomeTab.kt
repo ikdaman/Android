@@ -98,7 +98,6 @@ fun HomeTab(
 
     HomeTabUI(
         selectedColor = selectedColor,
-        books = viewModel.books.collectAsState().value,
         pinnedItems = viewModel.pinnedItems.collectAsState().value,
         unpinnedItems = viewModel.unpinnedItems.collectAsState().value,
         onPinItem = {
@@ -145,7 +144,6 @@ enum class HomeTabViewMode {
 @Composable
 fun HomeTabUI(
     selectedColor: Color = Palette.first,
-    books: List<HomeBookItem> = listOf(),
     pinnedItems: List<HomeBookItem> = emptyList(),
     unpinnedItems: List<HomeBookItem> = emptyList(),
     selectedViewMode: MutableState<HomeTabViewMode> = remember { mutableStateOf(HomeTabViewMode.CAROUSEL) },
@@ -158,6 +156,8 @@ fun HomeTabUI(
     onNavigateToFirstImpression: (String) -> Unit = {},
     onNavigateToAddBook: () -> Unit = {}
 ) {
+    val books = pinnedItems + unpinnedItems
+
     val selectedBookIndex = remember { mutableIntStateOf(0) }
     val deleteMode = remember { mutableStateOf(false) }
 
@@ -197,7 +197,7 @@ fun HomeTabUI(
             ) {
                 ColorPaletteButton(paletteViewState, selectedColor)
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (!deleteMode.value) {
+                    if (!deleteMode.value && books.isNotEmpty()) {
                         Image(
                             imageVector = ImageVector.vectorResource(R.drawable.bin),
                             contentDescription = null,
@@ -232,7 +232,7 @@ fun HomeTabUI(
                     CarouselBooks(
                         deleteMode,
                         selectedBookIndex,
-                        books,
+                        pinnedItems + unpinnedItems,
                         onDeleteClick,
                         onAddRecord,
                         onBookClicked,
@@ -362,7 +362,9 @@ private fun CarouselBooks(
             BookProgressBarWithText(
                 LocalConfiguration.current.screenWidthDp - 40,
                 books[selectedBookIndex.value].progress,
-                modifier = Modifier.padding(horizontal = 20.dp)
+                modifier = Modifier.padding(horizontal = 20.dp).oneClick {
+                    onAddRecord(books[selectedBookIndex.value].id)
+                }
             )
             Spacer(Modifier.height(20.dp))
             Box(
@@ -614,7 +616,7 @@ private fun LeftDayBubble(bookItem: HomeBookItem) {
 fun CarouselHomeTabPreview() {
     AppTheme {
         HomeTabUI(
-            books = listOf(
+            unpinnedItems = listOf(
                 HomeBookItem(
                     id = "0",
                     imageUrl = "https://picsum.photos/250/284?random=1",
@@ -660,41 +662,6 @@ fun CarouselHomeTabPreview() {
 fun ListHomeTabPreview() {
     AppTheme {
         HomeTabUI(
-            books = listOf(
-                HomeBookItem(
-                    id = "0",
-                    imageUrl = "https://picsum.photos/250/284?random=1",
-                    lastEditedDateTime = System.currentTimeMillis(),
-                    title = "소년이 온다1",
-                    author = "한강1",
-                    firstImpression = ""
-                ),
-                HomeBookItem(
-                    id = "1",
-                    imageUrl = "https://picsum.photos/250/284?random=2",
-                    lastEditedDateTime = System.currentTimeMillis() - (12 * 60 * 60 * 1000),
-                    title = "소년이 온다2",
-                    author = "한강2",
-                    firstImpression = "",
-                    progress = 1f
-                ),
-                HomeBookItem(
-                    id = "2",
-                    imageUrl = "https://picsum.photos/250/284?random=3",
-                    lastEditedDateTime = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
-                    title = "소년이 온다3",
-                    author = "한강1",
-                    progress = 0.5f
-                ),
-                HomeBookItem(
-                    id = "3",
-                    imageUrl = "https://picsum.photos/250/284?random=4",
-                    lastEditedDateTime = System.currentTimeMillis() - (72 * 60 * 60 * 1000),
-                    title = "소년이 온다4",
-                    author = "한강1",
-                    progress = 0.7f
-                ),
-            ),
             pinnedItems = listOf(
                 HomeBookItem(
                     id = "0",

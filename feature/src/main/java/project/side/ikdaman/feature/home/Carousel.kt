@@ -161,7 +161,7 @@ fun CarouselItemView(
                     1f
                 }
             },
-            contentScale = ContentScale.Fit
+            contentScale = ContentScale.Crop
         )
         // item.addedDateTime (Long Type) 값과 현재 시간을 비교해서 24시간 이내인지 확인
         val isNew = (System.currentTimeMillis() - item.lastEditedDateTime) < 24 * 60 * 60 * 1000

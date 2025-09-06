@@ -52,7 +52,13 @@ class AddRecordViewModel @Inject constructor(
         }
     }
 
-    fun addMiddleRecord(bookId: String, text: String, page: Int, onSuccess: () -> Unit = {}) = viewModelScope.launch {
+    fun addMiddleRecord(data: BookDetail, text: String, page: Int, onSuccess: () -> Unit = {}) = viewModelScope.launch {
+        val bookId = data.mybookId
+        val totalPage = data.bookInfo.totalPage
+        if (page == totalPage) {
+            addCompletedRecord(bookId, text, onSuccess)
+            return@launch
+        }
         repository.addThink(bookId, text, page).collect {
             when (it) {
                 is ApiResult.Loading -> {

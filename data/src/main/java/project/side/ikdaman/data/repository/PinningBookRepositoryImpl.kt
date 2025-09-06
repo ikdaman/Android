@@ -12,11 +12,15 @@ class PinningBookRepositoryImpl (
         return pinningBookService.pinnedItems
     }
 
-    override fun setPinningBook(bookId: String): Flow<Boolean> {
+    override suspend fun setPinningBook(bookId: String): Boolean {
         return pinningBookService.pinItem(bookId)
     }
 
-    override fun removePinningBook(bookId: String): Flow<Boolean> {
+    override suspend fun removePinningBook(bookId: String): Boolean {
         return pinningBookService.unpinItem(bookId)
+    }
+
+    override suspend fun updatePinningBooks(bookIds: Set<String>): Boolean {
+        return pinningBookService.clearAndAddAll(bookIds)
     }
 }

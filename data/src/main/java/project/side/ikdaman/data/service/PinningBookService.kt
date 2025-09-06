@@ -1,14 +1,13 @@
 package project.side.ikdaman.data.service
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "pinned_settings")
@@ -26,24 +25,41 @@ class PinningBookService(private val context: Context) {
         }
 
     // 항목 고정
-    fun pinItem(itemId: String) = flow {
-        context.dataStore.edit { preferences ->
-            val currentPinned = preferences[PINNED_ITEMS_KEY] ?: emptySet()
-            preferences[PINNED_ITEMS_KEY] = currentPinned + itemId
+    suspend fun pinItem(itemId: String): Boolean {
+        try {
+            context.dataStore.edit { preferences ->
+                val currentPinned = preferences[PINNED_ITEMS_KEY] ?: emptySet()
+                preferences[PINNED_ITEMS_KEY] = currentPinned + itemId
+            }
+            return true
+        } catch (e: Exception) {
+            Log.e("PinningBookService", "pinItem: $e")
+            return false
         }
-        emit(true)
-    }.catch {
-        emit(false)
     }
 
     // 항목 고정 해제
-    fun unpinItem(itemId: String) = flow {
-        context.dataStore.edit { preferences ->
-            val currentPinned = preferences[PINNED_ITEMS_KEY] ?: emptySet()
-            preferences[PINNED_ITEMS_KEY] = currentPinned - itemId
+    suspend fun unpinItem(itemId: String): Boolean {
+        try {
+            context.dataStore.edit { preferences ->
+                val currentPinned = preferences[PINNED_ITEMS_KEY] ?: emptySet()
+                preferences[PINNED_ITEMS_KEY] = currentPinned - itemId
+            }
+            return true
+        } catch (e: Exception) {
+            return false
         }
-        emit(true)
-    }.catch {
-        emit(false)
+    }
+
+    suspend fun clearAndAddAll(bookIds: Set<String>): Boolean {
+        Log.d("PinningBookService", "clearAndAddAll: $bookIds")
+        try {
+            context.dataStore.edit { preferences ->
+                preferences[PINNED_ITEMS_KEY] = bookIds
+            }
+            return true
+        } catch (e: Exception) {
+            return false
+        }
     }
 }

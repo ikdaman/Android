@@ -1,7 +1,5 @@
 import android.util.Log
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,6 +16,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import project.side.ikdaman.core.utils.noEffectClick
 import project.side.ikdaman.feature.home.HomeTextStyles
 
 @Composable
@@ -42,11 +41,10 @@ fun ExpandableInlineText(
 
 
     Box(
-        modifier = modifier.clickable(
-            indication = null,
-            interactionSource = remember { MutableInteractionSource() },
-        ) {
-            isExpanded.value = !isExpanded.value
+        modifier = modifier.noEffectClick {
+            if (shouldShowMore) {
+                isExpanded.value = !isExpanded.value
+            }
         })
     {
         Log.i("TAG", "isExpanded: ${isExpanded.value}")
