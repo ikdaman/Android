@@ -18,12 +18,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Switch
@@ -106,6 +109,9 @@ fun MyPageTabUI(
             Modifier
                 .fillMaxSize()
                 .background(Color.White)
+                .padding(bottom = 68.dp)
+                .navigationBarsPadding()
+                .verticalScroll(rememberScrollState())
         ) {
             Text(
                 "${nickname}님,\n안녕하세요!",
@@ -200,7 +206,6 @@ fun MyPageTabUI(
             MyPageMenuItem("공지사항", navigateToNotice)
             MyPageMenuItem("서비스 이용약관") { navigateToLink(string.url_terms_of_service) }
             MyPageMenuItem("개인정보 처리방침") { navigateToLink(string.url_privacy_policy) }
-            MyPageMenuItem("1:1 문의")
         }
 
         // BottomSheet 추가
