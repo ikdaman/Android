@@ -44,6 +44,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
@@ -232,11 +233,11 @@ fun BookShelfTabUI(
                     onNavigateToBookDetail = onNavigateToBookDetail
                 )
             }
-
         }
     }
 }
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun BookShelfList(
     modifier: Modifier = Modifier,
@@ -248,6 +249,9 @@ fun BookShelfList(
     onNavigateToBookSearch: () -> Unit,
     onNavigateToBookDetail: (String) -> Unit
 ) {
+    val itemWidth = (LocalConfiguration.current.screenWidthDp.dp - 40.dp - 52.dp) / 3
+    val itemHeight = itemWidth * (160f / 100f)
+
     if (isEmpty) {
         Box(
             modifier = Modifier
@@ -289,17 +293,21 @@ fun BookShelfList(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.spacedBy(26.dp)
                 ) {
                     for (col in 0..<3) {
                         val book = books.getOrNull(row * 3 + col)
-
                         if (book != null) {
-                            BookItem(book.isCompleted, book.mybookId, book.coverImage) {
+                            BookItem(
+                                modifier = Modifier.size(itemWidth, itemHeight),
+                                isCompleted = book.isCompleted,
+                                myBookId = book.mybookId,
+                                bookImage = book.coverImage
+                            ) {
                                 onNavigateToBookDetail(it)
                             }
                         } else {
-                            Spacer(modifier = Modifier.size(100.dp, 160.dp))
+                            Spacer(modifier = Modifier.size(itemWidth, itemHeight))
                         }
                     }
                 }
@@ -341,6 +349,7 @@ fun BookShelf(modifier: Modifier = Modifier, selectedColor: Color = Palette.firs
 @Preview(showBackground = true)
 @Composable
 fun BookItem(
+    modifier: Modifier = Modifier,
     isCompleted: Boolean = false,
     myBookId: Long = 0,
     bookImage: String = "",
@@ -348,8 +357,7 @@ fun BookItem(
 ) {
     val isLoading = remember { mutableStateOf(true) }
     Box(
-        modifier = Modifier
-            .size(100.dp, 160.dp)
+        modifier = modifier
             .background(Color.White)
             .dropShadow(
                 color = Color.Black.copy(alpha = 0.1f),
