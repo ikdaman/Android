@@ -311,7 +311,11 @@ private fun SearchResultItem(
     bookItem: BookItem,
     onClickAddBookButton: (String) -> Unit
 ) {
-    Row(modifier = Modifier.height(IntrinsicSize.Max)) {
+    Row(
+        modifier = Modifier
+            .height(IntrinsicSize.Max)
+            .padding(vertical = 15.dp)
+    ) {
         AsyncImage(
             model = bookItem.cover,
             contentDescription = "Book Cover",
