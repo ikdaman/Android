@@ -143,8 +143,8 @@ fun LoginScreenUI(
                     Text(text = "가입 시 ", style = LoginTextStyle.TermsRegularText)
                     TermText("이용약관") { navigateToLink(string.url_terms_of_service) }
                     Text(text = " 및 ", style = LoginTextStyle.TermsRegularText)
-                    TermText("개인정보처리방침에") { navigateToLink(string.url_privacy_policy) }
-                    Text(text = " 동의하게 됩니다.", style = LoginTextStyle.TermsRegularText)
+                    TermText("개인정보처리방침") { navigateToLink(string.url_privacy_policy) }
+                    Text(text = "에 동의하게 됩니다.", style = LoginTextStyle.TermsRegularText)
                 }
 
                 Column(

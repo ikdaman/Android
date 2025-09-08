@@ -139,11 +139,8 @@ fun UserInfoScreen(
 
     UserInfoScreenUI(
         isLoading = uiState.isLoading || accountUiState == AccountState.Loading,
+        uiState = uiState,
         focusManager = focusManager,
-        userInfo = uiState.userInfo,
-        nicknameIsValid = uiState.nicknameIsValid,
-        birthdateIsValid = uiState.birthdateIsValid,
-        nicknameIsUnique = uiState.nicknameIsUnique,
         updateNicknameIsValid = viewModel::updateNicknameIsValid,
         updateBirthdateIsValid = viewModel::updateBirthdateIsValid,
         updateUserInfo = viewModel::updateUserInfo,
@@ -166,11 +163,8 @@ private fun navigateToLoginScreen(navController: NavController) {
 @Composable
 fun UserInfoScreenUI(
     isLoading: Boolean = false,
+    uiState: UserInfoUiState = UserInfoUiState(),
     focusManager: FocusManager = LocalFocusManager.current,
-    userInfo: UserInfo,
-    nicknameIsValid: Boolean = true,
-    birthdateIsValid: Boolean = true,
-    nicknameIsUnique: Boolean = true,
     updateNicknameIsValid: (String) -> Unit = {},
     updateBirthdateIsValid: (String) -> Unit = {},
     checkNickname: (String) -> Unit = {},
@@ -184,11 +178,13 @@ fun UserInfoScreenUI(
     val gender = remember { mutableStateOf(Gender.NONE) }
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
     val coroutineScope = rememberCoroutineScope()
+    val nicknameIsError =
+        !uiState.nicknameIsValid || (uiState.nicknameIsChecked && !uiState.nicknameIsUnique)
 
-    LaunchedEffect(userInfo) {
-        nickname.value = TextFieldValue(userInfo.nickname)
-        birthdate.value = TextFieldValue(userInfo.birthdate ?: "")
-        gender.value = Gender.toGender(userInfo.gender ?: "")
+    LaunchedEffect(uiState.userInfo) {
+        nickname.value = TextFieldValue(uiState.userInfo.nickname)
+        birthdate.value = TextFieldValue(uiState.userInfo.birthdate ?: "")
+        gender.value = Gender.toGender(uiState.userInfo.gender ?: "")
     }
 
     Scaffold(
@@ -227,10 +223,10 @@ fun UserInfoScreenUI(
                 modifier = Modifier.padding(top = 37.dp, start = 3.dp, bottom = 37.dp)
             )
             UserInfoLabel("* 닉네임")
-            Row(modifier = Modifier.padding(top = 10.dp)) {
+            Row {
                 UserInfoTextField(
                     modifier = Modifier.weight(1f),
-                    isError = (!nicknameIsValid && nickname.value.text.isBlank()) || !nicknameIsUnique,
+                    isError = nicknameIsError,
                     bringIntoViewRequester = bringIntoViewRequester,
                     coroutineScope = coroutineScope,
                     value = nickname.value
@@ -244,16 +240,24 @@ fun UserInfoScreenUI(
                     onClick = {
                         checkNickname(nickname.value.text)
                     },
-                    enabled = !nicknameIsValid,
+                    enabled = !uiState.nicknameIsPrev && uiState.nicknameIsValid,
                     style = MyPageTextStyle.CheckButtonText,
                     containerColor = Color(0xFF858585)
+                )
+            }
+            if (nicknameIsError) {
+                Text(
+                    modifier = Modifier.padding(top = 3.dp, start = 5.dp),
+                    text = uiState.message,
+                    style = MyPageTextStyle.TextFieldText,
+                    color = Color.Red
                 )
             }
             UserInfoLabel("생년월일")
             UserInfoTextField(
                 modifier = Modifier.fillMaxWidth(),
                 onlyNumber = true,
-                isError = !birthdateIsValid,
+                isError = !uiState.birthdateIsValid,
                 bringIntoViewRequester = bringIntoViewRequester,
                 coroutineScope = coroutineScope,
                 value = birthdate.value
@@ -305,7 +309,7 @@ fun UserInfoScreenUI(
                         gender.value.genderToString()
                     )
                 },
-                enabled = nicknameIsValid && birthdateIsValid,
+                enabled = uiState.nicknameIsChecked && uiState.nicknameIsUnique && uiState.birthdateIsValid,
                 style = MyPageTextStyle.ButtonText,
                 containerColor = Color.Black,
                 fillMaxWidth = true
@@ -455,5 +459,9 @@ private fun getMessage(accountUiState: AccountState): String? {
 @Preview(showBackground = true)
 @Composable
 fun UserInfoScreenPreview() {
-    UserInfoScreenUI(userInfo = UserInfo("닉네임", "1999-01-01", "male"))
+    UserInfoScreenUI(
+        uiState = UserInfoUiState(
+            userInfo = UserInfo(nickname = "닉네임", birthdate = "1999-01-01", gender = "male")
+        )
+    )
 }

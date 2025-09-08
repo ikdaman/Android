@@ -66,21 +66,15 @@ class UserInfoViewModel @Inject constructor(
                 is ApiResult.Success -> {
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        nicknameIsValid = result.data,
-                        nicknameIsUnique = result.data
+                        nicknameIsUnique = result.data,
+                        nicknameIsChecked = true,
+                        message = if (!result.data) "사용할 수 없는 닉네임입니다." else ""
                     )
-
                     if (result.data) _uiEvent.emit("사용 가능한 닉네임입니다.")
-                    else _uiEvent.emit("사용할 수 없는 닉네임입니다.")
                 }
 
                 is ApiResult.Error -> {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        nicknameIsValid = false,
-                        nicknameIsUnique = false,
-                        message = result.message
-                    )
+                    _uiState.value = _uiState.value.copy(isLoading = false)
                     _uiEvent.emit("오류가 발생했습니다. 잠시 후 다시 시도해 주세요.")
                 }
 
@@ -110,9 +104,15 @@ class UserInfoViewModel @Inject constructor(
     }
 
     fun updateNicknameIsValid(nickname: String) {
+        val regex = Regex("^[가-힣a-zA-Z0-9]{1,15}\$")
+        val isValid = nickname.isNotBlank() && nickname.matches(regex)
+        val isPrev = nickname == uiState.value.userInfo.nickname
         _uiState.value = _uiState.value.copy(
-            nicknameIsValid = nickname == _uiState.value.userInfo.nickname && nickname.isNotBlank(),
-            nicknameIsUnique = true,
+            nicknameIsValid = isValid,
+            nicknameIsChecked = isPrev,
+            nicknameIsUnique = isPrev,
+            nicknameIsPrev = isPrev,
+            message = if (!isValid) "닉네임은 한글/영어/숫자 조합으로 15자 이내로 작성해주세요." else ""
         )
     }
 
@@ -127,8 +127,10 @@ data class UserInfoUiState(
     val isLoading: Boolean = true,
     val isUpdated: Boolean = false,
     val userInfo: UserInfo = UserInfo(),
-    val nicknameIsUnique: Boolean = true,
-    val nicknameIsValid: Boolean = true,
+    val nicknameIsValid: Boolean = true,        // 닉네임 유효성 검사
+    val nicknameIsUnique: Boolean = true,       // 중복확인 결과
+    val nicknameIsChecked: Boolean = true,      // 중복확인 여부
+    val nicknameIsPrev: Boolean = true,         // 현재 닉네임인지 확인
     val birthdateIsValid: Boolean = true,
     val message: String = ""
 )

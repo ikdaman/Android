@@ -17,8 +17,8 @@ class UpdateUserInfoUseCase @Inject constructor(private val userRepository: User
     suspend operator fun invoke(nickname: String, birthdate: String, gender: String): ApiResult<Unit> {
         val userInfo = UserInfo(
             nickname = nickname,
-            birthdate = birthdate.ifEmpty { null },
-            gender = gender.ifEmpty { null }
+            birthdate = birthdate,
+            gender = gender
         )
         return userRepository.updateUserInfo(userInfo)
     }
