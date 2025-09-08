@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,8 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -210,99 +209,93 @@ private fun BottomTabs(
                 .fillMaxWidth()
                 .padding(8.dp)
                 .navigationBarsPadding(),
-            horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Button(
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                onClick = {
-                    mainNavController.popBackStack()
-                    mainNavController.navigate(HOME_ROUTE) {
-                        restoreState = false
-                    }
-                }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = {
+                            mainNavController.popBackStack()
+                            mainNavController.navigate(HOME_ROUTE) {
+                                restoreState = false
+                            }
+                        }),
+                contentAlignment = Alignment.Center
             ) {
-                if (currentRoute == HOME_ROUTE) {
-                    Image(
-                        imageVector = ImageVector.vectorResource(R.drawable.home_enabled),
-                        contentDescription = null
-                    )
-                } else {
-                    Image(
-                        imageVector = ImageVector.vectorResource(R.drawable.home_disabled),
-                        contentDescription = null
-                    )
-                }
+                Image(
+                    modifier = Modifier.size(32.dp),
+                    imageVector = ImageVector.vectorResource(if (currentRoute == HOME_ROUTE) R.drawable.home_enabled else R.drawable.home_disabled),
+                    contentDescription = "Home"
+                )
             }
 
-            Button(
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                elevation = null,
-                onClick = {
-                    mainNavController.popBackStack()
-                    mainNavController.navigate(SEARCH_ROUTE)
-                }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = {
+                            mainNavController.popBackStack()
+                            mainNavController.navigate(SEARCH_ROUTE)
+                        }),
+                contentAlignment = Alignment.Center
             ) {
-                if (currentRoute == SEARCH_ROUTE) {
-                    Image(
-                        imageVector = ImageVector.vectorResource(R.drawable.search_enabled),
-                        contentDescription = null
-                    )
-                } else {
-                    Image(
-                        imageVector = ImageVector.vectorResource(R.drawable.search_disabled),
-                        contentDescription = null
-                    )
-                }
+                Image(
+                    modifier = Modifier.size(32.dp),
+                    imageVector = ImageVector.vectorResource(if (currentRoute == SEARCH_ROUTE) R.drawable.search_enabled else R.drawable.search_disabled),
+                    contentDescription = "Search"
+                )
             }
-            Button(
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                onClick = {
-                    mainNavController.popBackStack()
-                    mainNavController.navigate(BOOKSHELF_ROUTE) {
-                        restoreState = false
-                    }
-                }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = {
+                            mainNavController.popBackStack()
+                            mainNavController.navigate(BOOKSHELF_ROUTE) {
+                                restoreState = false
+                            }
+                        }),
+                contentAlignment = Alignment.Center
             ) {
-                if (currentRoute == BOOKSHELF_ROUTE) {
-                    Image(
-                        imageVector = ImageVector.vectorResource(R.drawable.bookshelf_enabled),
-                        contentDescription = null
-                    )
-                } else {
-                    Image(
-                        imageVector = ImageVector.vectorResource(R.drawable.bookshelf_disabled),
-                        contentDescription = null
-                    )
-                }
+                Image(
+                    modifier = Modifier.size(32.dp),
+                    imageVector = ImageVector.vectorResource(if (currentRoute == BOOKSHELF_ROUTE) R.drawable.bookshelf_enabled else R.drawable.bookshelf_disabled),
+                    contentDescription = "Bookshelf"
+                )
             }
 
-            Button(
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                onClick = {
-                    mainNavController.popBackStack()
-                    mainNavController.navigate(MY_PAGE_ROUTE) {
-                        restoreState = false
-                    }
-                }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = {
+                            mainNavController.popBackStack()
+                            mainNavController.navigate(MY_PAGE_ROUTE) {
+                                restoreState = false
+                            }
+                        }),
+                contentAlignment = Alignment.Center
             ) {
-                if (currentRoute == MY_PAGE_ROUTE) {
-                    Image(
-                        imageVector = ImageVector.vectorResource(R.drawable.mypage_enabled),
-                        contentDescription = null
-                    )
-                } else {
-                    Image(
-                        imageVector = ImageVector.vectorResource(R.drawable.mypage_disabled),
-                        contentDescription = null
-                    )
-                }
+                Image(
+                    modifier = Modifier.size(32.dp),
+                    imageVector = ImageVector.vectorResource(if (currentRoute == MY_PAGE_ROUTE) R.drawable.mypage_enabled else R.drawable.mypage_disabled),
+                    contentDescription = "My Page"
+                )
             }
         }
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, widthDp = 320)
 @Composable
 fun BottomTabsPreView() {
     val mainNavController = rememberNavController()

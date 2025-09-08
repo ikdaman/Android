@@ -60,16 +60,18 @@ class MyBooksApiRepositoryImpl(private val api: MyBookApi) : MyBooksApiRepositor
         emit(ApiResult.Error("Network error: ${it.message}"))
     }
 
-    override fun deleteBook(bookId: String) = flow {
-        val response = api.deleteBook(bookId)
-        if (response.isSuccessful) {
-            emit(ApiResult.Success(Unit))
-        } else {
-            emit(ApiResult.Error("오류 발생"))
+    override suspend fun deleteBook(bookId: String): ApiResult<Unit> {
+        try {
+            val response = api.deleteBook(bookId)
+            return if (response.isSuccessful) {
+                ApiResult.Success(Unit)
+            } else {
+                ApiResult.Error("오류 발생")
+            }
+        } catch (e: Exception) {
+            Log.e("BookApiRepository", "Error deleting book: ${e.message}", e)
+            return ApiResult.Error("Network error: ${e.message}")
         }
-    }.catch {
-        Log.e("BookApiRepository", "Error deleting book: ${it.message}", it)
-        emit(ApiResult.Error("Network error: ${it.message}"))
     }
 
     override fun postImpression(bookId: String, impression: String) = flow {

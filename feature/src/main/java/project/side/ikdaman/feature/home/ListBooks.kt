@@ -74,7 +74,6 @@ fun ListBooks(
     val coroutineScope = rememberCoroutineScope()
 
     val items = pinnedItems + unpinnedItems
-
     val visibleMap = remember { mutableStateMapOf<String, Boolean>() }
 
     // 🛠️ 리스트가 바뀌면 자동으로 visible 상태도 초기화

@@ -21,16 +21,7 @@ inline fun Modifier.noEffectClick(
 }
 
 inline fun Modifier.oneClick(crossinline onClick: () -> Unit): Modifier = composed {
-    val buttonState = remember { mutableStateOf(true) }
-    this.clickable(
-        indication = null,
-        interactionSource = remember { MutableInteractionSource() },
-    ) {
-        if (buttonState.value) {
-            buttonState.value = false
-            onClick()
-        }
-    }
+    oneClick(500L, onClick)
 }
 
 inline fun Modifier.oneClick(delay: Long, crossinline onClick: () -> Unit): Modifier = composed {

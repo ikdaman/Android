@@ -304,8 +304,11 @@ private fun MainBody(
     onDeleteItem: () -> Unit = {},
     onDeleteLog: (BookLogItem) -> Unit
 ) {
+    val expandedIndexState = remember { mutableStateOf<Int?>(null) }
     LazyColumn(
-        modifier = modifier
+        modifier = modifier.noEffectClick {
+            expandedIndexState.value = null
+        }
     ) {
         item {
             Row(
@@ -387,6 +390,9 @@ private fun MainBody(
                 BookProgressBarWithText(
                     LocalConfiguration.current.screenWidthDp - 40,
                     (book.progress.toFloat() / 100),
+                    Modifier.oneClick {
+                        onNavigateToAddRecord()
+                    }
                 )
                 Spacer(Modifier.height(42.dp))
                 AppText(
@@ -477,16 +483,18 @@ private fun MainBody(
             }
         }
 
-        BookLogList(isShowFirstLog, bookLogApiResult, onUpdateLog, onLoadMore, onDeleteLog)
+        BookLogList(isShowFirstLog, bookLogApiResult, expandedIndexState, onUpdateLog, onLoadMore, onDeleteLog)
         item {
             Spacer(Modifier.height(40.dp))
         }
     }
 }
 
+
 private fun LazyListScope.BookLogList(
     isShowFirstLog: Boolean,
     bookLogApiResult: ApiResult<BookLog>,
+    expandedIndex: MutableState<Int?> = mutableStateOf(null),
     onUpdateLog: (BookLogItem, String, String) -> Unit,
     onLoadMore: () -> Unit,
     onDeleteLog: (BookLogItem) -> Unit
@@ -496,7 +504,6 @@ private fun LazyListScope.BookLogList(
             val bookLogs = bookLogApiResult.data.booklogs
             item {
                 // State to track the expanded index
-                val expandedIndex = remember { mutableStateOf<Int?>(null) }
 
                 // If isShowFirstLog is true, expand the first item by default
                 LaunchedEffect(isShowFirstLog, bookLogs.size) {
@@ -522,33 +529,38 @@ private fun LazyListScope.BookLogList(
                         ) {
                             Row(
                                 Modifier
+                                    .fillMaxWidth()
                                     .height(24.dp)
                                     .noEffectClick {
                                         if (isNotOpenLog) {
                                             expandedIndex.value = if (expanded) null else i
                                         }
                                     },
-                                verticalAlignment = Alignment.CenterVertically
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                AppText(
-                                    item.getLogString(),
-                                    style = DetailScreenTextStyle.dateTextStyle,
-                                    modifier = Modifier.width(105.dp)
-                                )
-                                AppText(
-                                    item.getLogTypeText(),
-                                    style = DetailScreenTextStyle.bookLogTitle,
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .padding(horizontal = 6.dp)
-                                )
+                                Row {
+                                    AppText(
+                                        item.getLogString(),
+                                        style = DetailScreenTextStyle.dateTextStyle,
+                                        modifier = Modifier.wrapContentWidth()
+                                    )
+                                    AppText(
+                                        item.getLogTypeText(),
+                                        style = DetailScreenTextStyle.bookLogTitle,
+                                        modifier = Modifier
+                                            .wrapContentWidth()
+                                            .padding(horizontal = 6.dp)
+                                            .basicMarquee()
+                                    )
+                                }
                                 if (isNotOpenLog) {
                                     Image(
                                         imageVector = ImageVector.vectorResource(
                                             if (expanded) R.drawable.arrow_small_up else R.drawable.arrow_small_down
                                         ),
                                         contentDescription = null,
-                                        modifier = Modifier.size(24.dp)
+                                        modifier = Modifier.size(24.dp),
                                     )
                                 }
                             }
@@ -715,7 +727,7 @@ private fun BookInfoView(
                     AppText(
                         "작가",
                         style = DetailScreenTextStyle.bookInfoKey,
-                        modifier = Modifier.width(50.dp)
+                        modifier = Modifier.width(55.dp)
                     )
                     AppText(
                         bookInfo.author,
@@ -731,7 +743,7 @@ private fun BookInfoView(
                     AppText(
                         "출판사",
                         style = DetailScreenTextStyle.bookInfoKey,
-                        modifier = Modifier.width(50.dp)
+                        modifier = Modifier.width(55.dp)
                     )
                     AppText(
                         bookInfo.publisher,
@@ -746,7 +758,7 @@ private fun BookInfoView(
                     AppText(
                         "총 페이지",
                         style = DetailScreenTextStyle.bookInfoKey,
-                        modifier = Modifier.wrapContentWidth(),
+                        modifier = Modifier.width(55.dp),
                     )
                     AppText(
                         "${bookInfo.totalPage}",
@@ -801,7 +813,7 @@ fun BookDetailScreenUIPreview() {
                 BookDetail(
                     mybookId = "1",
                     bookInfo = BookInfo(
-                        title = "(개정판) 소년이 온다",
+                        title = "(개정판) 소년이 온다 (개정판) 소년이 온다 (개정판) 소년이 온다 (개정판) 소년이 온다",
                         coverImage = "https://picsum.photos/182/260?random=1",
                         author = "한강",
                         publisher = "더스토리",

@@ -1,8 +1,6 @@
 package project.side.ikdaman.feature.add_notes
 
 import android.util.Log
-import androidx.compose.foundation.MarqueeAnimationMode
-import androidx.compose.foundation.MarqueeSpacing
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.focusable
@@ -124,7 +122,7 @@ fun AddThinkView(
                                 onValueChange = { newText ->
                                     val number =
                                         newText.replace("null", "").replace("p", "").toIntOrNull()
-                                    if (number != null && number < bookInfo.totalPage) {
+                                    if (number != null && number <= bookInfo.totalPage) {
                                         pageState.value = number
                                     }
                                     if (number == null) {

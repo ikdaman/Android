@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface PinningBookRepository {
     fun getPinningBook(): Flow<Set<String>>
-    fun setPinningBook(bookId: String): Flow<Boolean>
-    fun removePinningBook(bookId: String): Flow<Boolean>
+    suspend fun setPinningBook(bookId: String): Boolean
+    suspend fun removePinningBook(bookId: String): Boolean
+    suspend fun updatePinningBooks(bookIds: Set<String>): Boolean
 }
