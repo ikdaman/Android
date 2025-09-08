@@ -52,7 +52,7 @@ class PinningBookService(private val context: Context) {
     }
 
     suspend fun clearAndAddAll(bookIds: Set<String>): Boolean {
-        Log.d("PinningBookService", "clearAndAddAll: $bookIds")
+
         try {
             context.dataStore.edit { preferences ->
                 preferences[PINNED_ITEMS_KEY] = bookIds

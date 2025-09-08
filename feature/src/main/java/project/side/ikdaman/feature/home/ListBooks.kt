@@ -1,6 +1,5 @@
 package project.side.ikdaman.feature.home
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.core.tween
@@ -75,7 +74,6 @@ fun ListBooks(
     val coroutineScope = rememberCoroutineScope()
 
     val items = pinnedItems + unpinnedItems
-    Log.i("HomeTabUI", "size: ${items.size} pinned: ${pinnedItems.size} unpinned: ${unpinnedItems.size}")
     val visibleMap = remember { mutableStateMapOf<String, Boolean>() }
 
     // 🛠️ 리스트가 바뀌면 자동으로 visible 상태도 초기화

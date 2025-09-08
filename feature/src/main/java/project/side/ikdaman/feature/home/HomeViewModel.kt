@@ -77,13 +77,13 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             val item = unpinnedItems.value.find { it.id == id }
             if (item != null) {
-                if (!setPinningBookUseCase(id).not()) {
+                if (setPinningBookUseCase(id)) {
                     errorMessage.emit("일시적인 오류입니다. 잠시 후 다시 시도해주세요.")
                 }
             } else {
                 val pinnedItem = pinnedItems.value.find { it.id == id }
                 if (pinnedItem != null) {
-                    if (removePinningBookUseCase(id).not()){
+                    if (!removePinningBookUseCase(id)){
                         errorMessage.emit("일시적인 오류입니다. 잠시 후 다시 시도해주세요.")
                     }
                 }

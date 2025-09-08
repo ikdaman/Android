@@ -1,4 +1,3 @@
-import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.Text
@@ -47,7 +46,6 @@ fun ExpandableInlineText(
             }
         })
     {
-        Log.i("TAG", "isExpanded: ${isExpanded.value}")
         AnimatedContent(targetState = isExpanded) { isExpanded ->
             Text(
                 text = if (!isExpanded.value) finalText else AnnotatedString(text),
