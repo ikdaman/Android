@@ -59,6 +59,7 @@ import project.side.ikdaman.core.navigation.MAIN_ROUTE
 import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.core.ui.PretendardFontFamily
+import project.side.ikdaman.core.utils.noEffectClick
 import project.side.ikdaman.core.utils.oneClick
 import project.side.ikdaman.core.view.AddBookButton
 import project.side.ikdaman.core.view.GradientBox
@@ -100,6 +101,11 @@ fun SearchTab(
         searchKeyword = searchKeyword,
         bookItems = bookSearch,
         onClickAddBookButton = viewModel::selectBook,
+        onAddItemDirectly = {
+            viewModel.addItemDirectly(it) {
+               mainNavController.navigate(HOME_ROUTE)
+            }
+        },
         onLoadMoreBooks = viewModel::loadMore,
         onNavigateToBarcodeScanner = {
             appNavController.navigate("${BARCODE_ROUTE}/${FromWhere.FROM_SEARCH}")
@@ -116,6 +122,7 @@ fun SearchTabUI(
     searchKeyword: String = "",
     bookItems: List<BookItem> = listOf(),
     onClickAddBookButton: (String) -> Unit = {},
+    onAddItemDirectly: (BookItem) -> Unit = {},
     onLoadMoreBooks: () -> Unit = {},
     onNavigateToBarcodeScanner: () -> Unit = {}
 ) {
@@ -170,6 +177,7 @@ fun SearchTabUI(
                     SearchResultScreen(
                         bookItems = bookItems,
                         onClickAddBookButton = onClickAddBookButton,
+                        onAddItemDirectly = onAddItemDirectly,
                         onLoadMoreBooks = onLoadMoreBooks
                     )
                 }
@@ -182,6 +190,7 @@ fun SearchTabUI(
 private fun SearchResultScreen(
     bookItems: List<BookItem>,
     onClickAddBookButton: (String) -> Unit,
+    onAddItemDirectly: (BookItem) -> Unit = {},
     onLoadMoreBooks: () -> Unit
 ) {
     val listState = rememberLazyListState()
@@ -205,7 +214,8 @@ private fun SearchResultScreen(
         items(bookItems) { item ->
             SearchResultItem(
                 bookItem = item,
-                onClickAddBookButton = onClickAddBookButton
+                onClickAddBookButton = onClickAddBookButton,
+                onAddItemDirectly = onAddItemDirectly
             )
             Box(
                 modifier = Modifier
@@ -309,12 +319,16 @@ fun SearchTextField(
 @Composable
 private fun SearchResultItem(
     bookItem: BookItem,
-    onClickAddBookButton: (String) -> Unit
+    onClickAddBookButton: (String) -> Unit = {},
+    onAddItemDirectly: (BookItem) -> Unit = {}
 ) {
     Row(
         modifier = Modifier
             .height(IntrinsicSize.Max)
             .padding(vertical = 15.dp)
+            .noEffectClick {
+                onClickAddBookButton(bookItem.isbn)
+            }
     ) {
         AsyncImage(
             model = bookItem.cover,
@@ -351,7 +365,9 @@ private fun SearchResultItem(
             Row(Modifier.fillMaxWidth()) {
                 Spacer(Modifier.weight(1f))
                 AddBookButton(
-                    onClick = { onClickAddBookButton(bookItem.isbn) }
+                    onClick = {
+                        onAddItemDirectly(bookItem)
+                    }
                 )
             }
         }

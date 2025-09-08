@@ -14,9 +14,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import project.side.ikdaman.core.ui.Palette
+import project.side.ikdaman.domain.model.AddBookItem
+import project.side.ikdaman.domain.model.ApiResult
 import project.side.ikdaman.domain.model.BookItem
 import project.side.ikdaman.domain.model.BookSearchResult
 import project.side.ikdaman.domain.repository.PaletteRepository
+import project.side.ikdaman.domain.usecase.PostBookUseCase
+import project.side.ikdaman.domain.usecase.SearchBookWithIsbnUseCase
 import project.side.ikdaman.domain.usecase.SearchBookWithTitleUseCase
 import javax.inject.Inject
 
@@ -25,7 +29,9 @@ private const val TAG = "SearchViewModel"
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val searchBookWithTitleUseCase: SearchBookWithTitleUseCase,
-    private val paletteRepository: PaletteRepository
+    private val searchBookWithIsbnUseCase: SearchBookWithIsbnUseCase,
+    private val paletteRepository: PaletteRepository,
+    private val postBookUseCase: PostBookUseCase,
 ) : ViewModel() {
     val selectedColor = MutableStateFlow(Palette.first)
 
@@ -69,6 +75,20 @@ class SearchViewModel @Inject constructor(
     fun selectBook(isbn: String) {
         viewModelScope.launch {
             _selectedBookIsbn.emit(isbn)
+        }
+    }
+
+    fun addItemDirectly(bookItem: BookItem, onSuccess: () -> Unit = {}) {
+        viewModelScope.launch {
+            val result = searchBookWithIsbnUseCase(bookItem.isbn)
+            if (result.books.isNotEmpty()) {
+                val item = result.books.first()
+                postBookUseCase(AddBookItem(item, "")).collect {
+                    if (it is ApiResult.Success) {
+                        onSuccess()
+                    }
+                }
+            }
         }
     }
 
