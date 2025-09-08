@@ -4,8 +4,10 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -56,6 +59,7 @@ import project.side.ikdaman.core.navigation.MAIN_ROUTE
 import project.side.ikdaman.core.ui.AppTheme
 import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.core.ui.PretendardFontFamily
+import project.side.ikdaman.core.utils.noEffectClick
 import project.side.ikdaman.core.utils.oneClick
 import project.side.ikdaman.core.view.AddBookButton
 import project.side.ikdaman.core.view.GradientBox
@@ -97,6 +101,11 @@ fun SearchTab(
         searchKeyword = searchKeyword,
         bookItems = bookSearch,
         onClickAddBookButton = viewModel::selectBook,
+        onAddItemDirectly = {
+            viewModel.addItemDirectly(it) {
+               mainNavController.navigate(HOME_ROUTE)
+            }
+        },
         onLoadMoreBooks = viewModel::loadMore,
         onNavigateToBarcodeScanner = {
             appNavController.navigate("${BARCODE_ROUTE}/${FromWhere.FROM_SEARCH}")
@@ -113,6 +122,7 @@ fun SearchTabUI(
     searchKeyword: String = "",
     bookItems: List<BookItem> = listOf(),
     onClickAddBookButton: (String) -> Unit = {},
+    onAddItemDirectly: (BookItem) -> Unit = {},
     onLoadMoreBooks: () -> Unit = {},
     onNavigateToBarcodeScanner: () -> Unit = {}
 ) {
@@ -167,6 +177,7 @@ fun SearchTabUI(
                     SearchResultScreen(
                         bookItems = bookItems,
                         onClickAddBookButton = onClickAddBookButton,
+                        onAddItemDirectly = onAddItemDirectly,
                         onLoadMoreBooks = onLoadMoreBooks
                     )
                 }
@@ -179,6 +190,7 @@ fun SearchTabUI(
 private fun SearchResultScreen(
     bookItems: List<BookItem>,
     onClickAddBookButton: (String) -> Unit,
+    onAddItemDirectly: (BookItem) -> Unit = {},
     onLoadMoreBooks: () -> Unit
 ) {
     val listState = rememberLazyListState()
@@ -202,7 +214,8 @@ private fun SearchResultScreen(
         items(bookItems) { item ->
             SearchResultItem(
                 bookItem = item,
-                onClickAddBookButton = onClickAddBookButton
+                onClickAddBookButton = onClickAddBookButton,
+                onAddItemDirectly = onAddItemDirectly
             )
             Box(
                 modifier = Modifier
@@ -306,44 +319,58 @@ fun SearchTextField(
 @Composable
 private fun SearchResultItem(
     bookItem: BookItem,
-    onClickAddBookButton: (String) -> Unit
+    onClickAddBookButton: (String) -> Unit = {},
+    onAddItemDirectly: (BookItem) -> Unit = {}
 ) {
-    Box(
+    Row(
         modifier = Modifier
-            .fillMaxWidth()
+            .height(IntrinsicSize.Max)
             .padding(vertical = 15.dp)
+            .noEffectClick {
+                onClickAddBookButton(bookItem.isbn)
+            }
     ) {
-        Row {
-            AsyncImage(
-                model = bookItem.cover,
-                contentDescription = "Book Cover",
-                modifier = Modifier
-                    .size(width = 80.dp, height = 114.dp)
+        AsyncImage(
+            model = bookItem.cover,
+            contentDescription = "Book Cover",
+            modifier = Modifier
+                .size(width = 80.dp, height = 114.dp)
+                .align(Alignment.CenterVertically),
+            placeholder = ColorPainter(Color.Gray),
+            error = ColorPainter(Color.Red)
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxHeight()
+                .padding(start = 18.dp)
+        ) {
+            Text(
+                text = bookItem.title,
+                style = TextStyle(
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp
+                ),
+                modifier = Modifier.padding(bottom = 3.dp)
             )
-            Column(modifier = Modifier.padding(start = 18.dp)) {
-                Text(
-                    text = bookItem.title,
-                    style = TextStyle(
-                        fontFamily = PretendardFontFamily,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 14.sp
-                    ),
-                    modifier = Modifier.padding(bottom = 3.dp)
+            Text(
+                text = bookItem.author,
+                style = TextStyle(
+                    fontFamily = PretendardFontFamily,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 12.sp
                 )
-                Text(
-                    text = bookItem.author,
-                    style = TextStyle(
-                        fontFamily = PretendardFontFamily,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 12.sp
-                    )
+            )
+            Spacer(Modifier.weight(1f))
+            Row(Modifier.fillMaxWidth()) {
+                Spacer(Modifier.weight(1f))
+                AddBookButton(
+                    onClick = {
+                        onAddItemDirectly(bookItem)
+                    }
                 )
             }
         }
-        AddBookButton(
-            onClick = { onClickAddBookButton(bookItem.isbn) },
-            modifier = Modifier.align(Alignment.BottomEnd)
-        )
     }
 }
 

@@ -251,12 +251,6 @@ fun BarcodeScreenUI(
                 cameraProvider = cameraProvider,
                 barcodeScanner = barcodeScanner
             )
-        } else {
-            NoCameraScreen(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            )
         }
     }
 }
@@ -333,14 +327,6 @@ private fun bindCamera(
     } catch (e: Exception) {
         Log.e("BarcodeScreen", "bindToLifecycle failed: ${e.message}", e)
     }
-}
-
-@Composable
-private fun NoCameraScreen(modifier: Modifier = Modifier) {
-    Text(
-        text = "바코드 스캔을 위해 카메라 권한을 허용해 주세요",
-        modifier = modifier
-    )
 }
 
 @kotlin.OptIn(ExperimentalMaterial3Api::class)
