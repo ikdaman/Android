@@ -33,42 +33,44 @@ class SearchViewModel @Inject constructor(
     private val paletteRepository: PaletteRepository,
     private val postBookUseCase: PostBookUseCase,
 ) : ViewModel() {
-    val selectedColor = MutableStateFlow(Palette.first)
-
     private val _selectedBookIsbn = MutableSharedFlow<String?>(replay = 0)
     val selectedBookIsbn = _selectedBookIsbn.asSharedFlow()
 
-    private val _searchKeyword = MutableStateFlow("")
-    val searchKeyword = _searchKeyword.asStateFlow()
-
-    private val _searchResult: MutableStateFlow<List<BookItem>> = MutableStateFlow(listOf())
-    val searchResult: StateFlow<List<BookItem>> = _searchResult.asStateFlow()
-
-    private var startPage: Int = 1
-    private var cachedSearchResult: BookSearchResult = BookSearchResult()
+    private val _searchUiState = MutableStateFlow(SearchUiState())
+    val searchUiState = _searchUiState.asStateFlow()
 
     private var searchJob: Job? = null
 
     init {
         viewModelScope.launch {
             paletteRepository.getPalette().collect { color ->
-                selectedColor.emit(Palette.getColor(color))
+                _searchUiState.update {
+                    it.copy(
+                        selectedColor = Palette.getColor(color)
+                    )
+                }
             }
         }
     }
 
     fun updateSearchKeyword(title: String) {
-        _searchKeyword.update { title }
+        _searchUiState.update {
+            it.copy(searchKeyword = title)
+        }
         searchJob?.cancel()
         searchJob = viewModelScope.launch(Dispatchers.IO) {
             delay(50L)
             val result = searchBookWithTitleUseCase(
                 keyword = title,
-                startPage = startPage
+                startPage = _searchUiState.value.startPage
             )
-            _searchResult.update { result.books }
-            startPage = 1
-            cachedSearchResult = result
+            _searchUiState.update {
+                it.copy(
+                    searchResult = result.books,
+                    cachedSearchResult = result,
+                    startPage = 1
+                )
+            }
         }
     }
 
@@ -95,13 +97,17 @@ class SearchViewModel @Inject constructor(
     fun loadMore() {
         viewModelScope.launch(Dispatchers.IO) {
             val result = searchBookWithTitleUseCase(
-                keyword = searchKeyword.value,
-                startPage = startPage + 1
+                keyword = _searchUiState.value.searchKeyword,
+                startPage = _searchUiState.value.startPage + 1
             )
-            if (result != cachedSearchResult) {
-                startPage++
-                cachedSearchResult = result
-                _searchResult.update { it + result.books }
+            if (result != _searchUiState.value.cachedSearchResult) {
+                _searchUiState.update {
+                    it.copy(
+                        searchResult = it.searchResult + result.books,
+                        cachedSearchResult = result,
+                        startPage = it.startPage + 1
+                    )
+                }
             }
         }
     }

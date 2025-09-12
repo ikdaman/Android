@@ -76,9 +76,7 @@ fun SearchTab(
     )
 ) {
     val focusManager = LocalFocusManager.current
-    val bookSearch by viewModel.searchResult.collectAsStateWithLifecycle()
-    val searchKeyword by viewModel.searchKeyword.collectAsStateWithLifecycle()
-    val selectedColor by viewModel.selectedColor.collectAsStateWithLifecycle()
+    val uiState by viewModel.searchUiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.selectedBookIsbn.collect {
@@ -96,14 +94,14 @@ fun SearchTab(
 
     SearchTabUI(
         focusManager = focusManager,
-        selectedColor = selectedColor,
+        selectedColor = uiState.selectedColor,
         onSearchKeywordChange = viewModel::updateSearchKeyword,
-        searchKeyword = searchKeyword,
-        bookItems = bookSearch,
+        searchKeyword = uiState.searchKeyword,
+        bookItems = uiState.searchResult,
         onClickAddBookButton = viewModel::selectBook,
         onAddItemDirectly = {
             viewModel.addItemDirectly(it) {
-               mainNavController.navigate(HOME_ROUTE)
+                mainNavController.navigate(HOME_ROUTE)
             }
         },
         onLoadMoreBooks = viewModel::loadMore,
