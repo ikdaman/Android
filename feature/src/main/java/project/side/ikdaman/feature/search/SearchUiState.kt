@@ -10,5 +10,6 @@ data class SearchUiState(
     val searchResult: List<BookItem> = listOf(),
     val selectedColor: Color = Palette.first,
     val startPage: Int = 1,
-    val cachedSearchResult: BookSearchResult = BookSearchResult()
+    val cachedSearchResult: BookSearchResult = BookSearchResult(),
+    val isLoading: Boolean = false
     )

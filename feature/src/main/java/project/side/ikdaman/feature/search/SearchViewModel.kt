@@ -55,7 +55,10 @@ class SearchViewModel @Inject constructor(
 
     fun updateSearchKeyword(title: String) {
         _searchUiState.update {
-            it.copy(searchKeyword = title)
+            it.copy(
+                searchKeyword = title,
+                isLoading = true
+            )
         }
         searchJob?.cancel()
         searchJob = viewModelScope.launch(Dispatchers.IO) {
@@ -68,7 +71,8 @@ class SearchViewModel @Inject constructor(
                 it.copy(
                     searchResult = result.books,
                     cachedSearchResult = result,
-                    startPage = 1
+                    startPage = 1,
+                    isLoading = false
                 )
             }
         }
@@ -96,9 +100,14 @@ class SearchViewModel @Inject constructor(
 
     fun loadMore() {
         viewModelScope.launch(Dispatchers.IO) {
+            _searchUiState.update {
+                it.copy(
+                    isLoading = true
+                )
+            }
             val result = searchBookWithTitleUseCase(
                 keyword = _searchUiState.value.searchKeyword,
-                startPage = _searchUiState.value.startPage + 1
+                startPage = _searchUiState.value.startPage + 1,
             )
             if (result != _searchUiState.value.cachedSearchResult) {
                 _searchUiState.update {
@@ -108,6 +117,11 @@ class SearchViewModel @Inject constructor(
                         startPage = it.startPage + 1
                     )
                 }
+            }
+            _searchUiState.update {
+                it.copy(
+                    isLoading = false
+                )
             }
         }
     }

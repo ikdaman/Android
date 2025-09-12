@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -107,7 +108,8 @@ fun SearchTab(
         onLoadMoreBooks = viewModel::loadMore,
         onNavigateToBarcodeScanner = {
             appNavController.navigate("${BARCODE_ROUTE}/${FromWhere.FROM_SEARCH}")
-        }
+        },
+        isLoading = uiState.isLoading
     )
 }
 
@@ -122,7 +124,8 @@ fun SearchTabUI(
     onClickAddBookButton: (String) -> Unit = {},
     onAddItemDirectly: (BookItem) -> Unit = {},
     onLoadMoreBooks: () -> Unit = {},
-    onNavigateToBarcodeScanner: () -> Unit = {}
+    onNavigateToBarcodeScanner: () -> Unit = {},
+    isLoading: Boolean = false
 ) {
     Scaffold(
         topBar = {
@@ -179,6 +182,14 @@ fun SearchTabUI(
                         onLoadMoreBooks = onLoadMoreBooks
                     )
                 }
+            }
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .padding(paddingValues)
+                        .align(Alignment.Center)
+                        .size(80.dp),
+                )
             }
         }
     }
@@ -419,7 +430,8 @@ private fun SearchTabUIPreview() {
                     itemId = 0,
                     link = ""
                 )
-            }
+            },
+            isLoading = true
         )
     }
 }
