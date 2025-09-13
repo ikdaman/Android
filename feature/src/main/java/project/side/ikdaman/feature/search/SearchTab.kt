@@ -172,7 +172,7 @@ fun SearchTabUI(
                     onSearchTextChanged = onSearchKeywordChange,
                     onNavigateToBarcodeScanner = onNavigateToBarcodeScanner
                 )
-                if (bookItems.isEmpty()) {
+                if (!isLoading && bookItems.isEmpty()) {
                     NoSearchResultScreen(searchKeyword)
                 } else {
                     SearchResultScreen(
@@ -187,8 +187,7 @@ fun SearchTabUI(
                 CircularProgressIndicator(
                     modifier = Modifier
                         .padding(paddingValues)
-                        .align(Alignment.Center)
-                        .size(80.dp),
+                        .align(Alignment.Center),
                 )
             }
         }

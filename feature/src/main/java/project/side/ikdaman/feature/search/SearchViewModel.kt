@@ -8,16 +8,15 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import project.side.ikdaman.core.ui.Palette
 import project.side.ikdaman.domain.model.AddBookItem
 import project.side.ikdaman.domain.model.ApiResult
 import project.side.ikdaman.domain.model.BookItem
-import project.side.ikdaman.domain.model.BookSearchResult
 import project.side.ikdaman.domain.repository.PaletteRepository
 import project.side.ikdaman.domain.usecase.PostBookUseCase
 import project.side.ikdaman.domain.usecase.SearchBookWithIsbnUseCase
@@ -55,18 +54,22 @@ class SearchViewModel @Inject constructor(
 
     fun updateSearchKeyword(title: String) {
         _searchUiState.update {
-            it.copy(
-                searchKeyword = title,
-                isLoading = true
-            )
+            it.copy(searchKeyword = title)
         }
         searchJob?.cancel()
-        searchJob = viewModelScope.launch(Dispatchers.IO) {
-            delay(50L)
-            val result = searchBookWithTitleUseCase(
-                keyword = title,
-                startPage = _searchUiState.value.startPage
-            )
+        searchJob = viewModelScope.launch {
+            delay(100L)
+            val keyword = _searchUiState.value.searchKeyword
+
+            _searchUiState.update { it.copy(isLoading = true) }
+
+            val result = withContext(Dispatchers.IO) {
+                searchBookWithTitleUseCase(
+                    keyword = keyword,
+                    startPage = _searchUiState.value.startPage
+                )
+            }
+
             _searchUiState.update {
                 it.copy(
                     searchResult = result.books,
