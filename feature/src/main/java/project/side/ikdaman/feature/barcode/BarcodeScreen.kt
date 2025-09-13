@@ -82,11 +82,11 @@ private const val CAMERA_PERMISSION = Manifest.permission.CAMERA
 @OptIn(ExperimentalCamera2Interop::class)
 @Composable
 fun BarcodeScreen(
-    navController: NavController,
     fromWhere: String = FromWhere.FROM_MAIN,
-    viewModel: BarcodeViewModel = hiltViewModel(
-        navController.getBackStackEntry(MAIN_ROUTE)
-    )
+    viewModel: BarcodeViewModel = hiltViewModel(),
+    onBack: () -> Unit,
+    onNavigateToAddBookScreen: (String) -> Unit,
+    setNavigateHomeResult: () -> Unit
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -134,26 +134,19 @@ fun BarcodeScreen(
     }
 
     BarcodeScreenUI(
-        onBack = {
-            navController.popBackStack()
-        },
+        onBack = onBack,
         isPermissionGranted = isPermissionGranted,
         lifecycleOwner = lifecycleOwner,
         cameraProvider = cameraProvider,
         bookItem = searchResult,
         barcodeScanner = barcodeScanner,
-        onNavigateToAddBookScreen = {
-            navController.navigate("$ADD_BOOK_ROUTE/$it")
-        },
+        onNavigateToAddBookScreen = { onNavigateToAddBookScreen(it) },
         onAddBook = {
             viewModel.addBook {
                 if (fromWhere == FromWhere.FROM_SEARCH) {
-                    navController.previousBackStackEntry?.savedStateHandle?.set(
-                        "navigateToHome",
-                        true
-                    )
+                    setNavigateHomeResult()
                 }
-                navController.popBackStack()
+                onBack()
             }
         },
         onDismissDialog = {

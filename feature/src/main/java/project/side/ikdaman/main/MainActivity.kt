@@ -9,9 +9,11 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
@@ -39,6 +41,7 @@ import project.side.ikdaman.domain.model.RecordType
 import project.side.ikdaman.feature.add_notes.AddRecordScreen
 import project.side.ikdaman.feature.addbook.AddBookScreen
 import project.side.ikdaman.feature.barcode.BarcodeScreen
+import project.side.ikdaman.feature.barcode.BarcodeViewModel
 import project.side.ikdaman.feature.detail.BookDetailScreen
 import project.side.ikdaman.feature.login.LoginScreen
 import project.side.ikdaman.feature.mypage.NoticeScreen
@@ -87,7 +90,20 @@ class MainActivity : ComponentActivity() {
                         )
                     ) { backStackEntry ->
                         val fromWhere = backStackEntry.arguments?.getString("fromWhere") ?: ""
-                        BarcodeScreen(navController = navController, fromWhere = fromWhere)
+                        BarcodeScreen(
+                            fromWhere = fromWhere,
+                            viewModel = hiltViewModel(backStackEntry),
+                            onBack = { navController.popBackStack() },
+                            onNavigateToAddBookScreen = {
+                                navController.navigate("$ADD_BOOK_ROUTE/$it")
+                            },
+                            setNavigateHomeResult = {
+                                navController.previousBackStackEntry?.savedStateHandle?.set(
+                                    "navigateToHome",
+                                    true
+                                )
+                            }
+                        )
                     }
                     slideComposable(
                         route = "$ADD_BOOK_ROUTE/{isbn}",

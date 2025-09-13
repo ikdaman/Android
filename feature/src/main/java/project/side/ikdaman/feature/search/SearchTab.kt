@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -76,9 +77,7 @@ fun SearchTab(
     )
 ) {
     val focusManager = LocalFocusManager.current
-    val bookSearch by viewModel.searchResult.collectAsStateWithLifecycle()
-    val searchKeyword by viewModel.searchKeyword.collectAsStateWithLifecycle()
-    val selectedColor by viewModel.selectedColor.collectAsStateWithLifecycle()
+    val uiState by viewModel.searchUiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.selectedBookIsbn.collect {
@@ -96,20 +95,21 @@ fun SearchTab(
 
     SearchTabUI(
         focusManager = focusManager,
-        selectedColor = selectedColor,
+        selectedColor = uiState.selectedColor,
         onSearchKeywordChange = viewModel::updateSearchKeyword,
-        searchKeyword = searchKeyword,
-        bookItems = bookSearch,
+        searchKeyword = uiState.searchKeyword,
+        bookItems = uiState.searchResult,
         onClickAddBookButton = viewModel::selectBook,
         onAddItemDirectly = {
             viewModel.addItemDirectly(it) {
-               mainNavController.navigate(HOME_ROUTE)
+                mainNavController.navigate(HOME_ROUTE)
             }
         },
         onLoadMoreBooks = viewModel::loadMore,
         onNavigateToBarcodeScanner = {
             appNavController.navigate("${BARCODE_ROUTE}/${FromWhere.FROM_SEARCH}")
-        }
+        },
+        isLoading = uiState.isLoading
     )
 }
 
@@ -124,7 +124,8 @@ fun SearchTabUI(
     onClickAddBookButton: (String) -> Unit = {},
     onAddItemDirectly: (BookItem) -> Unit = {},
     onLoadMoreBooks: () -> Unit = {},
-    onNavigateToBarcodeScanner: () -> Unit = {}
+    onNavigateToBarcodeScanner: () -> Unit = {},
+    isLoading: Boolean = false
 ) {
     Scaffold(
         topBar = {
@@ -171,7 +172,7 @@ fun SearchTabUI(
                     onSearchTextChanged = onSearchKeywordChange,
                     onNavigateToBarcodeScanner = onNavigateToBarcodeScanner
                 )
-                if (bookItems.isEmpty()) {
+                if (!isLoading && bookItems.isEmpty()) {
                     NoSearchResultScreen(searchKeyword)
                 } else {
                     SearchResultScreen(
@@ -181,6 +182,13 @@ fun SearchTabUI(
                         onLoadMoreBooks = onLoadMoreBooks
                     )
                 }
+            }
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .padding(paddingValues)
+                        .align(Alignment.Center),
+                )
             }
         }
     }
@@ -421,7 +429,8 @@ private fun SearchTabUIPreview() {
                     itemId = 0,
                     link = ""
                 )
-            }
+            },
+            isLoading = true
         )
     }
 }
