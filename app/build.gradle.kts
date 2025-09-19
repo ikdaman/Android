@@ -15,8 +15,8 @@ android {
 
     defaultConfig {
         applicationId = "project.side.ikdaman"
-        versionCode = 5
-        versionName = "1.5"
+        versionCode = 6
+        versionName = "1.0.6"
 
         val kakaoAppKey = properties.getProperty("KAKAO_APP_KEY")
         buildConfigField("String", "KAKAO_APP_KEY", "\"$kakaoAppKey\"")
