@@ -62,7 +62,7 @@ import java.util.Locale
 @Composable
 fun MyPageTab(
     navController: NavController,
-    onPermissionCheck: () -> Unit = {},
+    onPermissionCheck: (() -> Unit) -> Unit = {},
     viewModel: MyPageViewModel = hiltViewModel()
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
@@ -74,8 +74,9 @@ fun MyPageTab(
         selectedTime = uiState.selectedTime,
         navigateToEditProfile = { navController.navigate(USERINFO_ROUTE) },
         onCheckedChanged = {
-            viewModel.toggleAlarm()
-            onPermissionCheck()
+            onPermissionCheck {
+                viewModel.toggleAlarm()
+            }
         },
         onTimeSelected = { viewModel.updateSelectedTime(it) },
         navigateToNotice = { navController.navigate(NOTICE_ROUTE) },

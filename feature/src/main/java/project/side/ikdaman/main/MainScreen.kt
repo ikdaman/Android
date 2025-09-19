@@ -65,7 +65,7 @@ import project.side.ikdaman.feature.search.SearchTab
 @Composable
 fun MainScreen(
     appNavController: NavHostController,
-    onNotificationPermissionCheck: () -> Unit = {}
+    onPermissionCheck: (() -> Unit) -> Unit = {}
 ) {
     val mainNavController = rememberNavController()
     val currentDestination = remember { mutableStateOf(HOME_ROUTE) }
@@ -119,7 +119,7 @@ fun MainScreen(
                 }
                 composable(MY_PAGE_ROUTE) {
                     currentDestination.value = MY_PAGE_ROUTE
-                    MyPageTab(appNavController, onNotificationPermissionCheck)
+                    MyPageTab(appNavController, onPermissionCheck)
                 }
             }
         }
