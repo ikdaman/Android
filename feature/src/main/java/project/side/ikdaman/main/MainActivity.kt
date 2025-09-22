@@ -1,16 +1,19 @@
 package project.side.ikdaman.main
 
 import android.Manifest
+import android.app.AlarmManager
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -41,7 +44,6 @@ import project.side.ikdaman.domain.model.RecordType
 import project.side.ikdaman.feature.add_notes.AddRecordScreen
 import project.side.ikdaman.feature.addbook.AddBookScreen
 import project.side.ikdaman.feature.barcode.BarcodeScreen
-import project.side.ikdaman.feature.barcode.BarcodeViewModel
 import project.side.ikdaman.feature.detail.BookDetailScreen
 import project.side.ikdaman.feature.login.LoginScreen
 import project.side.ikdaman.feature.mypage.NoticeScreen
@@ -50,6 +52,26 @@ import project.side.ikdaman.feature.splash.SplashScreen
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    private var permissionCallback: (() -> Unit)? = null
+
+    private val requestNotificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // 권한이 승인되었을 때 callback 호출
+            permissionCallback?.invoke()
+        } else {
+            // 권한이 거부되었을 때의 처리
+            Toast.makeText(
+                this,
+                "알림 권한이 필요합니다.",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+        permissionCallback = null
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -67,20 +89,8 @@ class MainActivity : ComponentActivity() {
                         LoginScreen(navController)
                     }
                     slideComposable(MAIN_ROUTE) {
-                        MainScreen(navController) {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                if (ContextCompat.checkSelfPermission(
-                                        this@MainActivity,
-                                        Manifest.permission.POST_NOTIFICATIONS
-                                    ) != PackageManager.PERMISSION_GRANTED
-                                ) {
-                                    ActivityCompat.requestPermissions(
-                                        this@MainActivity,
-                                        arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                                        100
-                                    )
-                                }
-                            }
+                        MainScreen(navController) { callback ->
+                            checkPermissions(callback)
                         }
                     }
                     slideComposable(
@@ -159,6 +169,39 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+    }
+
+    private fun checkPermissions(callback: () -> Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val alarmManager = getSystemService(AlarmManager::class.java)
+            if (!alarmManager.canScheduleExactAlarms()) {
+                Toast.makeText(
+                    this@MainActivity,
+                    "정확한 알람 권한이 필요합니다.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                startActivity(intent)
+            } else {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    if (ContextCompat.checkSelfPermission(
+                            this@MainActivity,
+                            Manifest.permission.POST_NOTIFICATIONS
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        // callback을 저장하고 현대적인 방법으로 권한 요청
+                        permissionCallback = callback
+                        requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    } else {
+                        callback()
+                    }
+                } else {
+                    callback()
+                }
+            }
+        } else {
+            callback()
         }
     }
 
