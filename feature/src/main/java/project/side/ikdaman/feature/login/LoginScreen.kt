@@ -55,7 +55,6 @@ fun LoginScreen(
     LaunchedEffect(loginState.value) {
         when (loginState.value) {
             is LoginState.Success -> {
-                // TODO 최초 1번만 튜토리얼 화면으로 이동
                 navigateToHomeScreen(navController)
             }
 
@@ -153,7 +152,7 @@ fun LoginScreenUI(
                         .padding(top = 15.dp)
                 ) {
                     SocialButton(
-                        text = "구글로 시작하기",
+                        text = "Google 계정으로 로그인하기",
                         backgroundColor = Color(0xFFFFFFFF),
                         textColor = Color(0xFF1F1F1F),
                         borderColor = Color(0xFF747775),
@@ -163,7 +162,7 @@ fun LoginScreenUI(
                     }
                     Spacer(Modifier.height(10.dp))
                     SocialButton(
-                        text = "네이버로 시작하기",
+                        text = "Naver 계정으로 로그인",
                         backgroundColor = Color(0xFF03C75A),
                         textColor = Color(0xFFFFFFFF),
                         imageResId = R.drawable.naver_logo
@@ -172,7 +171,7 @@ fun LoginScreenUI(
                     }
                     Spacer(Modifier.height(10.dp))
                     SocialButton(
-                        text = "카카오로 시작하기",
+                        text = "KAKAO 계정으로 로그인",
                         backgroundColor = Color(0xFFFEE500),
                         textColor = Color(0xD9000000),
                         imageResId = R.drawable.kakao_logo
